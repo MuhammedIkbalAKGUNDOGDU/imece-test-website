@@ -1,0 +1,19 @@
+.categories-container {
+  p {
+    font-weight: 900;
+    font-size: 24px;
+  }
+}
+
+.categories-list {
+  display: flex;
+  gap: 50px;
+  overflow-x: scroll;
+}
+
+.categories-box {
+  img {
+    max-width: 120px;
+    max-height: 120px;
+  } 
+}

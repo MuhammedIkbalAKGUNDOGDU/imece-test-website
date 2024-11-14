@@ -1,0 +1,29 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --primary-color: rgba(34, 255, 34, 1);
+}
+
+body{
+  padding: 0%;
+  margin: 0%;
+}
+
+.pointer:hover{
+  cursor: pointer;
+}
+
+.clickable {
+  transition: transform 0.3s ease-in-out; 
+}
+
+.clickable:hover {
+  transform: scale(1.1); 
+}

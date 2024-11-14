@@ -1,0 +1,18 @@
+.satici-container {
+    margin-top: 4.5%;
+    border: 1px solid rgba(34, 255, 34, 1); /* Düzgün bir border tanımı */
+    width: 100vw; /* Ekran genişliğini tamamen kapsar */
+    height: 145px;
+    box-sizing: border-box; /* İçerik ve padding'in sınırlar dahilinde kalmasını sağlar */
+    margin-left: calc(-50vw + 50%); /* İçerik hizalamasını korur */
+    display: flex;
+    align-items: center;
+
+    box-shadow: 0px 8px 24px 0px rgba(149, 157, 165, 0.2);
+  }
+  
+  .satici-container-saticilar{
+    margin-left: 8%;
+    font-weight: 800;
+    font-size: 32px;
+  }

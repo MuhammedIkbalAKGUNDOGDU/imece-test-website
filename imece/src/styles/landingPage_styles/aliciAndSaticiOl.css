@@ -7,7 +7,7 @@
 }
 
 .alicisatici-inner-container {
-  width: 45%;
+  width: 47%;
   border-radius: 20px;
   overflow: hidden;
   position: relative;
@@ -56,6 +56,7 @@
     }
   }
   .alicisatici-inner-container {
+    border-radius: 12px;
     p {
       margin: 0%;
     }

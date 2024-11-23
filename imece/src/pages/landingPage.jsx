@@ -17,7 +17,7 @@ const landingPage = () => {
       <Header />
       <Banner />
       <div style={{ justifyContent: "center", display: "flex" }}>
-        <img className="clickable pointer" src={goBottom} alt="" />
+        <img className="clickable pointer landingPageGoBottom" src={goBottom} alt="" />
       </div>
       <AliciAndSaticiOl />
       <Saticilar />

@@ -75,11 +75,12 @@
   .container-banner {
     position: relative;
     width: 100%;
-    height: 40vh;
+    height: 25vh;
 
     margin-top: 5%;
+    margin-bottom: 5%;
     overflow: hidden; /* Taşan kısımları gizle */
-    border-radius: 30px;
+    border-radius: 12px;
     color: white;
 
     img {
@@ -98,6 +99,7 @@
     font-size: 3rem;
     font-weight: 900;
     line-height: 50px;
+    margin: 0%;
   }
 
   .banner-content {
@@ -133,7 +135,6 @@
   }
 }
 
-
 @media (min-width: 768px) and (max-width: 1500px) {
   .container-banner {
     height: 60vh; /* Banner yüksekliğini bu aralık için ayarla */
@@ -152,10 +153,9 @@
     width: 180px; /* Buton genişliği */
     height: 70px; /* Buton yüksekliği */
     font-size: 20px; /* Yazı boyutu */
-   
   }
 
-  .banner-content{
+  .banner-content {
     width: 80%;
   }
 }

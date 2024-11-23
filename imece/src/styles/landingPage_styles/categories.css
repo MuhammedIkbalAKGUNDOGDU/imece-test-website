@@ -1,7 +1,7 @@
 .categories-container {
   p {
     font-weight: 900;
-    font-size: 24px;
+    font-size: 1.5rem;
   }
 }
 
@@ -18,5 +18,14 @@
     height: 120px;
     max-width: 120px;
     max-height: 120px;
+  }
+}
+
+@media (max-width:768px) {
+  .categories-container {
+    p {
+      font-weight: 900;
+      font-size: 1.3rem;
+    }
   }
 }

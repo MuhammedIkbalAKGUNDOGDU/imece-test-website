@@ -1,8 +1,6 @@
-.pupolars-container {
-  p {
-    font-weight: 900;
-    font-size: 2rem;
-  }
+.popular-title {
+  font-weight: 900;
+  font-size: 2rem;
 }
 .populars-list {
   display: flex;
@@ -23,7 +21,6 @@
 
   grid-template-rows: 10fr 2fr 1fr 6fr 1fr;
   padding: 3%;
-  
 }
 
 .popular-image {
@@ -90,6 +87,9 @@
 }
 
 @media (max-width: 768px) {
+  .popular-title {
+    font-size: 1.5rem;
+  }
   .popular-rating {
     display: flex;
     width: 1rem;

@@ -5,7 +5,7 @@ import incele from "../../assets/vectors/homepage_incele.svg";
 const Populars = () => {
   return (
     <div className="pupolars-container">
-      <p>Popüler Ürünler</p>
+      <p className="popular-title">Popüler Ürünler</p>
       <div className="populars-list">
         <div className="popular-box clickable pointer">
           <div className="popular-image">

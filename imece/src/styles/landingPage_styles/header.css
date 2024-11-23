@@ -55,12 +55,13 @@
     grid-template-columns: 1fr 1fr 1fr 1fr;
     position: fixed;
     bottom: 2%;
-
+    padding: 1%;
     z-index: 1;
   }
 
   .header-buttons {
     flex-direction: column;
+   
     p {
       margin: 0%;
       font-size: smaller;

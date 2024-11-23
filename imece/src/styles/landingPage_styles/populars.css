@@ -15,7 +15,6 @@
 
 .popular-box {
   position: relative;
-  background-color: blueviolet;
   width: 15%;
   height: 50vh;
   box-shadow: 0px 8px 24px rgba(149, 157, 165, 0.2);
@@ -40,7 +39,6 @@
   position: absolute; /* Üst üste yerleştirme için */
   top: 0; /* Üstten hizala */
   left: 0; /* Soldan hizala */
-  background-color: red;
 
   border-radius: 12px; /* Eğer isterseniz, kenarları yuvarlak bırakabilirsiniz */
 }

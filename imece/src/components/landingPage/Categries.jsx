@@ -12,7 +12,6 @@ const Categries = () => {
             alt=""
           />
           <p
-            style={{ fontWeight: "500", textAlign: "center", fontSize: "20px" }}
           >
             Meyveler
           </p>
@@ -23,7 +22,6 @@ const Categries = () => {
             alt=""
           />
           <p
-            style={{ fontWeight: "500", textAlign: "center", fontSize: "20px" }}
           >
             Meyveler
           </p>
@@ -34,7 +32,6 @@ const Categries = () => {
             alt=""
           />
           <p
-            style={{ fontWeight: "500", textAlign: "center", fontSize: "20px" }}
           >
             Meyveler
           </p>
@@ -45,7 +42,6 @@ const Categries = () => {
             alt=""
           />
           <p
-            style={{ fontWeight: "500", textAlign: "center", fontSize: "20px" }}
           >
             Meyveler
           </p>
@@ -56,7 +52,6 @@ const Categries = () => {
             alt=""
           />
           <p
-            style={{ fontWeight: "500", textAlign: "center", fontSize: "20px" }}
           >
             Meyveler
           </p>
@@ -67,7 +62,6 @@ const Categries = () => {
             alt=""
           />
           <p
-            style={{ fontWeight: "500", textAlign: "center", fontSize: "20px" }}
           >
             Meyveler
           </p>
@@ -78,7 +72,6 @@ const Categries = () => {
             alt=""
           />
           <p
-            style={{ fontWeight: "500", textAlign: "center", fontSize: "20px" }}
           >
             Meyveler
           </p>
@@ -89,7 +82,6 @@ const Categries = () => {
             alt=""
           />
           <p
-            style={{ fontWeight: "500", textAlign: "center", fontSize: "20px" }}
           >
             Meyveler
           </p>

@@ -4,13 +4,13 @@ import indirimli from "../../assets/images/indirimli.jfif";
 const IndırımliUrunler = () => {
   return (
     <div className="indirimli-container-0">
-      <div className="indirimli-container">
+      <div className="indirimli-container clickable pointer">
         <p>
           <span className="green">İndirimli</span> ürünler
         </p>
         <img src={indirimli} alt="indirimli Urunler" />
       </div>
-      <div className="indirimli-container">
+      <div className="indirimli-container clickable pointer">
         <p>
           <span className="green">Bizim</span> seçtiklerimiz
         </p>

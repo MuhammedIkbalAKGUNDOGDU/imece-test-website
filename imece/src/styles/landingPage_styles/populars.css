@@ -15,23 +15,34 @@
 
 .popular-box {
   position: relative;
+  background-color: blueviolet;
   width: 15%;
   height: 50vh;
   box-shadow: 0px 8px 24px rgba(149, 157, 165, 0.2);
   border-radius: 18px;
-  padding: 3%;
   display: grid;
+
   grid-template-rows: 10fr 2fr 1fr 6fr 1fr;
+  padding: 3%;
+  
 }
 
 .popular-image {
   width: 100%;
-  img {
-    width: 100%;
+  height: 90%; /* Yüksekliği de tam dolması için ayarlayın */
+  position: relative; /* Konumlandırmayı kontrol etmek için */
+}
 
-    height: 90%;
-    border-radius: 12px;
-  }
+.popular-image img {
+  width: 100%; /* Genişliği tamamen doldur */
+  height: 100%; /* Yüksekliği tamamen doldur */
+  object-fit: cover; /* Görselin orantılı şekilde sığması için */
+  position: absolute; /* Üst üste yerleştirme için */
+  top: 0; /* Üstten hizala */
+  left: 0; /* Soldan hizala */
+  background-color: red;
+
+  border-radius: 12px; /* Eğer isterseniz, kenarları yuvarlak bırakabilirsiniz */
 }
 
 .popular-name {
@@ -111,7 +122,6 @@
     justify-content: space-around;
   }
 
-
   .popular-box {
     position: relative;
     width: 35%;
@@ -121,5 +131,13 @@
     padding: 3%;
     display: grid;
     grid-template-rows: 10fr 2fr 1fr 6fr 1fr;
+  }
+}
+
+@media (max-width: 400px) {
+  .popular-name {
+    font-weight: 700;
+    font-size: 1rem;
+    text-wrap: nowrap;
   }
 }

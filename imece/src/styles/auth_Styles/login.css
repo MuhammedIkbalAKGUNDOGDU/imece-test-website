@@ -33,7 +33,7 @@
   left: 0%;
 }
 
-.login-form{
+.login-form {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -43,9 +43,10 @@
   width: 530px;
 }
 
-
-
 .or-divider {
+  display: flex; /* Flexbox kullanımı */
+  align-items: center; /* Dikey hizalama */
+  justify-content: center; /* Yatay hizalama */
   margin-top: 10px;
   font-size: 14px;
   color: #888;
@@ -53,9 +54,9 @@
   position: relative;
 }
 
-.or-divider::before, 
+.or-divider::before,
 .or-divider::after {
-  content: '';
+  content: "";
   display: inline-block;
   width: 45%;
   height: 1px;
@@ -71,29 +72,27 @@
   margin-left: 0.5rem;
 }
 
-
-.login-input{
+.login-input {
   border-radius: 10px;
   margin-top: 15px;
   margin-bottom: 10px;
-  border: 1px solid rgba(34, 255, 34, 1); 
+  border: 1px solid rgba(34, 255, 34, 1);
 
   height: 35px;
   padding-left: 15px;
-  outline: none; 
-
+  outline: none;
 }
 
 input:focus {
-  border: 2px solid rgba(34, 255, 34, 1); 
-  outline: none; 
+  border: 2px solid rgba(34, 255, 34, 1);
+  outline: none;
 }
 
-.terms{
+.terms {
   margin-top: 15px;
 }
 
-.login-submit-button{
+.login-submit-button {
   margin-top: 15px;
   height: 50px;
   border-radius: 10px;
@@ -104,38 +103,36 @@ input:focus {
   font-size: 20px;
 }
 
-.login-google-button{
+.login-google-button {
   border-radius: 10px;
   background-color: white;
   color: black;
   height: 50px;
   border-width: 0px;
   box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.16);
-
 }
 
-.login-label{
+.login-label {
   font-weight: 500;
- 
 }
 
 .login-google-button {
   display: flex;
-  align-items: center; 
+  align-items: center;
   justify-content: center;
   border-width: 0px;
   padding: 10px 20px;
   background-color: white;
-  border-radius: 10px; 
-  box-shadow: 0 8px 24px 0px rgba(0, 0, 0, 0.1); 
- 
+  border-radius: 10px;
+  box-shadow: 0 8px 24px 0px rgba(0, 0, 0, 0.1);
+
   cursor: pointer;
 }
 
 .login-google-logo {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px; /* Logoyla metin arasındaki boşluk */
+  width: 24px;
+  height: 24px;
+  margin-right: 10px; /* Logoyla metin arasındaki boşluk */
 }
 
 .login-google-button span {
@@ -150,9 +147,72 @@ input:focus {
   font-weight: 400;
   bottom: 1%;
   left: 50%;
-  transform: translateX(-50%); 
+  transform: translateX(-50%);
 }
 
-.login-redirect{
+.login-redirect {
   margin-top: 30px;
+}
+
+@media (max-width: 1050px) {
+  .auth_banner {
+    display: none;
+  }
+  .auth-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth_logo {
+    display: none;
+  }
+  .login-form {
+    width: 100%;
+    height: 100%;
+  }
+
+  .login-redirect {
+    position: absolute;
+    bottom: 2%;
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .or-divider {
+    margin-top: 8px; /* Daha küçük boşluk */
+    margin-bottom: 0.8rem; /* Alt boşluğu azalt */
+    font-size: 12px; /* Daha küçük yazı boyutu */
+  }
+
+  .or-divider::before,
+  .or-divider::after {
+    width: 40%; /* Küçük ekranlar için genişlik */
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+    border-radius: 20px;
+    box-shadow: 0px 10px 36px 0px rgba(0, 0, 0, 0.16);
+    padding: 2rem;
+  }
+  .login-title {
+    font-size: 31px;
+  }
+  .login-label {
+    margin-top: 5%;
+    font-size: 24px;
+  }
+
+  .login-input {
+    height: 54px;
+  }
+  .login-input::placeholder {
+    font-size: 1rem; /* Yazı boyutunu ayarlar */
+    color: gray; /* Yer tutucu metnin rengini değiştirme */
+  }
+  
 }

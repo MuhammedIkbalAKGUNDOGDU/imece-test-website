@@ -20,7 +20,7 @@ const login = () => {
           <img src={logo} alt="" />
         </div>
         <form class="login-form">
-            <h2> <span className="green underlined">İmece'e</span> Hoş geldin</h2>
+            <h2 className="login-title"> <span className="green underlined">İmece'e</span> Hoş geldin</h2>
             <label className="green underlined login-label" for="email">E posta</label>
             <input className="login-input" type="email" id="email" placeholder="E postanı gir" required/>
 

@@ -1,5 +1,5 @@
 import React from "react";
-import Header from "../components/landingPage/Header";
+import Header from "../components/GenerealUse/Header";
 import "../styles/landingpage.css";
 import Banner from "../components/landingPage/Banner";
 import goBottom from "../assets/vectors/goBottom.svg";

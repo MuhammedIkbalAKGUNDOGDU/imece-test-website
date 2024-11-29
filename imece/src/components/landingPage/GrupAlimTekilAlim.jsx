@@ -5,22 +5,16 @@ import "../../styles/landingPage_styles/grupTekil.css";
 const GrupAlimTekilAlim = () => {
   return (
     <div className="grup-tekil-container">
-      <div className="grup-tekil-button-container">
-        <img
-          className="grup-tekil-button clickable pointer"
-          src={grup}
-          alt=""
-        />
+      <div className="grup-tekil-button-container clickable pointer">
+        <img className="grup-tekil-button  " src={grup} alt="" />
 
-        <p className="grup-metin">Grup alım için <span className="green">tıkla</span></p>
+        <p className="grup-metin">
+          Grup alım için <span className="green">tıkla</span>
+        </p>
       </div>
 
-      <div className="grup-tekil-button-container">
-        <img
-          className="grup-tekil-button clickable pointer"
-          src={tekil}
-          alt=""
-        />
+      <div className="grup-tekil-button-container clickable pointer">
+        <img className="grup-tekil-button  " src={tekil} alt="" />
         <p className="grup-metin">
           Tekil alım için <span className="green">tıkla</span>
         </p>

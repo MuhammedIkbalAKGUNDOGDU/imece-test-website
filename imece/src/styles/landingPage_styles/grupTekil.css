@@ -11,6 +11,10 @@
   height: 140px;
 }
 
+.grup-tekil-button:hover .grup-metin {
+  transform: translate(-50%, -50%) scale(1.1); /* Hover durumunda metni büyüt */
+}
+
 .grup-tekil-button-container {
   position: relative;
   width: 45%;
@@ -21,13 +25,16 @@
 }
 
 .grup-metin {
-  position: absolute;
-  bottom: 30%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: white;
-  font-size: large;
-  font-weight: bolder;
+  position: absolute; /* Metin konumlandırması */
+  top: 50%; /* Container'ın ortasına */
+  left: 50%; /* Container'ın ortasına */
+  transform: translate(-50%, -50%) scale(1); /* Merkezleme ve varsayılan ölçek */
+  color: white; /* Metin rengi */
+  font-weight: bold;
+  font-size: 1.5rem; /* Metin boyutu */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6); /* Metin gölgesi */
+  transition: transform 0.3s ease; /* Metin için animasyon */
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {

@@ -1,10 +1,10 @@
 import React from "react";
 import star from "../../assets/vectors/star.svg";
-import incele from "../../assets/vectors/homepage_incele.svg";
+import { FaArrowRightLong } from "react-icons/fa6";
 
 const itemCard = () => {
   return (
-    <div className="popular-box clickable pointer">
+    <div className="popular-box  pointer">
       {/* burada bulunan css claslarının popular ile baslayanlari popular.css dosyasında bulunuyor*/}
 
       <div className="popular-image">
@@ -27,7 +27,10 @@ const itemCard = () => {
       <div style={{ display: "flex", justifyContent: "end" }}>
         <div className="popular-link">
           <p> İncele</p>
-          <img src={incele} alt="" />
+          <div className="popular-arrow">
+            {" "}
+            <FaArrowRightLong className="arrow" />
+          </div>
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ import "../../styles/landingPage_styles/header.css";
 
 const itemCard = () => {
   return (
-    <div className="popular-box clickable pointer">
+    <div className="popular-box  pointer">
       {/* burada bulunan css claslarının popular ile baslayanlari popular.css dosyasında bulunuyor*/}
 
       <div className="popular-image">

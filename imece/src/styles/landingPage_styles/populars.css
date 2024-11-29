@@ -71,6 +71,7 @@
 .popular-link {
   display: flex;
   justify-content: end;
+  align-items: center;
   gap: 5px;
   p {
     margin: 0%;
@@ -80,6 +81,9 @@
     text-align: end;
     text-decoration: underline;
   }
+}
+.popular-arrow {
+  color: rgba(34, 255, 34, 1);
 }
 .popular-link:hover {
   cursor: pointer;
@@ -100,6 +104,7 @@
       font-weight: 700;
     }
   }
+
   .itemcard2-like {
     border-radius: 12px; /* Kenarları yuvarlar */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Hafif gölge */

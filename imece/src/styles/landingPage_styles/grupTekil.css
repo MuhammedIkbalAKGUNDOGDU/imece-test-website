@@ -1,4 +1,5 @@
 .grup-tekil-container {
+  margin-top: 3%;
   display: flex;
   justify-content: space-between;
 }
@@ -14,6 +15,9 @@
   position: relative;
   width: 45%;
   max-width: 45%;
+  img {
+    border: 1.5px solid rgba(34, 255, 34, 1); /* Düzgün bir border tanımı */
+  }
 }
 
 .grup-metin {

@@ -1,0 +1,32 @@
+.products-body {
+  margin: 0% 8%;
+  display: flex;
+  flex-direction: column;
+}
+
+.products-products {
+  margin-top: 3%;
+  display: grid;
+  grid-template-columns: 1fr 9fr;
+}
+.products-products-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+
+@media (max-width: 768px) {
+  .products-body {
+    margin: 0% 4%;
+    padding-top: 10%;
+  }
+  .products-products {
+    margin-top: 3%;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .grupalim-products{
+    display: none;
+  }
+}

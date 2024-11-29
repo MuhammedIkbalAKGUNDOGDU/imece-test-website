@@ -20,7 +20,7 @@
   display: grid;
 
   grid-template-rows: 10fr 2fr 1fr 6fr 1fr;
-  padding: 3%;
+  padding: 1%;
 }
 
 .popular-image {
@@ -81,9 +81,34 @@
     text-decoration: underline;
   }
 }
-
 .popular-link:hover {
   cursor: pointer;
+}
+
+.itemcard2-bottom {
+  display: grid;
+  grid-template-columns: 4fr 1fr;
+  gap: 10px;
+  .popular-link {
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    background-color: rgba(34, 255, 34, 1);
+    p {
+      color: #ffffff;
+    }
+  }
+  .itemcard2-like {
+    border-radius: 12px; /* Kenarları yuvarlar */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Hafif gölge */
+    background-color: #ffffff; /* Arka plan rengi (isteğe bağlı) */
+    padding: 16px; /* İçerik ile kenar arasındaki boşluk */
+    transition: box-shadow 0.3s ease; /* Hover animasyonu için geçiş */
+  }
+
+  .itemcard2-like:hover {
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* Hover üzerine daha belirgin gölge */
+  }
 }
 
 @media (max-width: 768px) {
@@ -96,12 +121,12 @@
     height: 0.75rem;
     gap: 5px;
   }
-  .popular-expression{
-    p{
-      font-size: 0.75rem ;
+  .popular-expression {
+    p {
+      font-size: 0.75rem;
     }
   }
-  .popular-name{
+  .popular-name {
     font-size: 1rem;
   }
   .popular-link {

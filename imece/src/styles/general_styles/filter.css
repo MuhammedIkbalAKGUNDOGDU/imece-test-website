@@ -1,0 +1,75 @@
+.filter-container {
+  position: sticky;
+  top: 2%; /* Üstten ne kadar mesafede sabitleneceğini belirler */
+  width: 10vw;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  max-height: 70vh;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.filter-section {
+  margin-bottom: 24px;
+  padding-bottom: 16px; /* Çizgi ile içerik arasına boşluk ekler */
+  border-bottom: 1px solid #e0e0e0; /* Hafif gri bir çizgi ekler */
+}
+.filter-section:last-child {
+  border-bottom: none; /* Son bölümde çizgiyi kaldırır */
+  margin-bottom: 0; /* Son bölümde gereksiz boşluğu kaldırır */
+}
+
+.filter-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filter-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filter-list li {
+  margin-bottom: 8px;
+}
+
+.filter-list label {
+  font-size: 14px;
+  color: #555555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.filter-list input {
+  margin-right: 8px;
+}
+
+.filter-list input[type="checkbox"],
+.filter-list input[type="radio"] {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+.filter-list label:hover {
+  color: #000;
+}
+
+.filter-section:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .filter-container {
+    display: none;
+  }
+}

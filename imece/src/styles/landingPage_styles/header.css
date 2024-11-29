@@ -8,7 +8,11 @@
   align-items: center;
   margin-top: 2%;
 }
-
+.container-header .header-buttons svg {
+  width: 36px;
+  height: 36px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Hover için yumuşak geçiş */
+}
 .searchbox {
   display: flex;
   align-items: center;
@@ -22,6 +26,7 @@
     width: 100%;
   }
 }
+
 .searchbox input {
   border-width: 0px;
   outline: none; /* Tıklanınca etrafında yeşil outline çıkmasını engeller */
@@ -48,10 +53,61 @@
   display: none;
 }
 
+.header-buttons.active {
+  background-color: var(--primary-color); /* Aktif durumda arka plan rengi */
+  border-radius: 20px; /* Yuvarlatılmış kenarlar */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Hafif gölge */
+}
+
+.header-buttons.active p {
+  color: white; /* Aktif durumda yazı rengi */
+  font-weight: bold;
+}
+.icon-svg {
+  color: #333;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+/* Aktif durumda ikon renkleri */
+.header-buttons.active .icon-svg {
+  color: white; /* Aktif durumda beyaz renk */
+}
+
+/* Hover durumunda ikonlar */
+.header-buttons:hover .icon-svg {
+  transform: scale(1.1); /* Hafif büyütme efekti */
+}
+
 @media (max-width: 768px) {
   .header-logo {
     display: none;
   }
+  .header-buttons.active {
+    background-color: white; /* Aktif durumda arka plan rengi */
+    border-radius: none; /* Yuvarlatılmış kenarlar */
+    box-shadow: 0 0 0px rgba(0, 0, 0, 0.2); /* Hafif gölge */
+  }
+
+  .header-buttons.active p {
+    color: var(--primary-color); /* Aktif durumda yazı rengi */
+    font-weight: bold;
+  }
+  .header-buttons.pointer:hover p {
+    color: var(--primary-color); /* Aktif durumda yazı rengi */
+    font-weight: bold;
+  }
+
+  /* Aktif durumda ikon renkleri */
+  .header-buttons.active .icon-svg {
+    color: var(--primary-color); /* Aktif durumda beyaz renk */
+  }
+
+  /* Hover durumunda ikonlar */
+  .header-buttons:hover .icon-svg {
+    color: var(--primary-color); /* Aktif durumda beyaz renk */
+    transform: scale(1.1); /* Hafif büyütme efekti */
+  }
+
   .searchbox {
     top: 2%;
     position: fixed;

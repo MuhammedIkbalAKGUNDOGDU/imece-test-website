@@ -1,0 +1,15 @@
+.profile-container {
+    margin: 0% 8%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  @media (max-width: 768px) {
+    .profile-container {
+      margin: 0% 4%;
+      padding-top: 10%;
+    }
+   
+  }
+  
+  

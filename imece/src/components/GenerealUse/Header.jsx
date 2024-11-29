@@ -1,23 +1,25 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // react-router-dom'dan useNavigate'i import et
+import { useNavigate, useLocation } from "react-router-dom";
 
 import "../../styles/landingPage_styles/header.css";
-import logo from "../../assets//vectors/vite.svg";
+import logo from "../../assets/vectors/vite.svg";
 import searchIcon from "../../assets/vectors/search.svg";
-import basket from "../../assets/vectors/sepet.svg";
-import profile from "../../assets/vectors/profil.svg";
-import menu from "../../assets/vectors/menu.svg";
-import urunler from "../../assets/vectors/urunler.svg";
-import homepage from "../../assets/vectors/homePage.svg";
+
+import { PiShoppingCartLight } from "react-icons/pi";
+import { IoHomeOutline } from "react-icons/io5";
+import { CiUser } from "react-icons/ci";
+import { CiShop } from "react-icons/ci";
+import { CiMenuBurger } from "react-icons/ci";
 
 const Header = () => {
-  const navigate = useNavigate(); // Yönlendirme için useNavigate hook'u
+  const navigate = useNavigate(); // Yönlendirme için
+  const location = useLocation(); // Şu anki rotayı almak için
 
   return (
     <div className="container-header">
       <img
-        onClick={() => navigate("/")} // Anasayfa'ya yönlendirme
-        className="header-logo pointer clickable pointer"
+        onClick={() => navigate("/")}
+        className="header-logo pointer clickable"
         src={logo}
         alt=""
       />
@@ -26,40 +28,53 @@ const Header = () => {
         <input type="text" placeholder="Arat.." />
       </div>
       <div
-        className="header-buttons header-homepage clickable pointer"
-        onClick={() => navigate("/")} // Anasayfa'ya yönlendirme
+        className={`header-buttons header-homepage clickable pointer ${
+          location.pathname === "/" ? "active" : ""
+        }`}
+        onClick={() => navigate("/")}
       >
-        {" "}
-        <img className="pointer" src={homepage} alt="" />
+        <div className="header-home-svg icon">
+          <IoHomeOutline className="icon-svg" />
+        </div>
         <p className="pointer">Anasayfa</p>
       </div>
       <div
-        className="header-buttons clickable pointer"
-        onClick={() => navigate("/products")} // urunlere'ya yönlendirme
+        className={`header-buttons clickable pointer ${
+          location.pathname === "/products" ? "active" : ""
+        }`}
+        onClick={() => navigate("/products")}
       >
-        {" "}
-        <img className="pointer" src={urunler} alt="" />
+        <div className="header-products-svg icon">
+          <CiShop className="icon-svg" />
+        </div>
         <p className="pointer">Ürünler</p>
       </div>
       <div
-        className="header-buttons clickable pointer"
-        onClick={() => navigate("/basket")} // sepete'ya yönlendirme
+        className={`header-buttons clickable pointer ${
+          location.pathname === "/basket" ? "active" : ""
+        }`}
+        onClick={() => navigate("/basket")}
       >
-        {" "}
-        <img className="pointer" src={basket} alt="" />
+        <div className="header-basket-svg icon">
+          <PiShoppingCartLight className="icon-svg" />
+        </div>
         <p className="pointer">Sepetin</p>
       </div>
       <div
-        className="header-buttons clickable pointer "
-        onClick={() => navigate("/profile")} // sepete'ya yönlendirme
+        className={`header-buttons clickable pointer ${
+          location.pathname === "/profile" ? "active" : ""
+        }`}
+        onClick={() => navigate("/profile")}
       >
-        {" "}
-        <img className="pointer" src={profile} alt="" />
+        <div className="header-profile-svg icon">
+          <CiUser className="icon-svg" />
+        </div>
         <p className="pointer">Profilin</p>
       </div>
-      <div className="header-buttons header-more clickable pointer ">
-        {" "}
-        <img className="pointer " src={menu} alt="" />
+      <div className={"header-buttons header-more clickable pointer"}>
+        <div className="header-menu-svg icon">
+          <CiMenuBurger className="icon-svg" />
+        </div>
         <p className="pointer">Daha Fazlası</p>
       </div>
     </div>

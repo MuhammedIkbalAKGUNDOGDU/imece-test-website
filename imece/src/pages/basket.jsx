@@ -1,9 +1,13 @@
-import React from 'react'
+import React from "react";
+import Header from "../components/GenerealUse/Header";
+import "../styles/basket.css";
 
 const basket = () => {
   return (
-    <div>basket</div>
-  )
-}
+    <div className="basket-container">
+      <Header />
+    </div>
+  );
+};
 
-export default basket
+export default basket;

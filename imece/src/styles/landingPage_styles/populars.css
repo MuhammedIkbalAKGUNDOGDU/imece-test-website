@@ -98,11 +98,17 @@
     align-items: center;
     border-radius: 12px;
     background-color: rgba(34, 255, 34, 1);
+    transition: box-shadow 0.3s ease; /* Hover animasyonu için geçiş */
+
     p {
       color: #ffffff;
       font-size: 1rem;
       font-weight: 700;
     }
+  }
+
+  .popular-link:hover {
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* Hover üzerine daha belirgin gölge */
   }
 
   .itemcard2-like {

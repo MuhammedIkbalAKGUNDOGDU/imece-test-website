@@ -3,6 +3,8 @@ import star from "../../assets/vectors/star.svg";
 import incele from "../../assets/vectors/homepage_incele_white.svg";
 import like from "../../assets/vectors/favourite.svg";
 import "../../styles/landingPage_styles/header.css";
+import { FaStar } from "react-icons/fa";
+import { FaStarHalf } from "react-icons/fa";
 
 const itemCard = () => {
   return (
@@ -17,18 +19,20 @@ const itemCard = () => {
       </div>
       <div className="popular-name">Lorem, ipsum.</div>
       <div className="popular-rating">
-        <img src={star} alt="" />
-        <img src={star} alt="" />
-        <img src={star} alt="" />
-        <img src={star} alt="" />
-        <img src={star} alt="" />
+        <div className="star-container">
+          <FaStar className="star-icon" />
+          <FaStar className="star-icon" />
+          <FaStar className="star-icon" />
+          <FaStar className="star-icon" />
+          <FaStarHalf className="star-icon" />
+        </div>
       </div>
       <div className="popular-expression">
         <p>Ürün hakkında bilgi içerikli metin..............</p>
       </div>
       <div className="itemcard2-bottom">
         <div className="popular-link">
-          <p> İncele</p>
+          <p> Sepete Ekle</p>
           <img src={incele} alt="" />
         </div>
         <div className="itemcard2-like">

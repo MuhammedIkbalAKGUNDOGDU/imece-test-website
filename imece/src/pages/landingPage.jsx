@@ -17,7 +17,11 @@ const landingPage = () => {
       <Header />
       <Banner />
       <div style={{ justifyContent: "center", display: "flex" }}>
-        <img className="clickable pointer landingPageGoBottom" src={goBottom} alt="" />
+        <img
+          className="clickable pointer landingPageGoBottom"
+          src={goBottom}
+          alt=""
+        />
       </div>
       <AliciAndSaticiOl />
       <Saticilar />
@@ -25,7 +29,7 @@ const landingPage = () => {
       <GrupAlimTekilAlim />
       <Populars />
       <IndirimliUrunler />
-       <Footer /> 
+      <Footer />
     </div>
   );
 };

@@ -11,6 +11,15 @@
   justify-content: space-around;
 }
 
+.star-icon {
+  color: #ffd700; /* Altın sarısı */
+  font-size: 16px; /* Normal boyut */
+  margin: 0 2px; /* Yıldızlar arasında hafif boşluk */
+}
+
+.star-container{
+  display: flex;
+}
 .popular-box {
   position: relative;
   width: 15%;
@@ -101,6 +110,7 @@
     transition: box-shadow 0.3s ease; /* Hover animasyonu için geçiş */
 
     p {
+      text-decoration: none;
       color: #ffffff;
       font-size: 1rem;
       font-weight: 700;

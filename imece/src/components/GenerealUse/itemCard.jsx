@@ -1,6 +1,8 @@
 import React from "react";
 import star from "../../assets/vectors/star.svg";
 import { FaArrowRightLong } from "react-icons/fa6";
+import { FaStar } from "react-icons/fa";
+import { FaStarHalf } from "react-icons/fa";
 
 const itemCard = () => {
   return (
@@ -15,11 +17,13 @@ const itemCard = () => {
       </div>
       <div className="popular-name">Lorem, ipsum.</div>
       <div className="popular-rating">
-        <img src={star} alt="" />
-        <img src={star} alt="" />
-        <img src={star} alt="" />
-        <img src={star} alt="" />
-        <img src={star} alt="" />
+      <div className="star-container">
+      <FaStar className="star-icon" />
+      <FaStar className="star-icon" />
+      <FaStar className="star-icon" />
+      <FaStar className="star-icon" />
+      <FaStarHalf className="star-icon" />
+    </div>
       </div>
       <div className="popular-expression">
         <p>Ürün hakkında bilgi içerikli metin..............</p>

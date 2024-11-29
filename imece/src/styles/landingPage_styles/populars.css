@@ -96,6 +96,8 @@
     background-color: rgba(34, 255, 34, 1);
     p {
       color: #ffffff;
+      font-size: 1rem;
+      font-weight: 700;
     }
   }
   .itemcard2-like {

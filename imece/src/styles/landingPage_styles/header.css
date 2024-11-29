@@ -1,6 +1,6 @@
 .container-header {
   display: grid;
-  grid-template-columns: 1fr 4fr 1fr 1fr 1fr 1fr ;
+  grid-template-columns: 1fr 4fr 1fr 1fr 1fr 1fr;
   border-radius: 20px;
   box-shadow: 0px 0px 0px 1px rgba(0, 0, 0, 0.06),
     0px 10px 36px 0px rgba(0, 0, 0, 0.16);
@@ -21,6 +21,17 @@
     padding-left: 2%;
     width: 100%;
   }
+}
+.searchbox input {
+  border-width: 0px;
+  outline: none; /* Tıklanınca etrafında yeşil outline çıkmasını engeller */
+  padding-left: 2%;
+  width: 100%;
+}
+
+.searchbox input:focus {
+  border: none;
+  outline: none; /* Outline tamamen kaldırılır */
 }
 
 .header-buttons {
@@ -61,7 +72,7 @@
 
   .header-buttons {
     flex-direction: column;
-   
+
     p {
       margin: 0%;
       font-size: smaller;

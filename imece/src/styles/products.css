@@ -12,7 +12,7 @@
 .products-products-cards {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; /* Kartların yatayda merkezlenmesi */
+  justify-content: space-around; /* Kartların yatayda merkezlenmesi */
   gap: 20px; /* Kartlar arasındaki boşluk */
 }
 

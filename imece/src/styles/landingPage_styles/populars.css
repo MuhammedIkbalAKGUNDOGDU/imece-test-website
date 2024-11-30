@@ -107,6 +107,7 @@
   grid-template-columns: 4fr 1fr;
   gap: 10px;
   .popular-link {
+    display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 12px;
@@ -189,12 +190,37 @@
     display: grid;
     grid-template-rows: 10fr 2fr 1fr 6fr 1fr;
   }
+  .itemcard2-bottom {
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    gap: 10px;
+    .popular-link {
+      p {
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+    }
+  }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 480px) {
   .popular-name {
     font-weight: 700;
     font-size: 1rem;
     text-wrap: nowrap;
+  }
+
+  .itemcard2-bottom {
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    gap: 10px;
+    .popular-link {
+      p {
+        font-size: 0.5rem;
+      }
+      img {
+        width: 12px;
+      }
+    }
   }
 }

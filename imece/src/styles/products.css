@@ -12,9 +12,15 @@
 .products-products-cards {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-around;
+  justify-content: center; /* Kartların yatayda merkezlenmesi */
+  gap: 20px; /* Kartlar arasındaki boşluk */
 }
 
+.products-products-cards > div {
+  flex: 1 1 calc(25% - 20px); /* Kartların genişliğini ekran boyutuna göre ayarla */
+  max-width: calc(25% - 20px); /* Kartların maksimum genişliği */
+  min-width: 175px; /* Kartların minimum genişliği */
+}
 
 @media (max-width: 768px) {
   .products-body {
@@ -26,7 +32,26 @@
     display: grid;
     grid-template-columns: 1fr;
   }
-  .grupalim-products{
+  .grupalim-products {
     display: none;
+  }
+  .products-products-cards > div {
+    flex: 1 1 calc(25% - 10px); /* Kartların genişliğini ekran boyutuna göre ayarla */
+    max-width: calc(25% - 10px); /* Kartların maksimum genişliği */
+    min-width: 160px; /* Kartların minimum genişliği */
+  }
+}
+
+@media (max-width: 480px) {
+  .products-products-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Kartların yatayda merkezlenmesi */
+    gap: 10px; /* Kartlar arasındaki boşluk */
+  }
+  .products-products-cards > div {
+    flex: 1 1 calc(25% - 5x); /* Kartların genişliğini ekran boyutuna göre ayarla */
+    max-width: calc(25% - 5px); /* Kartların maksimum genişliği */
+    min-width: 130px; /* Kartların minimum genişliği */
   }
 }

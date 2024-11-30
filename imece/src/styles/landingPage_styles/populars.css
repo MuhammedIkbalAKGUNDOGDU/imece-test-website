@@ -17,7 +17,7 @@
   margin: 0 2px; /* Yıldızlar arasında hafif boşluk */
 }
 
-.star-container{
+.star-container {
   display: flex;
 }
 .popular-box {
@@ -30,6 +30,10 @@
 
   grid-template-rows: 10fr 2fr 1fr 6fr 1fr;
   padding: 1%;
+}
+
+.popular-box:hover {
+  box-shadow: 12px 12px 24px rgba(149, 157, 165, 0.2);
 }
 
 .popular-image {

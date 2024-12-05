@@ -9,6 +9,7 @@ import RefreshPassowrd from "./pages/refreshPassword";
 import Products from "./pages/products";
 import Profile from "./pages/profile";
 import Basket from "./pages/basket";
+import OrderPage from "./pages/orderPage";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -20,6 +21,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/basket" element={<Basket />}></Route>
       <Route path="/register" element={<Register />}></Route>
       <Route path="/new-password" element={<RefreshPassowrd />}></Route>
+      <Route path="/order-page" element={<OrderPage />}></Route>
     </Routes>
   </BrowserRouter>
 );

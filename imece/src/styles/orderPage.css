@@ -1,0 +1,140 @@
+.order-page-body {
+  margin: 0% 8%;
+}
+
+.order-page-firstslide {
+  display: grid;
+  grid-template-columns: 2.5fr 1fr;
+  height: 80vh;
+  margin-top: 2%;
+}
+
+.order-page-grid1 {
+  display: grid;
+  grid-template-rows: 1.5fr 1fr;
+}
+
+.order-page-photos {
+  img {
+    border-radius: 30px;
+    overflow: hidden;
+  }
+}
+
+.order-page-grid2 {
+  display: flex;
+  flex-direction: column;
+}
+.order-page-seller {
+  position: relative;
+  margin-top: 2%;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 1%;
+  p {
+    margin: 0%;
+  }
+}
+.order-page-seller-1 {
+  display: flex;
+  font-size: 1.5rem;
+  p {
+    font-weight: bold;
+    margin-left: 2%;
+  }
+}
+
+.order-page-seller-2 {
+  display: flex;
+  margin-left: 2%;
+  margin-top: 2%;
+}
+
+.order-page-seller-absolute {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  left: 70%;
+  bottom: 5%;
+}
+.order-page-rate {
+  margin-top: 2%;
+  border-radius: 10px;
+  display: flex;
+  padding-top: 5%;
+  padding-bottom: 5%;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+
+  p {
+    margin: 0%;
+    font-size: 1.5rem;
+  }
+}
+
+.order-page-lab-results {
+  border-radius: 10px;
+  box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 2%;
+  padding: 1%;
+}
+
+.order-page-lab-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.order-page-lab-explanation {
+  margin-top: 1%;
+}
+
+.order-page-price {
+  border-radius: 10px;
+  box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 2%;
+  padding: 1%;
+}
+
+.order-page-lab-button-container {
+  display: flex;
+  justify-content: end;
+  margin-top: 2%;
+}
+
+.order-page-lab-button {
+  background-color: var(--primary-color);
+  padding: 2%;
+  padding-left: 15%;
+  padding-right: 15%;
+  color: white;
+  font-weight: bold;
+  border-radius: 10px;
+}
+
+.order-page-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-page-price-1 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 2%;
+  padding-left: 2%;
+}
+
+.order-page-bold {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+.order-page-price-2 {
+  display: flex;
+  flex-direction: row;
+}

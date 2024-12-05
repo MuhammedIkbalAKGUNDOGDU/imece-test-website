@@ -1,6 +1,6 @@
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    font-weight: 400;
+  font-weight: 400;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -10,19 +10,28 @@
   --primary-color: rgba(34, 255, 34, 1);
 }
 
-body{
+body {
   padding: 0%;
   margin: 0%;
 }
 
-.pointer:hover{
+.pointer:hover {
   cursor: pointer;
 }
 
 .clickable {
-  transition: transform 0.3s ease-in-out; 
+  transition: transform 0.3s ease-in-out;
 }
 
 .clickable:hover {
-  transform: scale(1.1); 
+  transform: scale(1.1);
+}
+
+.green {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.underlined {
+  text-decoration: underline;
 }

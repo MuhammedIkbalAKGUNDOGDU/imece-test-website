@@ -5,10 +5,17 @@ import like from "../../assets/vectors/favourite.svg";
 import "../../styles/landingPage_styles/header.css";
 import { FaStar } from "react-icons/fa";
 import { FaStarHalf } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const itemCard = () => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate("/order-page"); 
+  };
+
   return (
-    <div className="popular-box  pointer">
+    <div onClick={handleClick} className="popular-box  pointer">
       {/* burada bulunan css claslarının popular ile baslayanlari popular.css dosyasında bulunuyor*/}
 
       <div className="popular-image">

@@ -6,10 +6,15 @@ import { FaStar } from "react-icons/fa";
 import { FaStarHalf } from "react-icons/fa";
 import productsimg from "../assets/images/productPageImg.png";
 import profilfoto from "../assets/images/profilfoto.png";
-
+import { useEffect } from "react";
 import { FaAward } from "react-icons/fa";
 import ItemCard from "../components/GenerealUse/itemCard2";
 const orderPage = () => {
+  useEffect(() => {
+    // Sayfanın en üstüne kaydır
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <>
       <div className="order-page-body">
@@ -45,7 +50,11 @@ const orderPage = () => {
           <div className="order-page-grid2">
             <div className="order-page-seller">
               <div className="order-page-seller-1">
-                <img className="order-page-profil-photo" src={profilfoto} alt="profilPhoto" />
+                <img
+                  className="order-page-profil-photo"
+                  src={profilfoto}
+                  alt="profilPhoto"
+                />
                 <p>Yusuf Yılmaz</p>
               </div>
               <div className="order-page-seller-2">
@@ -56,9 +65,9 @@ const orderPage = () => {
                   getirtmiş...
                 </p>
               </div>
-              <div className="order-page-seller-absolute">
-                <p>Profili İncele</p>
-                <FaLongArrowAltRight />
+              <div className="order-page-seller-absolute ">
+                <p className="pointer">Profili İncele</p>
+                <FaLongArrowAltRight className="pointer" />
               </div>
             </div>
             <div className="order-page-rate">
@@ -113,10 +122,10 @@ const orderPage = () => {
                 <p>Kalan ürün: 100KG</p>
               </div>
             </div>
-            <div className="order-page-group-buy">
+            <div className="order-page-group-buy pointer clickable">
               <p>Grup Satın Alım</p>
             </div>
-            <div className="order-page-personal-buy">
+            <div className="order-page-personal-buy pointer clickable">
               <p>Tekil Satın Alım</p>
             </div>
           </div>

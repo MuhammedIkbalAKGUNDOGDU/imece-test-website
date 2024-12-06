@@ -8,13 +8,15 @@ import productsimg from "../assets/images/productPageImg.png";
 import profilfoto from "../assets/images/profilfoto.png";
 import { useEffect } from "react";
 import { FaAward } from "react-icons/fa";
+import { useNavigate } from "react-router-dom"; // useNavigate import edildi
 import ItemCard from "../components/GenerealUse/itemCard2";
 const orderPage = () => {
+  const navigate = useNavigate(); // Yönlendirme için useNavigate kullanıldı
+
   useEffect(() => {
     // Sayfanın en üstüne kaydır
     window.scrollTo(0, 0);
   }, []);
-
   return (
     <>
       <div className="order-page-body">
@@ -122,7 +124,10 @@ const orderPage = () => {
                 <p>Kalan ürün: 100KG</p>
               </div>
             </div>
-            <div className="order-page-group-buy pointer clickable">
+            <div
+              onClick={() => navigate("/order-page/create-group")}
+              className="order-page-group-buy pointer clickable"
+            >
               <p>Grup Satın Alım</p>
             </div>
             <div className="order-page-personal-buy pointer clickable">

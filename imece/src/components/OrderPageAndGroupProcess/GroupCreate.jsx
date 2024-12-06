@@ -15,7 +15,7 @@ const GroupCreate = () => {
             Grubuna Yeni kişiler kat ve daha ucuza al
           </p>
         </div>
-        <div className="createGroup-Button-create">Grup Oluştur</div>
+        <div className="createGroup-Button-create pointer clickable">Grup Oluştur</div>
       </div>
       <div className="groupCreateContainer-2">
         <GroupCreateElement />

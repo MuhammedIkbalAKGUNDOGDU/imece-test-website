@@ -96,7 +96,7 @@ const orderPage = () => {
                 />
               </div>
               <p>imece Onaylı</p>
-              <FaAward />
+              <FaAward color="yellow" />
             </div>
             <div className="order-page-lab-results">
               <div className="order-page-lab-title">Labaratuvar sonuçları</div>

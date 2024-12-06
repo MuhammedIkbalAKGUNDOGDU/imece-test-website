@@ -1,0 +1,22 @@
+.createGroup-container {
+  margin: 0% 8%;
+}
+
+.createGroup-firstslide {
+  display: grid;
+  grid-template-columns: 1fr 2.5fr;
+  margin-top: 2%;
+}
+
+.createGroup-img {
+  overflow: hidden;
+  border-radius: 30px;
+  width: 100%;
+  max-width: 100%;
+  img {
+    max-width: 100%;
+
+    border-radius: 30px;
+    overflow: hidden;
+  }
+}

@@ -1,7 +1,11 @@
 import React from "react";
 import "../../styles/GroupAndBuyProcess/groupCreate.css";
-import GroupCreateElement from "./GroupCreateElement";
+import GroupCreateElement from "./ChooseGroupElement";
+import { useNavigate } from "react-router-dom"; // useNavigate import edildi
+
 const GroupCreate = () => {
+  const navigate = useNavigate(); // Yönlendirme için useNavigate kullanıldı
+
   return (
     <div className="groupCreateContainer">
       <div className="groupCreateContainer-1">
@@ -15,7 +19,12 @@ const GroupCreate = () => {
             Grubuna Yeni kişiler kat ve daha ucuza al
           </p>
         </div>
-        <div className="createGroup-Button-create pointer clickable">Grup Oluştur</div>
+        <div
+          onClick={() => navigate("/order-page/create-group")}
+          className="createGroup-Button-create pointer clickable"
+        >
+          Grup Oluştur
+        </div>
       </div>
       <div className="groupCreateContainer-2">
         <GroupCreateElement />

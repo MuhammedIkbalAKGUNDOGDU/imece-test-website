@@ -125,7 +125,7 @@ const orderPage = () => {
               </div>
             </div>
             <div
-              onClick={() => navigate("/order-page/create-group")}
+              onClick={() => navigate("/order-page/choose-group")}
               className="order-page-group-buy pointer clickable"
             >
               <p>Grup Satın Alım</p>

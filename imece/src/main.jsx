@@ -10,8 +10,8 @@ import Products from "./pages/products";
 import Profile from "./pages/profile";
 import Basket from "./pages/basket";
 import OrderPage from "./pages/orderPage";
-import GroupBuy from "./pages/groupBuy";
-import CreateGrop from "./pages/createGrop";
+import ChooseGroup from "./pages/chooseGroup";
+import CreateGroup from "./pages/createGroup";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
@@ -23,8 +23,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/register" element={<Register />}></Route>
       <Route path="/new-password" element={<RefreshPassowrd />}></Route>
       <Route path="/order-page" element={<OrderPage />}></Route>
-      <Route path="/order-page/group-Buy" element={<GroupBuy />}></Route>
-      <Route path="/order-page/create-group" element={<CreateGrop />}></Route>
+      <Route path="/order-page/choose-group" element={<ChooseGroup />}></Route>
+      <Route path="/order-page/create-group" element={<CreateGroup />}></Route>
     </Routes>
   </BrowserRouter>
 );

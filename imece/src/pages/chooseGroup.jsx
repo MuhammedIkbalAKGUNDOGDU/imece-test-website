@@ -8,7 +8,7 @@ import { FaAward } from "react-icons/fa";
 import productsimg from "../assets/images/productPageImg.png";
 import profilfoto from "../assets/images/profilfoto.png";
 import ItemCard from "../components/GenerealUse/itemCard2";
-import GroupCreate from "../components/OrderPageAndGroupProcess/GroupCreate";
+import ChooseGroup from "../components/OrderPageAndGroupProcess/ChooseGroup";
 
 const createGrop = () => {
   return (
@@ -75,7 +75,7 @@ const createGrop = () => {
         </div>
 
         <div className="createGroup-">
-          <GroupCreate />
+          <ChooseGroup />
         </div>
       </div>
 

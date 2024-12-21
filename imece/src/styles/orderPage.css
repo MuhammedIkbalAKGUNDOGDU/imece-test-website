@@ -214,12 +214,13 @@
 }
 
 @media (max-width: 768px) {
+  
   .order-page-body {
     margin: 0% 0%;
   }
   .order-page-firstslide {
     display: flex;
-    margin-top: 2%;
+    margin-top: 0%;
     flex-direction: column;
   }
 

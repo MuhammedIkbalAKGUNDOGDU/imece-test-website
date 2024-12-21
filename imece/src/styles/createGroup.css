@@ -21,4 +21,133 @@
   }
 }
 
+.real-create-group {
+  margin: 0% 8%;
+}
 
+.createGroup-firstslide1 {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 50px;
+  margin-top: 2%;
+}
+
+.createGroup-1 {
+  border-radius: 30px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06); /* Gölge */
+  padding: 2%;
+  display: flex;
+  flex-direction: column;
+  max-width: fit-content;
+}
+.createGroup-1-name {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.orange {
+  color: orange;
+  font-weight: bold;
+}
+
+.createGroup-1-bold-underlined {
+  font-weight: bold;
+  text-decoration: underline;
+  font-size: 1.25rem;
+}
+
+.flex-1 {
+  display: flex;
+  gap: 50px;
+}
+.flex-2 {
+  display: flex;
+  gap: 20px;
+}
+.notmargin {
+  margin: 0%;
+}
+.createGroup-1-button {
+  border: #ff7a00 1px solid;
+  border-radius: 12px;
+  padding: 5%;
+  padding-right: 20%;
+  padding-left: 20%;
+  font-weight: bold;
+}
+.createGroup-1-button-2 {
+  border: #ff7a00 1px solid;
+  border-radius: 12px;
+  padding: 1%;
+  padding-right: 2%;
+  padding-left: 2%;
+  font-weight: bold;
+}
+.createGroup-1-button:hover {
+  cursor: pointer;
+}
+.createGroup-1-button-2:hover {
+  cursor: pointer;
+}
+.createGroup-1-button-active:hover {
+  cursor: pointer;
+}
+.createGroup-1-button-2-active:hover {
+  cursor: pointer;
+}
+.createGroup-1-button-active {
+  border: #ff7a00 1px solid;
+  border-radius: 12px;
+  padding: 5%;
+  padding-right: 20%;
+  padding-left: 20%;
+  font-weight: bold;
+  background-color: #ff7a00;
+  color: white;
+}
+.createGroup-1-button-2-active {
+  border: #ff7a00 1px solid;
+  border-radius: 12px;
+  padding: 1%;
+  padding-right: 2%;
+  padding-left: 2%;
+  font-weight: bold;
+  background-color: #ff7a00;
+  color: white;
+}
+.createGroup-1-input {
+  padding: 6.5%;
+  border-radius: 12px;
+  border: 1px solid #ff7a00;
+  outline: none;
+}
+.createGroup-1-input:focus {
+  outline: none;
+  border-color: #ff7a00;
+}
+
+.mt-2 {
+  margin-top: 2%;
+}
+.ml-2 {
+  margin-left: 2%;
+}
+.blue {
+  color: #4285f4;
+}
+.gray {
+  color: gray;
+}
+.createGroup-1-button-3 {
+  color: white;
+  font-weight: bold;
+  font-size: 1.5rem;
+  background-color: #ff7a00;
+  border-radius: 10px;
+  padding: 2%;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+.createGroup-1-button-3:hover {
+  cursor: pointer;
+}

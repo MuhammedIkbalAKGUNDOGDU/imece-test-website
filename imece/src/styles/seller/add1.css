@@ -1,0 +1,165 @@
+.urunEkle1Container {
+  display: grid;
+  grid-template-columns: 1fr 5fr;
+}
+.urunEkle1Container-gridrigth > div {
+  display: flex;
+  flex-direction: column;
+}
+.urunEkle1Container-gridrigth > div {
+  display: flex;
+  flex-direction: column;
+  margin-left: 2%;
+}
+.boldadd {
+  font-weight: bold;
+  font-size: 1.5rem;
+  margin-bottom: 1%;
+  margin-top: 2%;
+}
+.boldadd:hover {
+  cursor: pointer;
+}
+.urunadd1input {
+  box-sizing: border-box;
+  max-width: 1000px;
+  border-radius: 10px;
+  border: 2px solid #c7c7c7;
+  color: #c7c7c7;
+  padding: 1%;
+  font-size: 1rem;
+}
+
+.urunadd1select {
+  box-sizing: border-box;
+  max-width: 1000px;
+  border-radius: 10px;
+  border: 2px solid #c7c7c7;
+  color: #c7c7c7;
+  padding: 1%;
+  font-size: 1rem;
+  transition: border-color 0.3s ease; /* Geçiş efekti */
+  option {
+    color: black;
+  }
+}
+
+.urunadd1textarea {
+  box-sizing: border-box;
+  max-width: 1000px;
+  border-radius: 10px;
+  border: 2px solid #c7c7c7;
+  padding: 1%;
+  font-size: 1rem;
+  transition: border-color 0.3s ease; /* Geçiş efekti */
+}
+
+.urunadd1input.filled,
+.urunadd1select.filled,
+.urunadd1textarea.filled {
+  border-color: #22ff22; /* Eğer değer varsa yeşil renk */
+  color: black;
+}
+
+.urunAdd1Button-coontainer {
+  display: flex;
+  align-items: end;
+  margin-right: 10%;
+}
+.urunAdd1Button {
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border-radius: 10px;
+  width: 150px;
+  text-align: center;
+  padding: 1%;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+.urunAdd1Button:hover {
+  cursor: pointer;
+}
+
+.urunEkle1Container-gridleft {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-left: 20px;
+  border-radius: 10px;
+  height: 100vh;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #aaa;
+  margin-top: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.step.active .step-number {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.activetext {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.step-number {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.step-title {
+  font-size: 14px;
+}
+
+.urunEkle2-radio-group {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  font-family: Arial, sans-serif;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.radio-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.radio-option input[type="radio"] {
+  display: none; /* Varsayılan radio butonu gizleniyor */
+}
+
+.radio-option span {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  background-color: #f0f0f0;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.radio-option input[type="radio"]:checked + span {
+  background-color: var(--primary-color); /* Yeşil arka plan */
+  color: white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}

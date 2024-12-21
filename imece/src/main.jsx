@@ -12,6 +12,10 @@ import Basket from "./pages/basket";
 import OrderPage from "./pages/orderPage";
 import ChooseGroup from "./pages/chooseGroup";
 import CreateGroup from "./pages/createGroup";
+import AddUrun from "./pages/seller/urunEkle1";
+import AddUrun2 from "./pages/seller/urunEkle2";
+import AddUrun3 from "./pages/seller/urunEkle3";
+import AddUrun4 from "./pages/seller/urunEkle4";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
@@ -25,6 +29,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/order-page" element={<OrderPage />}></Route>
       <Route path="/order-page/choose-group" element={<ChooseGroup />}></Route>
       <Route path="/order-page/create-group" element={<CreateGroup />}></Route>
+      <Route path="/Urun-Ekle-1" element={<AddUrun />}></Route>
+      <Route path="/Urun-Ekle-2" element={<AddUrun2 />}></Route>
+      <Route path="/Urun-Ekle-3" element={<AddUrun3 />}></Route>
+      <Route path="/Urun-Ekle-4" element={<AddUrun4 />}></Route>
     </Routes>
   </BrowserRouter>
 );

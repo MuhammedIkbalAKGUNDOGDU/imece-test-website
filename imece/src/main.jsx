@@ -16,6 +16,7 @@ import AddUrun from "./pages/seller/urunEkle1";
 import AddUrun2 from "./pages/seller/urunEkle2";
 import AddUrun3 from "./pages/seller/urunEkle3";
 import AddUrun4 from "./pages/seller/urunEkle4";
+import GonderiOlustur from "./pages/seller/gonderiOlustur";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
@@ -33,6 +34,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/Urun-Ekle-2" element={<AddUrun2 />}></Route>
       <Route path="/Urun-Ekle-3" element={<AddUrun3 />}></Route>
       <Route path="/Urun-Ekle-4" element={<AddUrun4 />}></Route>
+      <Route path="/gonderi-olustur" element={<GonderiOlustur />}></Route>
     </Routes>
   </BrowserRouter>
 );

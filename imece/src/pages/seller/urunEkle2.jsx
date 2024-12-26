@@ -98,12 +98,20 @@ const UrunEkle2 = () => {
             onChange={handleDescriptionChange}
           />
         </div>
-        <div className="urunAdd1Button-coontainer">
-          <div
-            onClick={() => navigate("/urun-ekle-3")}
-            className="urunAdd1Button"
-          >
-            <p className="notmargin">Devam Et</p>
+        <div>
+          <div className="flex flex-row justify-between px-12">
+            <button
+              className="text-[#22FF22] flex items-center hover:underline"
+              onClick={() => navigate("/urun-ekle-1")}
+            >
+              ← Geri dön
+            </button>
+            <div
+              onClick={() => navigate("/urun-ekle-4")}
+              className="urunAdd1Button"
+            >
+              <p className="px-2 ">Devam Et</p>
+            </div>
           </div>
         </div>
       </div>

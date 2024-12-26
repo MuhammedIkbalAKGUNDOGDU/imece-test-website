@@ -38,7 +38,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/Urun-Ekle-4" element={<AddUrun4 />}></Route>
       <Route path="/gonderi-olustur" element={<GonderiOlustur />}></Route>
       <Route path="/satici-profili-1" element={<SellerProfile />}></Route>
-      <Route path="/satici-profili-2" element={<SellerProfileFromCustomer />}></Route>
+      <Route
+        path="/satici-profili-2"
+        element={<SellerProfileFromCustomer />}
+      ></Route>
     </Routes>
   </BrowserRouter>
 );

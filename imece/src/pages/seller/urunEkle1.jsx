@@ -93,7 +93,7 @@ const UrunEkle1 = () => {
             onClick={() => navigate("/urun-ekle-2")}
             className="urunAdd1Button"
           >
-            <p className="notmargin">Devam Et</p>
+            <p className="px-2">Devam Et</p>
           </div>
         </div>
       </div>

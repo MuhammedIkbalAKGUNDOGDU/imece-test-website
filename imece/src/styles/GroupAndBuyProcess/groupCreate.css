@@ -81,10 +81,7 @@
   cursor: pointer;
 }
 
-.flex {
-  display: flex;
-  align-items: center;
-}
+
 
 .groupCreateElement-name {
   font-weight: bold;

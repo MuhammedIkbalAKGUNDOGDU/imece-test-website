@@ -105,7 +105,10 @@ const UrunEkle4 = () => {
 
             {/* Butonlar */}
             <div className="flex justify-between mt-8">
-              <button className="text-[#22FF22] flex items-center hover:underline" onClick={() => navigate("/urun-ekle-3")}>
+              <button
+                className="text-[#22FF22] flex items-center hover:underline"
+                onClick={() => navigate("/urun-ekle-3")}
+              >
                 ← Geri dön
               </button>
               <div className="flex gap-4">

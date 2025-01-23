@@ -4,6 +4,7 @@ import "../styles/products.css";
 import GrupAlimTekilAlim from "../components/landingPage/GrupAlimTekilAlim";
 import Filter from "../components/GenerealUse/filter";
 import ItemCard from "../components/GenerealUse/itemCard2";
+import MobileFilter from "../components/GenerealUse/mobileFilter";
 const products = () => {
   return (
     <div className="products-body">
@@ -12,6 +13,8 @@ const products = () => {
         {" "}
         <GrupAlimTekilAlim />
       </div>
+      <MobileFilter />
+
       <div className="products-products">
         <Filter />
         <div className="products-products-cards">

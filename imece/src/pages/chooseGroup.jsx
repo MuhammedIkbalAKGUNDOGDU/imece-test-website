@@ -43,7 +43,7 @@ const createGrop = () => {
           </div>
           <div className="order-page-rate">
             <p>4.5</p>
-            <div>
+            <div className="flex">
               {" "}
               <FaStar color="yellow" style={{ width: "2em", height: "20px" }} />
               <FaStar color="yellow" style={{ width: "2em", height: "20px" }} />

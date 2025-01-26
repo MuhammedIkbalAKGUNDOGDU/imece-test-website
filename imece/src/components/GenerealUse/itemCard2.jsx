@@ -6,6 +6,8 @@ import "../../styles/landingPage_styles/header.css";
 import { FaStar } from "react-icons/fa";
 import { FaStarHalf } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { FcLike } from "react-icons/fc";
+import { CiHeart } from "react-icons/ci";
 
 const itemCard = () => {
   const navigate = useNavigate();
@@ -43,7 +45,7 @@ const itemCard = () => {
           <img src={incele} alt="" />
         </div>
         <div className="itemcard2-like">
-          <img src={like} alt="" />
+        <CiHeart />
         </div>
       </div>
     </div>

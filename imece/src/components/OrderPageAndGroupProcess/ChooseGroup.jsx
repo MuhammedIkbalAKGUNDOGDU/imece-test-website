@@ -26,7 +26,7 @@ const GroupCreate = () => {
           Grup Oluştur
         </div>
       </div>
-      <div className="groupCreateContainer-2">
+      <div className="groupCreateContainer-2 scrollbar-hide">
         <GroupCreateElement />
         <GroupCreateElement />
         <GroupCreateElement />

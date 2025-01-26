@@ -46,7 +46,6 @@
   .products-products-cards {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center; /* Kartların yatayda merkezlenmesi */
     gap: 10px; /* Kartlar arasındaki boşluk */
   }
   .products-products-cards > div {

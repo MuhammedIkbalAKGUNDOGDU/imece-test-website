@@ -72,9 +72,9 @@ const orderPage = () => {
                 <FaLongArrowAltRight className="pointer" />
               </div>
             </div>
-            <div className="order-page-rate">
+            <div className="order-page-rate ">
               <p>4.5</p>
-              <div>
+              <div className="flex">
                 {" "}
                 <FaStar
                   color="yellow"

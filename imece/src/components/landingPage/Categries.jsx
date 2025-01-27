@@ -5,30 +5,28 @@ const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const apiUrl = "https://34.22.218.90/api/products/kategoriler/";
+  const apiKey = "fb10ca29411e8fa4725e11ca519b732de5c911769ff1956e84d4";
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(
-          "https://34.22.218.90/api/products/kategoriler/",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "X-API-Key":
-                "fb10ca29411e8fa4725e11ca519b732de5c911769ff1956e84d4",
-            },
-          }
-        );
+        const response = await fetch(apiUrl, {
+          method: "GET",
+          headers: {
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+          },
+        });
 
         if (!response.ok) {
-          throw new Error(`HTTP Hatası: ${response.status}`);
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const data = await response.json();
-        setCategories(data); // Kategorileri state'e kaydet
-      } catch (err) {
-        setError(err.message);
+        setCategories(data);
+      } catch (error) {
+        setError(error.message);
       } finally {
         setIsLoading(false);
       }

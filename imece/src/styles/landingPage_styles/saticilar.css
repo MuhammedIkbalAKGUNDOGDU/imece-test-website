@@ -21,7 +21,7 @@
     .satici-container {
       margin-top: 4.5%;
       border: 1px solid rgba(34, 255, 34, 1); /* Düzgün bir border tanımı */
-      width: 100vw; /* Ekran genişliğini tamamen kapsar */
+      width: 100vw; /* Ekran genişliğini tamamen kapsar */ 
       height: 10vh;
       box-sizing: border-box; /* İçerik ve padding'in sınırlar dahilinde kalmasını sağlar */
       margin-left: calc(-50vw + 50%); /* İçerik hizalamasını korur */

@@ -10,9 +10,10 @@ const login = () => {
 
   const goToOtherPage =() =>{
     navigate("/register");  // Yönlendirme yapılacak sayfanın rotası
-
   }
-
+  const googleLogin =() =>{
+    navigate("/register");  // Yönlendirme yapılacak sayfanın rotası
+  }
   return (
     <div className="auth-container">
       <div className="auth_inner_container">
@@ -38,15 +39,14 @@ const login = () => {
 
             <div class="or-divider">Yada</div>
 
-            <button type="button" class="login-google-button clickable"> 
+            <div onClick={goToOtherPage} class="login-google-button clickable"> 
                 <img className="login-google-logo" src={googleIcon} alt="Google"/> <span> Google ile giriş yap</span>
-            </button>
+            </div>
         </form>
         <div className="login-redirect">Henüz kurulmuş bir hesabınız yok mu? <span onClick={goToOtherPage} className="green pointer" >Şimdi oturum açın</span></div>
       </div>
       
       <div className="auth_banner">
-       
         <img src={banner} alt="" />
         <h2 className="auth-banner-imece" >imece.com</h2>
       </div>

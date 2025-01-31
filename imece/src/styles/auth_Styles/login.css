@@ -101,6 +101,18 @@ input:focus {
   box-shadow: 0px 10px 36px 0px rgba(0, 0, 0, 0.16);
   border-width: 0px;
   font-size: 20px;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.login-submit-button-active {
+  margin-top: 15px;
+  height: 50px;
+  border-radius: 10px;
+  color: white;
+  background-color: var(--primary-color);
+  box-shadow: 0px 10px 36px 0px rgba(0, 0, 0, 0.16);
+  border-width: 0px;
+  font-size: 20px;
 }
 
 .login-google-button {

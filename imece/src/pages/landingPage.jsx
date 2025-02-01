@@ -12,6 +12,11 @@ import IndirimliUrunler from "../components/landingPage/IndirimliUrunler";
 import GrupAlimTekilAlim from "../components/landingPage/GrupAlimTekilAlim";
 
 const landingPage = () => {
+  
+  console.log(
+    "accestoken",localStorage.getItem("accessToken"),
+    "refreshToken",localStorage.getItem("refreshToken")
+  );
   return (
     <div className="landingPage">
       <Header />

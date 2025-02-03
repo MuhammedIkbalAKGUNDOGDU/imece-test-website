@@ -28,7 +28,7 @@
   border-radius: 18px;
   display: grid;
 
-  grid-template-rows: 10fr 2fr 1fr 6fr 1fr;
+  grid-template-rows: 10fr 2fr 1fr 1fr 6fr 1fr;
   padding: 1%;
 }
 

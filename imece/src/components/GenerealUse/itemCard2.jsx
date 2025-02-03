@@ -8,44 +8,94 @@ import { FaStarHalf } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { FcLike } from "react-icons/fc";
 import { CiHeart } from "react-icons/ci";
+import { FaRegStar } from "react-icons/fa6";
+import { useState } from "react";
 
-const itemCard = () => {
+const itemCard = ({ data }) => {
   const navigate = useNavigate();
+  const [liked, setLiked] = useState(false); // Beğenme durumunu takip etmek için
+  const accessToken = localStorage.getItem("accessToken"); // Token'i al
+  const apiKey = "fb10ca29411e8fa4725e11ca519b732de5c911769ff1956e84d4";
 
   const handleClick = () => {
-    navigate("/order-page"); 
+    navigate("/order-page");
+  };
+
+  const rating = parseFloat(data.degerlendirme_puani);
+
+  const renderStars = () => {
+    let stars = [];
+    const fullStars = Math.floor(rating); // Tam yıldız sayısı
+    const hasHalfStar = rating % 1 >= 0.5; // Yarım yıldız kontrolü
+
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<FaStar key={i} className="star-icon" />);
+    }
+
+    if (hasHalfStar) {
+      stars.push(<FaStarHalf key="half" className="star-icon" />);
+    }
+
+    while (stars.length < 5) {
+      stars.push(<FaRegStar key={stars.length} className="star-icon" />);
+    }
+
+    return stars;
+  };
+
+  const handleLike = async (e) => {
+    e.stopPropagation(); // Ürün sayfasına gitmeyi engelle
+
+    if (!accessToken) {
+      console.error("Token bulunamadı. Kullanıcı giriş yapmış mı?");
+      return;
+    }
+
+    try {
+      const apiUrl = `https://34.22.218.90/api/users/kullanicilar/${data.id}/`; // data.id gönderilecek
+
+      await axios.patch(
+        apiUrl,
+        {}, // PATCH isteği için veri gerekmez (sadece ID gidiyor)
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Token ekleniyor
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setLiked(!liked); // Beğenme durumunu değiştir
+    } catch (error) {
+      console.error("Ürün beğenme işlemi sırasında hata oluştu:", error);
+    }
   };
 
   return (
-    <div onClick={handleClick} className="popular-box  pointer">
+    <div  className="popular-box  pointer">
       {/* burada bulunan css claslarının popular ile baslayanlari popular.css dosyasında bulunuyor*/}
 
       <div className="popular-image">
-        <img
-          src="https://s3-alpha-sig.figma.com/img/ebab/4772/fece3f97244726a20a8e0f7945edd37e?Expires=1725235200&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=oq3Gpu9gMnqe~p3NRjPbVQnBSqK5vHexROMkh2yewhm5USW4Z-rexMj87Lxr0qr3aeGuIR0rI8z9KKidZyo68Gf47P-1uuR7VbkhkaKlgyKVeyfR5v8SB4waL~5wnqxzzBokyGpK-dGfVDO6T0sxYlLxh0o5EafLQ-pbrV5PIEn70xYDCKucMpE3aXVCf~NqLG7d3QvH3cMU7JPNqw2osWZUDCTpT61W4FqMzCjuU5qPx7zWcdVrwneIX9f5hMdp-WV7GxZGVVPn85cMaSNhsBfnFsHohZWh7oHlj5-tAqL8-w5OQhjN6G6ABRKjRtTNHVMQx4r0hNr5NsjRJfI1aQ__"
-          alt=""
-        />
+        <img src={data.kapak_gorseli} alt="" />
       </div>
-      <div className="popular-name">Lorem, ipsum.</div>
+      <div className="popular-name">{data.urun_adi}</div>
       <div className="popular-rating">
-        <div className="star-container">
-          <FaStar className="star-icon" />
-          <FaStar className="star-icon" />
-          <FaStar className="star-icon" />
-          <FaStar className="star-icon" />
-          <FaStarHalf className="star-icon" />
-        </div>
+        <div className="star-container">{renderStars()}</div>
+      </div>
+      <div className="font-bold capitalize">
+        1 {data.birimi} {data.fiyat} ₺
       </div>
       <div className="popular-expression">
-        <p>Ürün hakkında bilgi içerikli metin..............</p>
+        <p>{data.aciklama}</p>
       </div>
       <div className="itemcard2-bottom">
         <div className="popular-link">
           <p> Sepete Ekle</p>
           <img src={incele} alt="" />
         </div>
-        <div className="itemcard2-like">
-        <CiHeart />
+        <div className="itemcard2-like" onClick={handleLike}>
+          {liked ? <FcLike size={24} /> : <CiHeart size={24} />}
         </div>
       </div>
     </div>

@@ -3,12 +3,12 @@ import "../../styles/general_styles/filter.css";
 
 const filter = () => {
   return (
-    <div class="filter-container">
-      <div class="filter-section">
-        <h3 class="filter-title">
+    <div className="filter-container">
+      <div className="filter-section">
+        <h3 className="filter-title">
           Kategori <span>▼</span>
         </h3>
-        <ul class="filter-list">
+        <ul className="filter-list">
           <li>
             <label>
               <input type="checkbox" /> Meyveler
@@ -52,11 +52,11 @@ const filter = () => {
         </ul>
       </div>
 
-      <div class="filter-section">
-        <h3 class="filter-title">
+      <div className="filter-section">
+        <h3 className="filter-title">
           Fiyat aralığı <span>▼</span>
         </h3>
-        <ul class="filter-list">
+        <ul className="filter-list">
           <li>
             <label>
               <input type="radio" name="price" /> 300 - 500 TL
@@ -85,11 +85,11 @@ const filter = () => {
         </ul>
       </div>
 
-      <div class="filter-section">
-        <h3 class="filter-title">
+      <div className="filter-section">
+        <h3 className="filter-title">
           Değerlendirme puanı <span>▼</span>
         </h3>
-        <ul class="filter-list">
+        <ul className="filter-list">
           <li>
             <label>
               <input type="radio" name="rating" /> ⭐ 4 yıldız ve üzeri

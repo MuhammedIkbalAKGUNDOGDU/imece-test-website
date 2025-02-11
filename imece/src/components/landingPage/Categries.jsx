@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Axios } from "axios";
 import "../../styles/landingPage_styles/categories.css";
 
 const Categories = () => {
@@ -25,7 +26,6 @@ const Categories = () => {
 
         const data = await response.json();
         setCategories(data);
-        console.log(data);
       } catch (error) {
         setError(error.message);
       } finally {

@@ -26,7 +26,6 @@ const Saticilar = () => {
 
         const data = await response.json();
         setSellers(data);
-        console.log(data);
       } catch (error) {
         setError(error.message);
       } finally {

@@ -1,15 +1,11 @@
-import React from "react";
-import star from "../../assets/vectors/star.svg";
-import incele from "../../assets/vectors/homepage_incele_white.svg";
-import like from "../../assets/vectors/favourite.svg";
-import "../../styles/landingPage_styles/header.css";
-import { FaStar } from "react-icons/fa";
-import { FaStarHalf } from "react-icons/fa";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FcLike } from "react-icons/fc";
 import { CiHeart } from "react-icons/ci";
-import { FaRegStar } from "react-icons/fa6";
-import { useState } from "react";
+import { FaStar, FaStarHalf, FaRegStar } from "react-icons/fa";
+import axios from "axios";
+import "../../styles/landingPage_styles/header.css";
+import incele from "../../assets/vectors/homepage_incele_white.svg";
 
 const itemCard = ({ data }) => {
   const navigate = useNavigate();
@@ -46,20 +42,29 @@ const itemCard = ({ data }) => {
   const handleLike = async (e) => {
     e.stopPropagation(); // Ürün sayfasına gitmeyi engelle
 
+    console.log(data);
     if (!accessToken) {
       console.error("Token bulunamadı. Kullanıcı giriş yapmış mı?");
       return;
     }
 
     try {
-      const apiUrl = `https://34.22.218.90/api/users/kullanicilar/${data.id}/`; // data.id gönderilecek
+      const userId = localStorage.getItem("userId"); // Kullanıcının ID'sini al
+      const apiUrl = `https://34.22.218.90/api/users/kullanicilar/${userId}/`; // Kullanıcı ID'sine göre API isteği yapılacak
+      const productId = data.urun_id; // Beğenilen ürünün ID'si
 
+      // Beğenme durumu kontrolü
+      const requestBody = liked
+        ? { remove_favori_urunler: [productId] } // Eğer beğenildiyse, favoriden çıkar
+        : { favori_urunler: [productId] }; // Eğer beğenilmediyse, favoriye ekle
+
+      // API'ye PATCH isteği gönder
       await axios.patch(
         apiUrl,
-        {}, // PATCH isteği için veri gerekmez (sadece ID gidiyor)
+        requestBody,
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`, // Token ekleniyor
+            Authorization: `Bearer ${accessToken}`,
             "X-API-Key": apiKey,
             "Content-Type": "application/json",
           },
@@ -68,14 +73,12 @@ const itemCard = ({ data }) => {
 
       setLiked(!liked); // Beğenme durumunu değiştir
     } catch (error) {
-      console.error("Ürün beğenme işlemi sırasında hata oluştu:", error);
+      console.error("Ürün favorilere eklenmesi veya çıkarılması sırasında hata oluştu:", error);
     }
   };
 
   return (
-    <div  className="popular-box  pointer">
-      {/* burada bulunan css claslarının popular ile baslayanlari popular.css dosyasında bulunuyor*/}
-
+    <div className="popular-box pointer">
       <div className="popular-image">
         <img src={data.kapak_gorseli} alt="" />
       </div>
@@ -91,7 +94,7 @@ const itemCard = ({ data }) => {
       </div>
       <div className="itemcard2-bottom">
         <div className="popular-link">
-          <p> Sepete Ekle</p>
+          <p>Sepete Ekle</p>
           <img src={incele} alt="" />
         </div>
         <div className="itemcard2-like" onClick={handleLike}>

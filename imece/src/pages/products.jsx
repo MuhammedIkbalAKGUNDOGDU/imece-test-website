@@ -28,7 +28,6 @@ const Products = () => {
       });
   }, []);
 
-  console.log("selam",products);
   return (
     <div className="products-body">
       <Header />

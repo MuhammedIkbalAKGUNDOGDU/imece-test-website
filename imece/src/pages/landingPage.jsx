@@ -7,20 +7,22 @@ import goBottom from "../assets/vectors/goBottom.svg";
 import AliciAndSaticiOl from "../components/landingPage/AliciAndSaticiOl";
 import Footer from "../components/GenerealUse/Footer";
 import Saticilar from "../components/landingPage/Saticilar";
-import Populars from "../components/landingPage/Populars";
 import Categries from "../components/landingPage/Categries";
 import IndirimliUrunler from "../components/landingPage/IndirimliUrunler";
 import GrupAlimTekilAlim from "../components/landingPage/GrupAlimTekilAlim";
+import ItemGrid from "../components/GenerealUse/ItemGrid";
+import { products } from "../data/products"; // Ürünleri içe aktar
 
-const landingPage = () => {
+const LandingPage = () => {
   const apiUrl = "https://34.22.218.90/api/users/kullanicilar/me/";
   const accesToken = localStorage.getItem("accessToken");
   const apiKey = "fb10ca29411e8fa4725e11ca519b732de5c911769ff1956e84d4";
 
-  // State tanımlamaları
+  const [items, setItems] = useState([]); // Popüler ürünler için state
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    // API'den kullanıcı bilgisi çekme
+    const fetchUserData = async () => {
       try {
         const response = await axios.get(apiUrl, {
           headers: {
@@ -29,38 +31,51 @@ const landingPage = () => {
             "Content-Type": "application/json",
           },
         });
-        localStorage.setItem("userId", response.data.id); // Veriyi al ve state'e ata
+        localStorage.setItem("userId", response.data.id);
       } catch (error) {
-        console.log(error.message);
-      } finally {
+        console.error("Kullanıcı bilgisi alınırken hata oluştu:", error.message);
       }
     };
 
-    fetchCategories();
-  }, [apiUrl, accesToken]); // API URL ve token değiştiğinde yeniden çalışsın
+    fetchUserData();
+    setItems(products); // Popüler ürünleri yükle
 
-  console.log(localStorage.getItem("userId"));
+  }, [apiUrl, accesToken]);
+
+  console.log("User ID:", localStorage.getItem("userId"));
 
   return (
-    <div className="landingPage">
-      <Header />
-      <Banner />
-      <div style={{ justifyContent: "center", display: "flex" }}>
-        <img
-          className="clickable pointer landingPageGoBottom"
-          src={goBottom}
-          alt=""
-        />
+    <div>
+      <div className="landingPage">
+        <Header />
+        <Banner />
+
+        {/* Aşağı Kaydır Butonu */}
+        <div className="flex justify-center">
+          <img
+            className="clickable pointer landingPageGoBottom"
+            src={goBottom}
+            alt="Aşağı Kaydır"
+          />
+        </div>
+
+        {/* Sayfa Bileşenleri */}
+        <AliciAndSaticiOl />
+        <Saticilar />
+        <Categries />
+        <GrupAlimTekilAlim />
+
+        {/* Popüler Ürünler */}
+        <div className="container mx-auto py-8">
+          <h2 className="text-2xl font-bold mb-6 text-left">Popüler Ürünler</h2>
+          <ItemGrid items={items} />
+        </div>
+
+        <IndirimliUrunler />
       </div>
-      <AliciAndSaticiOl />
-      <Saticilar />
-      <Categries />
-      <GrupAlimTekilAlim />
-      <Populars />
-      <IndirimliUrunler />
       <Footer />
     </div>
   );
 };
 
-export default landingPage;
+export default LandingPage;

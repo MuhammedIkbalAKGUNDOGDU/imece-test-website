@@ -6,7 +6,7 @@ import Card from "../GenerealUse/itemCard";
 const Populars = () => {
   return (
     <div className="pupolars-container">
-      <p className="popular-title">Popüler Ürünler</p>
+      <p className="popular-title text-left">Popüler Ürünler</p>
       <div className="populars-list">
         <Card />
         <Card />

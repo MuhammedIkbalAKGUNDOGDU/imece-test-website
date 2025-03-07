@@ -20,7 +20,7 @@ import GonderiOlustur from "./pages/seller/gonderiOlustur";
 import SellerProfile from "./pages/seller/sellerProfile";
 import SellerProfileFromCustomer from "./pages/seller/sellerProfileFromCustomer";
 import PostCreate from "./pages/PostCreatePage";
-import CartPage from "./pages/CartPage";
+import CartPage from "./pages/basket";
 import NotFound404 from "./pages/404Page";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>

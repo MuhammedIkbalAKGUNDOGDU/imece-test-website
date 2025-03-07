@@ -19,6 +19,8 @@ import AddUrun4 from "./pages/seller/urunEkle4";
 import GonderiOlustur from "./pages/seller/gonderiOlustur";
 import SellerProfile from "./pages/seller/sellerProfile";
 import SellerProfileFromCustomer from "./pages/seller/sellerProfileFromCustomer";
+import PostCreate from "./pages/PostCreatePage";
+import CartPage from "./pages/CartPage";
 import NotFound404 from "./pages/404Page";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -38,6 +40,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/Urun-Ekle-3" element={<AddUrun3 />}></Route>
       <Route path="/Urun-Ekle-4" element={<AddUrun4 />}></Route>
       <Route path="/gonderi-olustur" element={<GonderiOlustur />}></Route>
+      <Route path="/post-create" element={<PostCreate />}></Route>
+      <Route path="/cart" element={<CartPage />}></Route>
       <Route path="/satici-profili-1" element={<SellerProfile />}></Route>
       <Route path="/*" element={<NotFound404 />}></Route>
       <Route

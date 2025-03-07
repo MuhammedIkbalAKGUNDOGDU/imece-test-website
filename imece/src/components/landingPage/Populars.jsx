@@ -20,11 +20,6 @@ const Populars = () => {
         <Card />
         <Card />
         <Card />
-
-        
-        
-         
-        
       </div>
     </div>
   );

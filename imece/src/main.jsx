@@ -21,6 +21,7 @@ import SellerProfile from "./pages/seller/sellerProfile";
 import SellerProfileFromCustomer from "./pages/seller/sellerProfileFromCustomer";
 import PostCreate from "./pages/PostCreatePage";
 import CartPage from "./pages/basket";
+import FinancialDashboard from "./pages/financialDashboard";
 import NotFound404 from "./pages/404Page";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -43,6 +44,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/post-create" element={<PostCreate />}></Route>
       <Route path="/cart" element={<CartPage />}></Route>
       <Route path="/satici-profili-1" element={<SellerProfile />}></Route>
+      <Route path="/financial-dashboard" element={<FinancialDashboard />}></Route>
       <Route path="/*" element={<NotFound404 />}></Route>
       <Route
         path="/satici-profili-2"

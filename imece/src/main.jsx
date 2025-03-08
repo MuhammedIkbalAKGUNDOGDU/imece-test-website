@@ -16,7 +16,6 @@ import AddUrun from "./pages/seller/urunEkle1";
 import AddUrun2 from "./pages/seller/urunEkle2";
 import AddUrun3 from "./pages/seller/urunEkle3";
 import AddUrun4 from "./pages/seller/urunEkle4";
-import GonderiOlustur from "./pages/seller/gonderiOlustur";
 import SellerProfile from "./pages/seller/sellerProfile";
 import SellerProfileFromCustomer from "./pages/seller/sellerProfileFromCustomer";
 import PostCreate from "./pages/PostCreatePage";
@@ -40,7 +39,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/Urun-Ekle-2" element={<AddUrun2 />}></Route>
       <Route path="/Urun-Ekle-3" element={<AddUrun3 />}></Route>
       <Route path="/Urun-Ekle-4" element={<AddUrun4 />}></Route>
-      <Route path="/gonderi-olustur" element={<GonderiOlustur />}></Route>
       <Route path="/post-create" element={<PostCreate />}></Route>
       <Route path="/cart" element={<CartPage />}></Route>
       <Route path="/satici-profili-1" element={<SellerProfile />}></Route>

@@ -1,7 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import "../../styles/general_styles/filter.css";
 
-const filter = () => {
+const Filter = () => {
+  // Seçilen checkbox'lar
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  // Seçilen fiyat aralığı
+  const [selectedPrice, setSelectedPrice] = useState("");
+  // Seçilen değerlendirme puanı (sayısal değer tutuyoruz)
+  const [selectedRating, setSelectedRating] = useState(null);
+
+  const handleCategoryChange = (category) => {
+    setSelectedCategories((prevSelected) =>
+      prevSelected.includes(category)
+        ? prevSelected.filter((item) => item !== category)
+        : [...prevSelected, category]
+    );
+  };
+
+  const handlePriceChange = (price) => {
+    setSelectedPrice(price);
+  };
+
+  const handleRatingChange = (rating) => {
+    setSelectedRating(rating);
+  };
+
+  console.log(selectedCategories, selectedPrice, selectedRating);
   return (
     <div className="filter-container">
       <div className="filter-section">
@@ -9,46 +33,27 @@ const filter = () => {
           Kategori <span>▼</span>
         </h3>
         <ul className="filter-list">
-          <li>
-            <label>
-              <input type="checkbox" /> Meyveler
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" /> Sebzeler
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" /> Yeşillikler
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" /> Mantarlar
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" /> Baklagiller
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" /> Egzotik meyveler
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" /> Kuru yemişler
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="checkbox" /> Kök sebzeler
-            </label>
-          </li>
+          {[
+            "Meyveler",
+            "Sebzeler",
+            "Yeşillikler",
+            "Mantarlar",
+            "Baklagiller",
+            "Egzotik meyveler",
+            "Kuru yemişler",
+            "Kök sebzeler",
+          ].map((category) => (
+            <li key={category}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={selectedCategories.includes(category)}
+                  onChange={() => handleCategoryChange(category)}
+                />
+                {category}
+              </label>
+            </li>
+          ))}
         </ul>
       </div>
 
@@ -57,31 +62,26 @@ const filter = () => {
           Fiyat aralığı <span>▼</span>
         </h3>
         <ul className="filter-list">
-          <li>
-            <label>
-              <input type="radio" name="price" /> 300 - 500 TL
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="radio" name="price" /> 500 - 700 TL
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="radio" name="price" /> 700 - 900 TL
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="radio" name="price" /> 900 - 1100 TL
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="radio" name="price" /> 1100 - 1300 TL
-            </label>
-          </li>
+          {[
+            "300 - 500 TL",
+            "500 - 700 TL",
+            "700 - 900 TL",
+            "900 - 1100 TL",
+            "1100 - 1300 TL",
+          ].map((price) => (
+            <li key={price}>
+              <label>
+                <input
+                  type="radio"
+                  name="price"
+                  value={price}
+                  checked={selectedPrice === price}
+                  onChange={() => handlePriceChange(price)}
+                />
+                {price}
+              </label>
+            </li>
+          ))}
         </ul>
       </div>
 
@@ -90,30 +90,24 @@ const filter = () => {
           Değerlendirme puanı <span>▼</span>
         </h3>
         <ul className="filter-list">
-          <li>
-            <label>
-              <input type="radio" name="rating" /> ⭐ 4 yıldız ve üzeri
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="radio" name="rating" /> ⭐ 3 yıldız ve üzeri
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="radio" name="rating" /> ⭐ 2 yıldız ve üzeri
-            </label>
-          </li>
-          <li>
-            <label>
-              <input type="radio" name="rating" /> ⭐ 1 yıldız ve üzeri
-            </label>
-          </li>
+          {[4, 3, 2, 1].map((rating) => (
+            <li key={rating}>
+              <label>
+                <input
+                  type="radio"
+                  name="rating"
+                  value={rating}
+                  checked={selectedRating === rating}
+                  onChange={() => handleRatingChange(rating)}
+                />
+                {`⭐ ${rating} yıldız ve üzeri`}
+              </label>
+            </li>
+          ))}
         </ul>
       </div>
     </div>
   );
 };
 
-export default filter;
+export default Filter;

@@ -16,12 +16,11 @@ import AddUrun from "./pages/seller/urunEkle1";
 import AddUrun2 from "./pages/seller/urunEkle2";
 import AddUrun3 from "./pages/seller/urunEkle3";
 import AddUrun4 from "./pages/seller/urunEkle4";
-import SellerProfile from "./pages/seller/sellerProfile";
-import SellerProfileFromCustomer from "./pages/seller/sellerProfileFromCustomer";
 import PostCreate from "./pages/PostCreatePage";
 import CartPage from "./pages/basket";
 import FinancialDashboard from "./pages/financialDashboard";
 import NotFound404 from "./pages/404Page";
+import ProfileForUretici from "./pages/ProfilUreticiPage";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
@@ -41,13 +40,15 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/Urun-Ekle-4" element={<AddUrun4 />}></Route>
       <Route path="/post-create" element={<PostCreate />}></Route>
       <Route path="/cart" element={<CartPage />}></Route>
-      <Route path="/satici-profili-1" element={<SellerProfile />}></Route>
-      <Route path="/financial-dashboard" element={<FinancialDashboard />}></Route>
-      <Route path="/*" element={<NotFound404 />}></Route>
       <Route
-        path="/satici-profili-2"
-        element={<SellerProfileFromCustomer />}
+        path="/profile/satici-profili"
+        element={<ProfileForUretici />}
       ></Route>
+      <Route
+        path="/financial-dashboard"
+        element={<FinancialDashboard />}
+      ></Route>
+      <Route path="/*" element={<NotFound404 />}></Route>
     </Routes>
   </BrowserRouter>
 );

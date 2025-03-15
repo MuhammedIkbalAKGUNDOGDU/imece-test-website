@@ -2,22 +2,6 @@ import React, { useState } from "react";
 
 export default function MediaUpload({ onMediaSelect }) {
   const [error, setError] = useState("");
-  
-  const validateFile = (file) => {
-    // Dosya boyutu kontrolü (örn: 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      throw new Error("Dosya boyutu 5MB'dan büyük olamaz");
-    }
-
-    // Dosya tipi kontrolü
-    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    const allowedVideoTypes = ['video/mp4', 'video/webm'];
-    
-    if (!allowedImageTypes.includes(file.type) && !allowedVideoTypes.includes(file.type)) {
-      throw new Error("Sadece JPEG, PNG, GIF, WEBP, MP4 ve WEBM dosyaları yüklenebilir");
-    }
-  };
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -25,16 +9,10 @@ export default function MediaUpload({ onMediaSelect }) {
 
     try {
       setError("");
-      validateFile(file);
-      
-      // Dosya adını temizle ve yeniden adlandır
-      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-      const renamedFile = new File([file], cleanFileName, { type: file.type });
-      
-      onMediaSelect(renamedFile);
+      onMediaSelect(file);
     } catch (err) {
       setError(err.message);
-      e.target.value = ''; // Input'u temizle
+      e.target.value = '';
     }
   };
 
@@ -65,9 +43,7 @@ export default function MediaUpload({ onMediaSelect }) {
         </label>
       </div>
 
-      {error && (
-        <p className="text-red-500 text-sm mt-2">{error}</p>
-      )}
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
   );
 }

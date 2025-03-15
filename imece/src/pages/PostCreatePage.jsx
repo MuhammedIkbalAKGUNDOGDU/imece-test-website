@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MediaUpload from "../components/postCreatng/MediaUpload";
 import PostDetails from "../components/postCreatng/PostDetails";
 import PostPreview from "../components/postCreatng/PostPreview";
@@ -14,12 +14,30 @@ export default function PostCreatePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleMediaSelect = (file) => {
-    setFormData(prev => ({
-      ...prev,
-      mediaFile: file,
-      mediaPreview: URL.createObjectURL(file)
-    }));
+    try {
+      // Önceki URL'i temizle
+      if (formData.mediaPreview instanceof Blob) {
+        URL.revokeObjectURL(formData.mediaPreview);
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        mediaFile: file,
+        mediaPreview: file // Direkt file'ı gönderiyoruz, URL dönüşümü PostPreview'da yapılacak
+      }));
+    } catch (error) {
+      console.error('Media selection error:', error);
+    }
   };
+
+  // Memory leak'i önlemek için cleanup
+  useEffect(() => {
+    return () => {
+      if (formData.mediaPreview instanceof Blob) {
+        URL.revokeObjectURL(URL.createObjectURL(formData.mediaPreview));
+      }
+    };
+  }, [formData.mediaPreview]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -105,7 +123,7 @@ export default function PostCreatePage() {
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className={`bg-[#22FF22] text-white px-5 py-3 rounded-md hover:bg-green-600 
+              className={`main-green-background text-white px-5 py-3 rounded-md hover:bg-green-600 
                 text-lg font-semibold w-full sm:w-auto ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {isSubmitting ? 'Paylaşılıyor...' : 'Paylaş'}

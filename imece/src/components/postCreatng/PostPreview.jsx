@@ -2,6 +2,18 @@ import React from "react";
 import { HiArrowRight } from 'react-icons/hi'; 
 
 export default function PostPreview({ profileImage, name, media, title, content }) {
+  const isVideo = media && (
+    typeof media === 'string' ? 
+      media.includes('video') || media.endsWith('.mp4') || media.endsWith('.webm') :
+      media.type?.startsWith('video/')
+  );
+
+  const getMediaUrl = (media) => {
+    if (!media) return null;
+    if (typeof media === 'string') return media;
+    return URL.createObjectURL(media);
+  };
+
   return (
     <div className="flex flex-col h-full">
       <h2 className="text-lg text-left font-semibold text-gray-900 mb-2">Ön İzleme</h2>
@@ -18,7 +30,18 @@ export default function PostPreview({ profileImage, name, media, title, content 
 
         <div className="w-full h-48 md:h-64 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
           {media ? (
-            <img src={media} alt="Preview" className="w-full h-full object-cover" />
+            isVideo ? (
+              <video
+                src={typeof media === 'string' ? media : URL.createObjectURL(media)}
+                className="w-full h-full object-cover"
+                controls
+                playsInline
+              >
+                Video yüklenemedi
+              </video>
+            ) : (
+              <img src={getMediaUrl(media)} alt="Preview" className="w-full h-full object-cover" />
+            )
           ) : (
             <span className="text-gray-500 text-sm md:text-base">Fotoğraf/Video Yüklenmedi</span>
           )}

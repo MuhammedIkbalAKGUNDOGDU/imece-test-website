@@ -18,6 +18,7 @@ import AddUrun3 from "./pages/seller/urunEkle3";
 import AddUrun4 from "./pages/seller/urunEkle4";
 import PostCreate from "./pages/PostCreatePage";
 import CartPage from "./pages/basket";
+import ChatPage from "./pages/ChatPage";
 import FinancialDashboard from "./pages/financialDashboard";
 import NotFound404 from "./pages/404Page";
 import ProfileForUretici from "./pages/ProfilUreticiPage";
@@ -40,6 +41,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/Urun-Ekle-4" element={<AddUrun4 />}></Route>
       <Route path="/post-create" element={<PostCreate />}></Route>
       <Route path="/cart" element={<CartPage />}></Route>
+      <Route path="/chat" element={<ChatPage />}></Route>
       <Route
         path="/profile/satici-profili"
         element={<ProfileForUretici />}

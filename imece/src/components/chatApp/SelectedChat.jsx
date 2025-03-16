@@ -43,7 +43,7 @@ const SelectedChat = ({ chat, onBack }) => {
 
       {/* Chat Messages */}
       <div className="flex-1   p-4 overflow-y-auto bg-gray-100">
-        <div className="space-y-4">
+        <div className="space-y-4  w-full">
           {chat.messages.map((message) => (
             <div
               key={message.id}

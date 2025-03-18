@@ -79,7 +79,7 @@ const createGrop = () => {
         </div>
       </div>
 
-      <div className="order-page-other-products">
+      {/* <div className="order-page-other-products">
         <p className="order-page-other-products-title">
           Satıcının Diğer Ürünler
         </p>
@@ -107,7 +107,7 @@ const createGrop = () => {
           <ItemCard />
           <ItemCard />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

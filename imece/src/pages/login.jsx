@@ -13,8 +13,8 @@ const login = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
 
-  const apiUrl = "https://34.22.218.90/users/rq_login/";
-  const apiKey = "fb10ca29411e8fa4725e11ca519b732de5c911769ff1956e84d4";
+  const apiUrl = "https://imecehub.com/users/rq_login/";
+  const apiKey = "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
 
   const isFormValid =
     email.trim() !== "" && password.trim() !== "" && termsAccepted;

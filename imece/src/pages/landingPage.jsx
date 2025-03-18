@@ -14,9 +14,9 @@ import ItemGrid from "../components/GenerealUse/ItemGrid";
 import { products } from "../data/products"; // Ürünleri içe aktar
 
 const LandingPage = () => {
-  const apiUrl = "https://34.22.218.90/api/users/kullanicilar/me/";
+  const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
   const accesToken = localStorage.getItem("accessToken");
-  const apiKey = "fb10ca29411e8fa4725e11ca519b732de5c911769ff1956e84d4";
+  const apiKey = "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
 
   const [items, setItems] = useState([]); // Popüler ürünler için state
 

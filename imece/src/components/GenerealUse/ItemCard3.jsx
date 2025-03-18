@@ -27,19 +27,19 @@ const ItemCard3 = ({ data }) => {
       
       <div className="w-full h-44 bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
         <img
-          src={data.image}
-          alt={data.name}
+          src={data.kapak_gorseli}
+          alt={data.urun_adi}
           className="w-full h-full object-cover"
         />
       </div>
 
       <div className="mt-3 flex flex-col flex-grow">
-        <h3 className="text-xl font-bold text-gray-900">{data.name}</h3>
+        <h3 className="text-xl font-bold text-gray-900">{data.urun_adi}</h3>
 
-        <div className="flex items-center mt-1 space-x-1">{renderStars(data.rating)}</div>
+        <div className="flex items-center mt-1 space-x-1">{renderStars(data.degerlendirme_puani)}</div>
 
         <p className="text-gray-500 text-sm mt-2 leading-tight">
-          {data.description}
+          {data.aciklama}
         </p>
       </div>
 

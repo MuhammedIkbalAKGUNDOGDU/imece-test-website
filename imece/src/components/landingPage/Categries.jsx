@@ -6,8 +6,8 @@ const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const apiUrl = "https://34.22.218.90/api/products/kategoriler/";
-  const apiKey = "fb10ca29411e8fa4725e11ca519b732de5c911769ff1956e84d4";
+  const apiUrl = "https://imecehub.com/api/products/kategoriler/";
+  const apiKey = "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
 
   useEffect(() => {
     const fetchCategories = async () => {

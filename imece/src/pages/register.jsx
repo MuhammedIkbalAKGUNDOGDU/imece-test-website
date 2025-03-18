@@ -9,8 +9,8 @@ import { useNavigate } from "react-router-dom"; // Yönlendirme için hook'u imp
 const Register = () => {
   const navigate = useNavigate(); // useNavigate hook'unu çağır
 
-  const apiUrl = "https://34.22.218.90/users/rq_register/";
-  const apiKey = "fb10ca29411e8fa4725e11ca519b732de5c911769ff1956e84d4";
+  const apiUrl = "https://imecehub.com/users/rq_register/";
+  const apiKey = "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
 
   const goToOtherPage = () => {
     navigate("/login"); // Yönlendirme yapılacak sayfanın rotası

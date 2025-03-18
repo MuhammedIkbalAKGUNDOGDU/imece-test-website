@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import Header from "../components/GenerealUse/Header";
 import "../styles/products.css";
 import GrupAlimTekilAlim from "../components/landingPage/GrupAlimTekilAlim";
@@ -9,25 +10,26 @@ import { products as mockProducts } from "../data/products"; // Mock veriyi impo
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const apiUrl = "https://34.22.218.90/api/products/urunler/";
-  const apiKey = "fb10ca29411e8fa4725e11ca519b732de5c911769ff1956e84d4";
+  const apiUrl = "https://imecehub.com/api/products/urunler/";
+  const apiKey =
+    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
 
   useEffect(() => {
-    // axios
-    //   .get(apiUrl, {
-    //     headers: {
-    //       "X-API-Key": apiKey,
-    //       "Content-Type": "application/json",
-    //     },
-    //   })
-    //   .then((response) => {
-    //     setProducts(response.data); // API'den gelen veriyi state'e at
-    //   })
-    //   .catch((error) => {
-    //     console.error("Veri çekme hatası:", error);
-    //   });
-    // API yerine mock veriyi kullan
-    setProducts(mockProducts);
+    axios
+      .get(apiUrl, {
+        headers: {
+          "X-API-Key": apiKey,
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
+        setProducts(response.data); // API'den gelen veriyi state'e at
+      })
+      .catch((error) => {
+        console.error("Veri çekme hatası:", error);
+        // Hata durumunda mock veriyi kullanabilirsiniz
+        setProducts(mockProducts);
+      });
   }, []);
 
   return (

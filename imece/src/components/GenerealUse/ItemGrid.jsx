@@ -8,7 +8,7 @@ const ItemGrid = ({ items, cardType = "card3" }) => {
     <div className="w-full">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {items.map((item) => (
-          <div className="flex justify-center" key={item.id}>
+          <div className="flex justify-center" key={item.urun_id || item.id}>
             <CardComponent data={item} />
           </div>
         ))}

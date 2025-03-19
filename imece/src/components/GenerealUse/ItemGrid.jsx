@@ -7,12 +7,10 @@ const ItemGrid = ({ items, cardType = "card3" }) => {
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {items.map((item) => (
           <div className="flex justify-center" key={item.id}>
-            <div className="w-full max-w-[140px] sm:max-w-[220px] md:max-w-[260px]">
-              <CardComponent data={item} />
-            </div>
+            <CardComponent data={item} />
           </div>
         ))}
       </div>

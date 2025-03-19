@@ -22,6 +22,8 @@ import ChatPage from "./pages/ChatPage";
 import FinancialDashboard from "./pages/financialDashboard";
 import NotFound404 from "./pages/404Page";
 import ProfileForUretici from "./pages/ProfilUreticiPage";
+import SavePaymentCard from "./pages/savePaymentCard";
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
@@ -42,6 +44,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/post-create" element={<PostCreate />}></Route>
       <Route path="/cart" element={<CartPage />}></Route>
       <Route path="/chat" element={<ChatPage />}></Route>
+      <Route path="/add-card" element={<SavePaymentCard />}></Route>
+
       <Route
         path="/profile/satici-profili"
         element={<ProfileForUretici />}

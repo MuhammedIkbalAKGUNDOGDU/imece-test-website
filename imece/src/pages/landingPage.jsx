@@ -11,15 +11,12 @@ import Categries from "../components/landingPage/Categries";
 import IndirimliUrunler from "../components/landingPage/IndirimliUrunler";
 import GrupAlimTekilAlim from "../components/landingPage/GrupAlimTekilAlim";
 import ItemGrid from "../components/GenerealUse/ItemGrid";
-import { products } from "../data/products"; // Ürünleri içe aktar
 
 const LandingPage = () => {
   const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
   const accesToken = localStorage.getItem("accessToken");
-  const apiKey =
-    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
-  const popularProductsUrl =
-    "https://imecehub.com/products/populer-urunler/";
+  const apiKey ="WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const popularProductsUrl = "https://imecehub.com/products/populer-urunler/";
 
   const [items, setItems] = useState([]); // Popüler ürünler için state
 
@@ -62,7 +59,6 @@ const LandingPage = () => {
     fetchUserData();
     fetchPopularProducts(); // Popüler ürünleri yükle
   }, [apiUrl, accesToken, apiKey]);
-
 
   return (
     <div>

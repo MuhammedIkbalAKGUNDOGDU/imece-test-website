@@ -51,7 +51,7 @@ const Register = () => {
           },
         }
       );
-
+        
       if (response.data.status.toLowerCase() === "success") {
         localStorage.setItem("accessToken", response.data.tokens.access);
         localStorage.setItem("refreshToken", response.data.tokens.refresh);

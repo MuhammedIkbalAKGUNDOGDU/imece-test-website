@@ -53,7 +53,7 @@ const ItemCard4 = ({ data }) => {
     <div className="bg-white rounded-lg sm:rounded-2xl shadow p-2 sm:p-4 w-[160px] sm:w-[220px] h-[260px] sm:h-[380px] flex flex-col">
       <div className="w-full h-28 sm:h-44 bg-gray-100 rounded-lg sm:rounded-xl overflow-hidden">
         <img
-          src={data.image}
+          src={data.kapak_gorseli}
           alt={data.urun_adi}
           className="w-full h-full object-cover"
         />
@@ -64,7 +64,7 @@ const ItemCard4 = ({ data }) => {
           <h3 className="text-sm sm:text-lg font-bold text-gray-900 line-clamp-1">
             {data.urun_adi}
           </h3>
-          {(data.urun_adi).length > 15 && (
+          {data.urun_adi.length > 15 && (
             <div className="absolute hidden group-hover:block bg-white shadow-xl rounded-md p-2 z-20 left-0 top-full mt-1 w-full border border-gray-200">
               {data.urun_adi}
             </div>
@@ -77,7 +77,7 @@ const ItemCard4 = ({ data }) => {
           <p className="text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2 leading-tight line-clamp-2 sm:line-clamp-3">
             {data.aciklama}
           </p>
-          {(data.aciklama).length > 50 && (
+          {data.aciklama.length > 50 && (
             <div className="absolute hidden group-hover:block bg-white shadow-xl rounded-md p-2 z-20 left-0 top-full mt-1 w-full border border-gray-200">
               {data.aciklama}
             </div>

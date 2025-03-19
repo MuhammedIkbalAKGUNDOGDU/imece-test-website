@@ -15,7 +15,8 @@ import ItemGrid from "../components/GenerealUse/ItemGrid";
 const LandingPage = () => {
   const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
   const accesToken = localStorage.getItem("accessToken");
-  const apiKey ="WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const apiKey =
+    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
   const popularProductsUrl = "https://imecehub.com/products/populer-urunler/";
 
   const [items, setItems] = useState([]); // Popüler ürünler için state
@@ -60,6 +61,7 @@ const LandingPage = () => {
     fetchPopularProducts(); // Popüler ürünleri yükle
   }, [apiUrl, accesToken, apiKey]);
 
+  console.log(items);
   return (
     <div>
       <div className="landingPage">

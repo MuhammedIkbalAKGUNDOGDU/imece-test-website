@@ -50,25 +50,39 @@ const ItemCard4 = ({ data }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg sm:rounded-2xl shadow p-2 sm:p-4 w-full flex flex-col min-h-[140px] sm:min-h-[400px]">
-      <div className="w-full h-24 sm:h-44 bg-gray-100 rounded-lg sm:rounded-xl overflow-hidden">
+    <div className="bg-white rounded-lg sm:rounded-2xl shadow p-2 sm:p-4 w-[160px] sm:w-[220px] h-[260px] sm:h-[380px] flex flex-col">
+      <div className="w-full h-28 sm:h-44 bg-gray-100 rounded-lg sm:rounded-xl overflow-hidden">
         <img
-          src={data.kapak_gorseli}
+          src={data.image}
           alt={data.urun_adi}
           className="w-full h-full object-cover"
         />
       </div>
 
       <div className="mt-2 sm:mt-3 flex flex-col flex-grow">
-        <h3 className="text-sm sm:text-lg font-bold text-gray-900 line-clamp-1 capitalize">
-          {data.urun_adi}
-        </h3>
-        <div className="flex items-center mt-0.5 sm:mt-1">
+        <div className="relative group">
+          <h3 className="text-sm sm:text-lg font-bold text-gray-900 line-clamp-1">
+            {data.urun_adi}
+          </h3>
+          {(data.urun_adi).length > 15 && (
+            <div className="absolute hidden group-hover:block bg-white shadow-xl rounded-md p-2 z-20 left-0 top-full mt-1 w-full border border-gray-200">
+              {data.urun_adi}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center mt-0.5 sm:mt-1 space-x-0.5">
           {renderStars(data.degerlendirme_puani)}
         </div>
-        <p className="text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2 leading-tight line-clamp-2 sm:line-clamp-3">
-          {data.aciklama}
-        </p>
+        <div className="relative group">
+          <p className="text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2 leading-tight line-clamp-2 sm:line-clamp-3">
+            {data.aciklama}
+          </p>
+          {(data.aciklama).length > 50 && (
+            <div className="absolute hidden group-hover:block bg-white shadow-xl rounded-md p-2 z-20 left-0 top-full mt-1 w-full border border-gray-200">
+              {data.aciklama}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-2 sm:mt-3 flex items-center gap-1 sm:gap-2">

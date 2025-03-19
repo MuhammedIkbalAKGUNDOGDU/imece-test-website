@@ -27,8 +27,8 @@ const ItemCard3 = ({ data }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-5 w-full max-w-[260px] flex flex-col transition-transform duration-300 hover:scale-105 hover:shadow-xl">
-      <div className="w-full h-44 bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
+    <div className="bg-white rounded-2xl shadow-lg p-3 sm:p-5 w-[160px] sm:w-[220px] h-[260px] sm:h-[380px] flex flex-col transition-transform duration-300 hover:scale-105 hover:shadow-xl">
+      <div className="w-full h-28 sm:h-44 bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
         <img
           src={data.kapak_gorseli}
           alt={data.urun_adi}

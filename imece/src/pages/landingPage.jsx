@@ -16,7 +16,10 @@ import { products } from "../data/products"; // Ürünleri içe aktar
 const LandingPage = () => {
   const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
   const accesToken = localStorage.getItem("accessToken");
-  const apiKey = "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const apiKey =
+    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const popularProductsUrl =
+    "https://imecehub.com/products/populer-urunler/";
 
   const [items, setItems] = useState([]); // Popüler ürünler için state
 
@@ -33,16 +36,33 @@ const LandingPage = () => {
         });
         localStorage.setItem("userId", response.data.id);
       } catch (error) {
-        console.error("Kullanıcı bilgisi alınırken hata oluştu:", error.message);
+        console.error(
+          "Kullanıcı bilgisi alınırken hata oluştu:",
+          error.message
+        );
+      }
+    };
+
+    // Popüler ürünleri çekme
+    const fetchPopularProducts = async () => {
+      try {
+        const response = await axios.get(popularProductsUrl, {
+          headers: {
+            "X-API-Key": apiKey,
+            Authorization: `Bearer ${accesToken}`,
+            "Content-Type": "application/json",
+          },
+        });
+        setItems(response.data); // Gelen popüler ürünleri state'e set et
+      } catch (error) {
+        console.error("Popüler ürünler alınırken hata oluştu:", error.message);
       }
     };
 
     fetchUserData();
-    setItems(products); // Popüler ürünleri yükle
+    fetchPopularProducts(); // Popüler ürünleri yükle
+  }, [apiUrl, accesToken, apiKey]);
 
-  }, [apiUrl, accesToken]);
-
-  console.log("User ID:", localStorage.getItem("userId"));
 
   return (
     <div>

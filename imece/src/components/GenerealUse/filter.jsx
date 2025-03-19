@@ -25,7 +25,6 @@ const Filter = () => {
     setSelectedRating(rating);
   };
 
-  console.log(selectedCategories, selectedPrice, selectedRating);
   return (
     <div className="filter-container">
       <div className="filter-section">

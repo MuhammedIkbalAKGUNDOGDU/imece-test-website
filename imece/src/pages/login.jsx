@@ -137,7 +137,7 @@ const login = () => {
         <div className="login-redirect">
           Henüz kurulmuş bir hesabınız yok mu?{" "}
           <span onClick={goToOtherPage} className="green pointer">
-            Şimdi oturum açın
+            Şimdi kayıt olun
           </span>
         </div>
       </div>

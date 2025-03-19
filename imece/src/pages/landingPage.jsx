@@ -61,7 +61,6 @@ const LandingPage = () => {
     fetchPopularProducts(); // Popüler ürünleri yükle
   }, [apiUrl, accesToken, apiKey]);
 
-  console.log(items);
   return (
     <div>
       <div className="landingPage">

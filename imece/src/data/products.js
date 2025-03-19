@@ -4,8 +4,8 @@ export const products = [
   {
     id: 1,
     image: mandalinaImage,
-    name: "Mandalina",
-    description: "Taze ve doğal mandalina",
+    name: "Bahçemdeki Mandalina",
+    description: "Tazeliğinden emin olabileceğiniz lezzetli ve sulu mandalina çeşitleri ile bahçemizdeki mandalinalarımızı sizlerle buluşturuyoruz.",
     rating: 3.5,
   },
   {

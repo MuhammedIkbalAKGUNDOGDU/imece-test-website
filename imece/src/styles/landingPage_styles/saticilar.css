@@ -1,39 +1,229 @@
 .satici-container {
-    margin-top: 4.5%;
-    border: 1px solid rgba(34, 255, 34, 1); /* Düzgün bir border tanımı */
-    width: 100vw; /* Ekran genişliğini tamamen kapsar */
+    position: relative;
+    width: 100vw;
     height: 145px;
-    box-sizing: border-box; /* İçerik ve padding'in sınırlar dahilinde kalmasını sağlar */
-    margin-left: calc(-50vw + 50%); /* İçerik hizalamasını korur */
+    border-top: 1px solid rgba(34, 255, 34, 1);
+    border-bottom: 1px solid rgba(34, 255, 34, 1);
     display: flex;
     align-items: center;
+    background: white;
+    margin: 20px 0;
+    margin-left: calc(-50vw + 50%);
+    padding: 0 max(calc((100vw - 1920px) / 2), 60px);
+}
 
-    box-shadow: 0px 8px 24px 0px rgba(149, 157, 165, 0.2);
-  }
-  
-  .satici-container-saticilar{
-    margin-left: 8%;
+.title-nav-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 250px;
+    margin-left: 40px;
+}
+
+.satici-baslik {
+    font-size: 32px;
     font-weight: 800;
-    font-size: 2rem;
-  }
+    color: #333;
+    margin: 0;
+    min-width: 180px;
+}
 
-  @media (max-width:768px) {
+.sellers-wrapper {
+    flex: 1;
+    overflow: hidden;
+    margin: 0 20px;
+    overflow-x: auto;
+    scrollbar-width: none;  /* Firefox için scrollbar gizleme */
+    -ms-overflow-style: none;  /* IE ve Edge için scrollbar gizleme */
+}
+
+.sellers-wrapper::-webkit-scrollbar {
+    display: none; /* Chrome, Safari ve Opera için scrollbar gizleme */
+}
+
+.sellers-list {
+    display: flex;
+    gap: 30px;
+    padding: 10px 0;
+}
+
+.seller-card {
+    flex: 0 0 auto; /* Flex-shrink'i 0 yaparak kartların sıkışmasını önler */
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.seller-card img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.seller-logo-container {
+    width: 120px;
+    height: 120px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.seller-logo-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.seller-name {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    color: #333;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
     .satici-container {
-      margin-top: 4.5%;
-      border: 1px solid rgba(34, 255, 34, 1); /* Düzgün bir border tanımı */
-      width: 100vw; /* Ekran genişliğini tamamen kapsar */ 
-      height: 10vh;
-      box-sizing: border-box; /* İçerik ve padding'in sınırlar dahilinde kalmasını sağlar */
-      margin-left: calc(-50vw + 50%); /* İçerik hizalamasını korur */
-      display: flex;
-      align-items: center;
-  
-      box-shadow: 0px 8px 24px 0px rgba(149, 157, 165, 0.2);
+        padding: 0 20px;
+        height: 120px;
     }
-    
-    .satici-container-saticilar{
-      margin-left: 8%;
-      font-weight: 800;
-      font-size: 1.5rem;
+
+    .satici-baslik {
+        font-size: 20px; 
+        padding-left: 20px;
+        min-width: 120px;
     }
-  }
+
+    .title-nav-wrapper {
+        margin-left: 20px;
+        min-width: 200px;
+        gap: 10px;
+    }
+
+    .satici-baslik {
+        font-size: 20px; 
+        padding-left: 20px;
+        min-width: 120px;
+    }
+
+    .sellers-wrapper {
+        padding-right: 20px;
+        margin: 0 10px;
+        -webkit-overflow-scrolling: touch; /* Mobilde smooth scroll */
+    }
+
+    .seller-logo-container {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1440px) {
+    .satici-container {
+        padding: 0 60px;
+    }
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.categories-list {
+    margin-top: 1rem;
+    scroll-behavior: smooth;
+}
+
+.scroll-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid rgba(34, 255, 34, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: rgba(34, 255, 34, 1);
+    flex-shrink: 0;
+}
+
+.scroll-button:hover {
+    background: rgba(34, 255, 34, 0.1);
+}
+
+.scroll-left {
+    margin-left: 20px;
+}
+
+.scroll-right {
+    margin-right: 20px;
+}
+
+@media (max-width: 768px) {
+    .scroll-button {
+        width: 28px;
+        height: 28px;
+        right: 10px;
+        display: none; 
+    }
+
+    .scroll-left {
+        margin-left: 10px;
+    }
+
+    .scroll-right {
+        margin-right: 20px;
+    }
+
+    .satici-container {
+        padding: 0 20px;
+        height: 120px;
+    }
+
+    .satici-baslik {
+        font-size: 20px;
+        min-width: 100px;
+        margin-left: 0;
+        margin-right: 10px;
+    }
+
+    .sellers-wrapper {
+        margin: 0;
+        padding: 0 10px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media screen and (min-width: 1440px) {
+    .satici-container {
+        padding: 0 120px;
+    }
+}
+
+@media screen and (min-width: 769px) {
+    .scroll-button {
+        display: flex;
+    }
+}
+
+@media screen and (min-width: 2560px) {
+    .satici-container {
+        padding: 0 max(calc((100vw - 2560px) / 2), 120px);
+    }
+}

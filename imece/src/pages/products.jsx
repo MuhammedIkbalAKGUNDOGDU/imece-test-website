@@ -10,27 +10,56 @@ import { products as mockProducts } from "../data/products"; // Mock veriyi impo
 
 const Products = () => {
   const [products, setProducts] = useState([]);
-  const apiUrl = "https://imecehub.com/api/products/urunler/";
-  const apiKey =
-    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const [favorites, setFavorites] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const apiUrl = "https://imecehub.com/api";
+  const headers = {
+    "X-API-Key": "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY",
+    "Content-Type": "application/json",
+  };
+
+  const fetchData = async () => {
+    try {
+      const [productsRes, userRes] = await Promise.all([
+        axios.get(`${apiUrl}/products/urunler/`, { headers }),
+        axios.get(`${apiUrl}/users/kullanicilar/0`, { headers })
+      ]);
+      setProducts(productsRes.data);
+      setFavorites(userRes.data.favori_urunler || []);
+    } catch (err) {
+      setError(err.message);
+      setProducts(mockProducts);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFavoriteToggle = async (productId) => {
+    try {
+      const newFavorites = favorites.includes(productId)
+        ? favorites.filter(id => id !== productId)
+        : [...favorites, productId];
+
+      await axios.patch(
+        `${apiUrl}/users/kullanicilar/0`,
+        { favori_urunler: newFavorites },
+        { headers }
+      );
+      setFavorites(newFavorites);
+    } catch (err) {
+      console.error("Favori güncelleme hatası:", err);
+      setError("Favoriler güncellenirken bir hata oluştu");
+    }
+  };
 
   useEffect(() => {
-    axios
-      .get(apiUrl, {
-        headers: {
-          "X-API-Key": apiKey,
-          "Content-Type": "application/json",
-        },
-      })
-      .then((response) => {
-        setProducts(response.data); // API'den gelen veriyi state'e at
-      })
-      .catch((error) => {
-        console.error("Veri çekme hatası:", error);
-        // Hata durumunda mock veriyi kullanabilirsiniz
-        setProducts(mockProducts);
-      });
+    fetchData();
   }, []);
+
+  if (isLoading) return <div>Yükleniyor...</div>;
+  if (error) return <div>Hata: {error}</div>;
 
   return (
     <div className="products-body">
@@ -43,7 +72,12 @@ const Products = () => {
         <Filter />
         <div className="w-full max-w-[1400px] mx-auto px-4 md:mb-0 mb-28">
           {products.length > 0 ? (
-            <ItemGrid items={products} cardType="card4" />
+            <ItemGrid 
+              items={products} 
+              cardType="card4" 
+              favorites={favorites}
+              onFavoriteToggle={handleFavoriteToggle}
+            />
           ) : (
             <p>Ürün bulunamadı</p>
           )}

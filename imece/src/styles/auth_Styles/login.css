@@ -166,6 +166,29 @@ input:focus {
   margin-top: 30px;
 }
 
+.error-container {
+  background-color: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px 0;
+  color: #c62828;
+}
+
+.error-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.error-list li {
+  margin-bottom: 5px;
+}
+
+.error-list li:last-child {
+  margin-bottom: 0;
+}
+
 @media (max-width: 1050px) {
   .auth_banner {
     display: none;

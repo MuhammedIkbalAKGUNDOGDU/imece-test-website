@@ -16,6 +16,29 @@ const login = () => {
   const apiUrl = "https://imecehub.com/users/rq_login/";
   const apiKey = "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
 
+  const errorTranslations = {
+    "Invalid email or password.": "E-posta veya şifre hatalı.",
+    "Enter a valid email address.": "Geçerli bir e-posta adresi giriniz.",
+  };
+
+  const translateError = (error) => {
+    return errorTranslations[error] || error;
+  };
+
+  const formatErrorMessage = (error) => {
+    if (error.response?.data?.errors) {
+      const errorMessages = [];
+      const errors = error.response.data.errors;
+      Object.keys(errors).forEach(key => {
+        errors[key].forEach(err => {
+          errorMessages.push(translateError(err));
+        });
+      });
+      return errorMessages;
+    }
+    return translateError(error.response?.data?.message || "Giriş sırasında bir hata oluştu.");
+  };
+
   const isFormValid =
     email.trim() !== "" && password.trim() !== "" && termsAccepted;
 
@@ -27,7 +50,8 @@ const login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Formun submit olayını engelle
+    e.preventDefault();
+    setError("");
 
     if (!isFormValid) {
       setError("Lütfen tüm alanları doldurun ve şartları kabul edin.");
@@ -49,18 +73,14 @@ const login = () => {
         }
       );
 
-      if (response.data.status.toLowerCase() === "success") {
+      if (response.data.status === "success") {
         localStorage.setItem("accessToken", response.data.tokens.access);
         localStorage.setItem("refreshToken", response.data.tokens.refresh);
+        navigate("/");
       }
-
-      // Kayıt başarılıysa kullanıcıyı login sayfasına yönlendir
-      navigate("/");
     } catch (error) {
-      setError(
-        "Kayıt işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin."
-      );
-      console.error("Kayıt hatası:", error);
+      const errorMessage = formatErrorMessage(error);
+      setError(Array.isArray(errorMessage) ? errorMessage : [errorMessage]);
     }
   };
 
@@ -116,6 +136,20 @@ const login = () => {
               okudum ve kabul ediyorum.
             </label>
           </div>
+
+          {error && (
+            <div className="error-container">
+              {Array.isArray(error) ? (
+                <ul className="error-list">
+                  {error.map((err, index) => (
+                    <li key={index}>{err}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>{error}</p>
+              )}
+            </div>
+          )}
 
           <button
             type="submit"

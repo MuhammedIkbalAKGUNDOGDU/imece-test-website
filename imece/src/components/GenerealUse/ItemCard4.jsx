@@ -1,28 +1,9 @@
-import React, { useState, useEffect } from "react";
-import {
-  FaStar,
-  FaStarHalfAlt,
-  FaRegStar,
-  FaHeart,
-  FaRegHeart,
-} from "react-icons/fa";
+import React from "react";
+import { FaStar, FaStarHalfAlt, FaRegStar, FaHeart, FaRegHeart } from "react-icons/fa";
 
-const ItemCard4 = ({ data }) => {
-  const [isFavorite, setIsFavorite] = useState(false);
-
-  useEffect(() => {
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "{}");
-    setIsFavorite(!!favorites[data.id]);
-  }, [data.id]);
-
-  const toggleFavorite = () => {
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "{}");
-    const newFavorites = {
-      ...favorites,
-      [data.id]: !favorites[data.id],
-    };
-    localStorage.setItem("favorites", JSON.stringify(newFavorites));
-    setIsFavorite(!isFavorite);
+const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
+  const handleFavoriteClick = () => {
+    onFavoriteToggle(data.urun_id || data.id);
   };
 
   const renderStars = (rating) => {
@@ -89,7 +70,7 @@ const ItemCard4 = ({ data }) => {
         <button className="flex-grow bg-green-600 text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded text-xs sm:text-sm font-medium">
           Sepete Ekle
         </button>
-        <button onClick={toggleFavorite} className="p-1.5 text-red-500">
+        <button onClick={handleFavoriteClick} className="p-1.5 text-red-500">
           {isFavorite ? <FaHeart size={16} /> : <FaRegHeart size={16} />}
         </button>
       </div>

@@ -6,7 +6,7 @@ const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
     onFavoriteToggle(data.urun_id || data.id);
   };
 
-  const renderStars = (rating) => {
+  const renderStars = (rating = 0) => {
     let stars = [];
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;

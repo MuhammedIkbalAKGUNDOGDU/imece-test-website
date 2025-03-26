@@ -6,30 +6,47 @@ import GrupAlimTekilAlim from "../components/landingPage/GrupAlimTekilAlim";
 import Filter from "../components/GenerealUse/filter";
 import MobileFilter from "../components/GenerealUse/mobileFilter";
 import ItemGrid from "../components/GenerealUse/ItemGrid";
-import { products as mockProducts } from "../data/products"; // Mock veriyi import et
+import { products as mockProducts } from "../data/products";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const apiUrl = "https://imecehub.com/api";
+  const apiKey = "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const accessToken = localStorage.getItem("accessToken");
+
   const headers = {
-    "X-API-Key": "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY",
+    "X-API-Key": apiKey,
+    Authorization: `Bearer ${accessToken}`,
     "Content-Type": "application/json",
   };
 
-  const fetchData = async () => {
+  const fetchUserAndData = async () => {
     try {
-      const [productsRes, userRes] = await Promise.all([
-        axios.get(`${apiUrl}/products/urunler/`, { headers }),
-        axios.get(`${apiUrl}/users/kullanicilar/0`, { headers })
-      ]);
+      const userRes = await axios.get(
+        "https://imecehub.com/api/users/kullanicilar/me/",
+        { headers }
+      );
+      const id = userRes.data.id;
+      setUserId(id);
+
+      const productsRes = await axios.get(
+        "https://imecehub.com/api/products/urunler/",
+        { headers }
+      );
       setProducts(productsRes.data);
-      setFavorites(userRes.data.favori_urunler || []);
+
+      const fullUserRes = await axios.get(
+        `https://imecehub.com/api/users/kullanicilar/${id}/`,
+        { headers }
+      );
+      setFavorites(fullUserRes.data.favori_urunler || []);
     } catch (err) {
-      setError(err.message);
+      console.error("Veri çekme hatası:", err);
+      setError("Veriler alınırken bir hata oluştu.");
       setProducts(mockProducts);
     } finally {
       setIsLoading(false);
@@ -37,29 +54,39 @@ const Products = () => {
   };
 
   const handleFavoriteToggle = async (productId) => {
+    if (!userId) return;
+  
+    const isCurrentlyFavorite = favorites.includes(productId);
+  
     try {
-      const newFavorites = favorites.includes(productId)
-        ? favorites.filter(id => id !== productId)
-        : [...favorites, productId];
-
+      const requestBody = isCurrentlyFavorite
+        ? { remove_favori_urunler: [productId] }
+        : { favori_urunler: [...favorites, productId] };
+  
       await axios.patch(
-        `${apiUrl}/users/kullanicilar/0`,
-        { favori_urunler: newFavorites },
+        `https://imecehub.com/api/users/kullanicilar/${userId}/`,
+        requestBody,
         { headers }
       );
-      setFavorites(newFavorites);
+  
+      const updatedFavorites = isCurrentlyFavorite
+        ? favorites.filter((id) => id !== productId)
+        : [...favorites, productId];
+  
+      setFavorites(updatedFavorites);
     } catch (err) {
-      console.error("Favori güncelleme hatası:", err);
-      setError("Favoriler güncellenirken bir hata oluştu");
+      console.error("Favori güncelleme hatası:", err.response?.data || err.message || err);
+      setError("Favoriler güncellenirken bir hata oluştu.");
     }
   };
+  
 
   useEffect(() => {
-    fetchData();
+    fetchUserAndData();
   }, []);
 
   if (isLoading) return <div>Yükleniyor...</div>;
-  if (error) return <div>Hata: {error}</div>;
+  if (error) return <div className="text-red-600">{error}</div>;
 
   return (
     <div className="products-body">
@@ -72,9 +99,9 @@ const Products = () => {
         <Filter />
         <div className="w-full max-w-[1400px] mx-auto px-4 md:mb-0 mb-28">
           {products.length > 0 ? (
-            <ItemGrid 
-              items={products} 
-              cardType="card4" 
+            <ItemGrid
+              items={products}
+              cardType="card4"
               favorites={favorites}
               onFavoriteToggle={handleFavoriteToggle}
             />

@@ -10,7 +10,8 @@ const Register = () => {
   const navigate = useNavigate(); // useNavigate hook'unu çağır
 
   const apiUrl = "https://imecehub.com/users/rq_register/";
-  const apiKey = "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const apiKey =
+    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
 
   const goToOtherPage = () => {
     navigate("/login"); // Yönlendirme yapılacak sayfanın rotası
@@ -28,11 +29,59 @@ const Register = () => {
     username.trim() !== "" &&
     termsAccepted;
 
+  const validatePassword = (password) => {
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+
+    if (!hasMinLength) return "Şifre en az 8 karakter olmalıdır.";
+    if (!hasUpperCase) return "Şifre en az bir büyük harf içermelidir.";
+    if (!hasNumber) return "Şifre en az bir rakam içermelidir.";
+    return null;
+  };
+
+  const errorTranslations = {
+    "Email already exists.": "Bu e-posta adresi zaten kullanılıyor.",
+    "Username already taken.": "Bu kullanıcı adı zaten alınmış.",
+    "Password must be at least 8 characters.":
+      "Şifre en az 8 karakter olmalıdır.",
+    "Enter a valid email address.": "Geçerli bir e-posta adresi giriniz.",
+    "Invalid role. Please select 'ALICI' or 'SATICI'.":
+      "Geçersiz rol. Lütfen 'ALICI' veya 'SATICI' olarak seçin.",
+  };
+
+  const translateError = (error) => {
+    return errorTranslations[error] || error;
+  };
+
+  const formatErrorMessage = (error) => {
+    if (error.response?.data?.errors) {
+      const errorMessages = [];
+      const errors = error.response.data.errors;
+      Object.keys(errors).forEach((key) => {
+        errors[key].forEach((err) => {
+          errorMessages.push(translateError(err));
+        });
+      });
+      return errorMessages;
+    }
+    return translateError(
+      error.response?.data?.message || "Kayıt sırasında bir hata oluştu."
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault(); // Formun submit olayını engelle
+    setError("");
 
     if (!isFormValid) {
       setError("Lütfen tüm alanları doldurun ve şartları kabul edin.");
+      return;
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -43,6 +92,7 @@ const Register = () => {
           email,
           password,
           username,
+          rol: "ALICI",
         },
         {
           headers: {
@@ -51,19 +101,15 @@ const Register = () => {
           },
         }
       );
-        
-      if (response.data.status.toLowerCase() === "success") {
+
+      if (response.data.status === "success") {
         localStorage.setItem("accessToken", response.data.tokens.access);
         localStorage.setItem("refreshToken", response.data.tokens.refresh);
+        navigate("/");
       }
-
-      // Kayıt başarılıysa kullanıcıyı login sayfasına yönlendir
-      navigate("/");
     } catch (error) {
-      setError(
-        "Kayıt işlemi başarısız oldu. Lütfen bilgilerinizi kontrol edin."
-      );
-      console.error("Kayıt hatası:", error);
+      const errorMessage = formatErrorMessage(error);
+      setError(Array.isArray(errorMessage) ? errorMessage : [errorMessage]);
     }
   };
 
@@ -133,7 +179,19 @@ const Register = () => {
             </label>
           </div>
 
-          {error && <p className="error-message">{error}</p>}
+          {error && (
+            <div className="error-container">
+              {Array.isArray(error) ? (
+                <ul className="error-list">
+                  {error.map((err, index) => (
+                    <li key={index}>{err}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>{error}</p>
+              )}
+            </div>
+          )}
 
           <button
             type="submit"

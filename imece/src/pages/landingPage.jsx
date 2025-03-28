@@ -81,7 +81,9 @@ const LandingPage = () => {
 
         <Saticilar />
         <Categries />
-        <GrupAlimTekilAlim />
+        {/*
+          <GrupAlimTekilAlim /> 
+        */}
 
         {/* Popüler Ürünler */}
         <div className="container mx-auto py-8">

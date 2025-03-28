@@ -1,22 +1,32 @@
 import React, { useState } from "react";
 import "../../styles/seller/add1.css";
-import { useNavigate } from "react-router-dom"; // Yönlendirme için hook'u import et
+import { useNavigate } from "react-router-dom";
+import { useUrun } from "../../context/UrunContext";
+
 const UrunEkle1 = () => {
   const [descriptionFilled, setDescriptionFilled] = useState(false);
   const [categorySelected, setCategorySelected] = useState(false);
   const [nameSelected, setNameSelected] = useState(false);
-  const navigate = useNavigate(); // useNavigate hook'unu çağır
+  const navigate = useNavigate();
+  const { urunBilgileri, updateUrunBilgileri } = useUrun();
 
   // Textarea için border kontrolü
-  const handleDescriptionChange = (e) => {
-    setDescriptionFilled(e.target.value.trim() !== "");
-  };
   const handleNameChange = (e) => {
-    setNameSelected(e.target.value.trim() !== "");
+    const value = e.target.value;
+    setNameSelected(value.trim() !== "");
+    updateUrunBilgileri("urunAdi", value); // ✔ Doğru kullanım
   };
-  // Select için border kontrolü
+
+  const handleDescriptionChange = (e) => {
+    const value = e.target.value;
+    setDescriptionFilled(value.trim() !== "");
+    updateUrunBilgileri("urunAciklamasi", value); // ✔ Doğru kullanım
+  };
+
   const handleCategoryChange = (e) => {
-    setCategorySelected(e.target.value.trim() !== "");
+    const value = e.target.value;
+    setCategorySelected(value.trim() !== "");
+    updateUrunBilgileri("urunTipi", value); // ✔ Doğru kullanım
   };
 
   return (
@@ -49,6 +59,7 @@ const UrunEkle1 = () => {
             placeholder="Ürünün adını girin"
             type="text"
             id="urunAdı"
+            value={urunBilgileri.urunAdi || ""}
             onChange={handleNameChange}
           />
         </div>
@@ -60,9 +71,10 @@ const UrunEkle1 = () => {
             className={`urunadd1select ${categorySelected ? "filled" : ""}`}
             id="kategori"
             name="kategori"
+            value={urunBilgileri.urunTipi || ""} // Context'teki değeri ata
             onChange={handleCategoryChange}
           >
-            <option className="urunEkleAddOption" value="" disabled selected>
+            <option className="urunEkleAddOption" value="" disabled>
               Kategori seçiniz
             </option>
             <option className="urunEkleAddOption" value="value1">
@@ -85,8 +97,9 @@ const UrunEkle1 = () => {
             id="aciklama"
             placeholder="Ürün açıklaması"
             rows="16"
+            value={urunBilgileri.urunAciklamasi || ""} // Context'teki değeri kullan
             onChange={handleDescriptionChange}
-          ></textarea>
+          />
         </div>
         <div className="urunAdd1Button-coontainer">
           <div

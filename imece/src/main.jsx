@@ -24,41 +24,50 @@ import NotFound404 from "./pages/404Page";
 import ProfileForUretici from "./pages/ProfilUreticiPage";
 import SavePaymentCard from "./pages/savePaymentCard";
 import SaticiRegister from "./pages/saticiRegister";
-import SaticiLogin from "./pages/saticiLogin"
+import SaticiLogin from "./pages/saticiLogin";
+import { UrunProvider } from "./context/UrunContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<LandingPage />}></Route>
-      <Route path="/login" element={<Login />}></Route>
-      <Route path="/products" element={<Products />}></Route>
-      <Route path="/profile" element={<Profile />}></Route>
-      <Route path="/basket" element={<Basket />}></Route>
-      <Route path="/register" element={<Register />}></Route>
-      <Route path="/new-password" element={<RefreshPassowrd />}></Route>
-      <Route path="/order-page" element={<OrderPage />}></Route>
-      <Route path="/order-page/choose-group" element={<ChooseGroup />}></Route>
-      <Route path="/order-page/create-group" element={<CreateGroup />}></Route>
-      <Route path="/Urun-Ekle-1" element={<AddUrun />}></Route>
-      <Route path="/Urun-Ekle-2" element={<AddUrun2 />}></Route>
-      <Route path="/Urun-Ekle-3" element={<AddUrun3 />}></Route>
-      <Route path="/Urun-Ekle-4" element={<AddUrun4 />}></Route>
-      <Route path="/post-create" element={<PostCreate />}></Route>
-      <Route path="/cart" element={<CartPage />}></Route>
-      <Route path="/chat" element={<ChatPage />}></Route>
-      <Route path="/add-card" element={<SavePaymentCard />}></Route>
-      <Route path="/register-seller" element={<SaticiRegister />}></Route>
-      <Route path="/login-seller" element={<SaticiLogin />}></Route>
+  <UrunProvider>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />}></Route>
+        <Route path="/login" element={<Login />}></Route>
+        <Route path="/products" element={<Products />}></Route>
+        <Route path="/profile" element={<Profile />}></Route>
+        <Route path="/basket" element={<Basket />}></Route>
+        <Route path="/register" element={<Register />}></Route>
+        <Route path="/new-password" element={<RefreshPassowrd />}></Route>
+        <Route path="/order-page" element={<OrderPage />}></Route>
+        <Route
+          path="/order-page/choose-group"
+          element={<ChooseGroup />}
+        ></Route>
+        <Route
+          path="/order-page/create-group"
+          element={<CreateGroup />}
+        ></Route>
+        <Route path="/Urun-Ekle-1" element={<AddUrun />}></Route>
+        <Route path="/Urun-Ekle-2" element={<AddUrun2 />}></Route>
+        <Route path="/Urun-Ekle-3" element={<AddUrun3 />}></Route>
+        <Route path="/Urun-Ekle-4" element={<AddUrun4 />}></Route>
+        <Route path="/post-create" element={<PostCreate />}></Route>
+        <Route path="/cart" element={<CartPage />}></Route>
+        <Route path="/chat" element={<ChatPage />}></Route>
+        <Route path="/add-card" element={<SavePaymentCard />}></Route>
+        <Route path="/register-seller" element={<SaticiRegister />}></Route>
+        <Route path="/login-seller" element={<SaticiLogin />}></Route>
 
-      <Route
-        path="/profile/satici-profili"
-        element={<ProfileForUretici />}
-      ></Route>
-      <Route
-        path="/financial-dashboard"
-        element={<FinancialDashboard />}
-      ></Route>
-      <Route path="/*" element={<NotFound404 />}></Route>
-    </Routes>
-  </BrowserRouter>
+        <Route
+          path="/profile/satici-profili"
+          element={<ProfileForUretici />}
+        ></Route>
+        <Route
+          path="/financial-dashboard"
+          element={<FinancialDashboard />}
+        ></Route>
+        <Route path="/*" element={<NotFound404 />}></Route>
+      </Routes>
+    </BrowserRouter>
+  </UrunProvider>
 );

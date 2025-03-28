@@ -1,23 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../styles/seller/add1.css";
 import { useNavigate } from "react-router-dom"; // Yönlendirme için hook'u import et
+import { useUrun } from "../../context/UrunContext";
 
 const UrunEkle2 = () => {
   const [descriptionFilled, setDescriptionFilled] = useState(false);
   const [categorySelected, setCategorySelected] = useState(false);
   const [nameSelected, setNameSelected] = useState(false);
+  const [productType, setProductType] = useState(""); // For radio buttons
   const navigate = useNavigate(); // useNavigate hook'unu çağır
 
-  // Textarea için border kontrolü
-  const handleDescriptionChange = (e) => {
-    setDescriptionFilled(e.target.value.trim() !== "");
+  const { urunBilgileri, updateUrunBilgileri } = useUrun();
+  console.log(urunBilgileri);
+
+  // Update product type when radio buttons are selected
+  const handleProductTypeChange = (e) => {
+    const selectedType = e.target.value;
+    setProductType(selectedType);
+    updateUrunBilgileri("urunTipi", selectedType); // Update context with selected product type
   };
-  const handleNameChange = (e) => {
-    setNameSelected(e.target.value.trim() !== "");
+
+  // Text input changes (for amount and price)
+  const handleAmountChange = (e) => {
+    const value = e.target.value;
+    setNameSelected(value.trim() !== "");
+    updateUrunBilgileri("urunMiktari", value); // Update context with amount
   };
-  // Select için border kontrolü
-  const handleCategoryChange = (e) => {
-    setCategorySelected(e.target.value.trim() !== "");
+
+  const handlePriceChange = (e) => {
+    const value = e.target.value;
+    setCategorySelected(value.trim() !== "");
+    updateUrunBilgileri("urunFiyati", value); // Update context with price
+  };
+
+  // Readonly field for kg-based price
+  const handleKgPriceChange = (e) => {
+    const value = e.target.value;
+    setDescriptionFilled(value.trim() !== "");
+    updateUrunBilgileri("kgBasiFiyat", value); // Update context with kg-based price
   };
 
   return (
@@ -42,21 +62,38 @@ const UrunEkle2 = () => {
       </div>
       <div className="urunEkle1Container-gridrigth">
         <div>
-          {" "}
           <p className="notmargin boldadd">Ürün Tipini Seçin</p>
         </div>
         <div>
           <div className="urunEkle2-radio-group">
             <label className="radio-option">
-              <input type="radio" name="product-type" value="Adet" />
+              <input
+                type="radio"
+                name="product-type"
+                value="Adet"
+                checked={productType === "Adet"}
+                onChange={handleProductTypeChange}
+              />
               <span>Adet</span>
             </label>
             <label className="radio-option">
-              <input type="radio" name="product-type" value="Litre" />
+              <input
+                type="radio"
+                name="product-type"
+                value="Litre"
+                checked={productType === "Litre"}
+                onChange={handleProductTypeChange}
+              />
               <span>Litre</span>
             </label>
             <label className="radio-option">
-              <input type="radio" name="product-type" value="Kilo" />
+              <input
+                type="radio"
+                name="product-type"
+                value="Kilo"
+                checked={productType === "Kilo"}
+                onChange={handleProductTypeChange}
+              />
               <span>Kilo</span>
             </label>
           </div>
@@ -70,7 +107,8 @@ const UrunEkle2 = () => {
             placeholder="Ürünün miktarını girin"
             type="number"
             id="urunMiktari"
-            onChange={handleNameChange}
+            value={urunBilgileri.urunMiktari || ""}
+            onChange={handleAmountChange}
           />
         </div>
         <div>
@@ -82,7 +120,8 @@ const UrunEkle2 = () => {
             placeholder="Fiyatı Belirleriniz"
             type="number"
             id="UrunFiyati"
-            onChange={handleCategoryChange}
+            value={urunBilgileri.urunFiyati || ""}
+            onChange={handlePriceChange}
           />
         </div>
         <div>
@@ -95,7 +134,8 @@ const UrunEkle2 = () => {
             placeholder="Girdiğiniz Fiyat Göre Otomatik Olarak Belirlenir"
             type="number"
             id="Fiyati"
-            onChange={handleDescriptionChange}
+            value={urunBilgileri.kgBasiFiyat || ""}
+            onChange={handleKgPriceChange}
           />
         </div>
         <div>

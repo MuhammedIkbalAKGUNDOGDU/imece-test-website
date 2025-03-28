@@ -76,8 +76,9 @@ const LandingPage = () => {
           />
         </div>
 
-        {/* Sayfa Bileşenleri */}
-        <AliciAndSaticiOl />
+        {/* accessToken YOKSA AliciAndSaticiOl bileşenini göster */}
+        {!accesToken && <AliciAndSaticiOl />}
+
         <Saticilar />
         <Categries />
         <GrupAlimTekilAlim />

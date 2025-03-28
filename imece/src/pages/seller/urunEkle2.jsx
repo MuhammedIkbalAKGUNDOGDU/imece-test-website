@@ -23,21 +23,21 @@ const UrunEkle2 = () => {
   return (
     <div className="urunEkle1Container">
       <div className="urunEkle1Container-gridleft">
-        <div class="step ">
-          <div class="step-number">1</div>
-          <div class="step-title">ÜRÜN BİLGİLERİ</div>
+        <div className="step ">
+          <div className="step-number">1</div>
+          <div className="step-title">ÜRÜN BİLGİLERİ</div>
         </div>
-        <div class="step active">
-          <div class="step-number">2</div>
-          <div class="step-title activetext">SATIŞ BİLGİLERİ</div>
+        <div className="step active">
+          <div className="step-number">2</div>
+          <div className="step-title activetext">SATIŞ BİLGİLERİ</div>
         </div>
-        <div class="step">
-          <div class="step-number">3</div>
-          <div class="step-title">ÜRÜN ÖZELLİKLERİ</div>
+        <div className="step">
+          <div className="step-number">3</div>
+          <div className="step-title">ÜRÜN ÖZELLİKLERİ</div>
         </div>
-        <div class="step">
-          <div class="step-number">4</div>
-          <div class="step-title">ÜRÜN ÖZELLİKLERİ</div>
+        <div className="step">
+          <div className="step-number">4</div>
+          <div className="step-title">ÜRÜN ÖZELLİKLERİ</div>
         </div>
       </div>
       <div className="urunEkle1Container-gridrigth">
@@ -46,16 +46,16 @@ const UrunEkle2 = () => {
           <p className="notmargin boldadd">Ürün Tipini Seçin</p>
         </div>
         <div>
-          <div class="urunEkle2-radio-group">
-            <label class="radio-option">
+          <div className="urunEkle2-radio-group">
+            <label className="radio-option">
               <input type="radio" name="product-type" value="Adet" />
               <span>Adet</span>
             </label>
-            <label class="radio-option">
+            <label className="radio-option">
               <input type="radio" name="product-type" value="Litre" />
               <span>Litre</span>
             </label>
-            <label class="radio-option">
+            <label className="radio-option">
               <input type="radio" name="product-type" value="Kilo" />
               <span>Kilo</span>
             </label>

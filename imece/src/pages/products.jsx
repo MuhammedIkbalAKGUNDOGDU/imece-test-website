@@ -7,6 +7,7 @@ import Filter from "../components/GenerealUse/filter";
 import MobileFilter from "../components/GenerealUse/mobileFilter";
 import ItemGrid from "../components/GenerealUse/ItemGrid";
 import { products as mockProducts } from "../data/products";
+import LoadingSpinner from "../components/GenerealUse/loadingSpinner"; // Yükleme animasyonu bileşeni
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -15,7 +16,8 @@ const Products = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const apiKey = "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const apiKey =
+    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
   const accessToken = localStorage.getItem("accessToken");
 
   const headers = {
@@ -55,37 +57,39 @@ const Products = () => {
 
   const handleFavoriteToggle = async (productId) => {
     if (!userId) return;
-  
+
     const isCurrentlyFavorite = favorites.includes(productId);
-  
+
     try {
       const requestBody = isCurrentlyFavorite
         ? { remove_favori_urunler: [productId] }
         : { favori_urunler: [...favorites, productId] };
-  
+
       await axios.patch(
         `https://imecehub.com/api/users/kullanicilar/${userId}/`,
         requestBody,
         { headers }
       );
-  
+
       const updatedFavorites = isCurrentlyFavorite
         ? favorites.filter((id) => id !== productId)
         : [...favorites, productId];
-  
+
       setFavorites(updatedFavorites);
     } catch (err) {
-      console.error("Favori güncelleme hatası:", err.response?.data || err.message || err);
+      console.error(
+        "Favori güncelleme hatası:",
+        err.response?.data || err.message || err
+      );
       setError("Favoriler güncellenirken bir hata oluştu.");
     }
   };
-  
 
   useEffect(() => {
     fetchUserAndData();
   }, []);
 
-  if (isLoading) return <div>Yükleniyor...</div>;
+  if (isLoading) return <LoadingSpinner />;
   if (error) return <div className="text-red-600">{error}</div>;
 
   return (

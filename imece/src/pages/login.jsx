@@ -14,7 +14,8 @@ const login = () => {
   const [error, setError] = useState("");
 
   const apiUrl = "https://imecehub.com/users/rq_login/";
-  const apiKey = "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const apiKey =
+    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
 
   const errorTranslations = {
     "Invalid email or password.": "E-posta veya şifre hatalı.",
@@ -29,14 +30,16 @@ const login = () => {
     if (error.response?.data?.errors) {
       const errorMessages = [];
       const errors = error.response.data.errors;
-      Object.keys(errors).forEach(key => {
-        errors[key].forEach(err => {
+      Object.keys(errors).forEach((key) => {
+        errors[key].forEach((err) => {
           errorMessages.push(translateError(err));
         });
       });
       return errorMessages;
     }
-    return translateError(error.response?.data?.message || "Giriş sırasında bir hata oluştu.");
+    return translateError(
+      error.response?.data?.message || "Giriş sırasında bir hata oluştu."
+    );
   };
 
   const isFormValid =
@@ -87,7 +90,7 @@ const login = () => {
   return (
     <div className="auth-container">
       <div className="auth_inner_container">
-        <div className="auth_logo">
+        <div onClick={() => navigate("/")} className="auth_logo cursor-pointer">
           <img src={logo} alt="" />
         </div>
         <form className="login-form" onSubmit={handleSubmit}>

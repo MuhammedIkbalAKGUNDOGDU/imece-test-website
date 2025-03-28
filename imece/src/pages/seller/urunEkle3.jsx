@@ -37,21 +37,21 @@ const UrunEkle3 = () => {
   return (
     <div className="urunEkle1Container">
       <div className="urunEkle1Container-gridleft">
-        <div class="step ">
-          <div class="step-number">1</div>
-          <div class="step-title">ÜRÜN BİLGİLERİ</div>
+        <div className="step ">
+          <div className="step-number">1</div>
+          <div className="step-title">ÜRÜN BİLGİLERİ</div>
         </div>
-        <div class="step">
-          <div class="step-number">2</div>
-          <div class="step-title">SATIŞ BİLGİLERİ</div>
+        <div className="step">
+          <div className="step-number">2</div>
+          <div className="step-title">SATIŞ BİLGİLERİ</div>
         </div>
-        <div class="step active">
-          <div class="step-number">3</div>
-          <div class="step-title activetext">ÜRÜN ÖZELLİKLERİ</div>
+        <div className="step active">
+          <div className="step-number">3</div>
+          <div className="step-title activetext">ÜRÜN ÖZELLİKLERİ</div>
         </div>
-        <div class="step">
-          <div class="step-number">4</div>
-          <div class="step-title">ÜRÜN ÖZELLİKLERİ</div>
+        <div className="step">
+          <div className="step-number">4</div>
+          <div className="step-title">ÜRÜN ÖZELLİKLERİ</div>
         </div>
       </div>
       <div className="urunEkle1Container-gridrigth">
@@ -77,7 +77,7 @@ const UrunEkle3 = () => {
             </div>
           </div>
 
-          <div class="w-1/2 mt-12 border-t border-gray-400"></div>
+          <div className="w-1/2 mt-12 border-t border-gray-400"></div>
 
           <div className="flex flex-row mt-12">
             <div className="basis-1/4">
@@ -108,13 +108,13 @@ const UrunEkle3 = () => {
           <div>
             <div className="mt-2">
               <p className="font-bold text-2xl">Listelenme Süresi</p>
-              <div class="flex space-x-4 mt-6">
-                <select class="border rounded px-4 py-2">
+              <div className="flex space-x-4 mt-6">
+                <select className="border rounded px-4 py-2">
                   <option>Saat</option>
                   <option>1 Saat</option>
                   <option>2 Saat</option>
                 </select>
-                <select class="border rounded px-4 py-2">
+                <select className="border rounded px-4 py-2">
                   <option>Dakika</option>
                   <option>30 Dakika</option>
                   <option>45 Dakika</option>

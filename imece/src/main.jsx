@@ -23,6 +23,8 @@ import FinancialDashboard from "./pages/financialDashboard";
 import NotFound404 from "./pages/404Page";
 import ProfileForUretici from "./pages/ProfilUreticiPage";
 import SavePaymentCard from "./pages/savePaymentCard";
+import SaticiRegister from "./pages/saticiRegister";
+import SaticiLogin from "./pages/saticiLogin"
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -45,6 +47,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/cart" element={<CartPage />}></Route>
       <Route path="/chat" element={<ChatPage />}></Route>
       <Route path="/add-card" element={<SavePaymentCard />}></Route>
+      <Route path="/register-seller" element={<SaticiRegister />}></Route>
+      <Route path="/login-seller" element={<SaticiLogin />}></Route>
 
       <Route
         path="/profile/satici-profili"

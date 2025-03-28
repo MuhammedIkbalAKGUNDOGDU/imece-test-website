@@ -14,7 +14,7 @@ const Register = () => {
     "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
 
   const goToOtherPage = () => {
-    navigate("/login"); // Yönlendirme yapılacak sayfanın rotası
+    navigate("/login-seller"); // Yönlendirme yapılacak sayfanın rotası
   };
 
   const [email, setEmail] = useState("");

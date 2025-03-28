@@ -1,53 +1,25 @@
 import React, { useState } from "react";
-import axios from "axios"; // Axios'u import et
 import "../styles/auth_Styles/login.css";
 import banner from "../assets/images/auth_banner.jpg";
 import logo from "../assets/images/logo.png";
 import googleIcon from "../assets/vectors/google.svg";
 import { useNavigate } from "react-router-dom"; // Yönlendirme için hook'u import et
+import axios from "axios";
 
-const Register = () => {
+const login = () => {
   const navigate = useNavigate(); // useNavigate hook'unu çağır
-
-  const apiUrl = "https://imecehub.com/users/rq_register/";
-  const apiKey =
-    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
-
-  const goToOtherPage = () => {
-    navigate("/login"); // Yönlendirme yapılacak sayfanın rotası
-  };
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
 
-  const isFormValid =
-    email.trim() !== "" &&
-    password.trim() !== "" &&
-    username.trim() !== "" &&
-    termsAccepted;
-
-  const validatePassword = (password) => {
-    const hasMinLength = password.length >= 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasNumber = /\d/.test(password);
-
-    if (!hasMinLength) return "Şifre en az 8 karakter olmalıdır.";
-    if (!hasUpperCase) return "Şifre en az bir büyük harf içermelidir.";
-    if (!hasNumber) return "Şifre en az bir rakam içermelidir.";
-    return null;
-  };
+  const apiUrl = "https://imecehub.com/users/rq_login/";
+  const apiKey =
+    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
 
   const errorTranslations = {
-    "Email already exists.": "Bu e-posta adresi zaten kullanılıyor.",
-    "Username already taken.": "Bu kullanıcı adı zaten alınmış.",
-    "Password must be at least 8 characters.":
-      "Şifre en az 8 karakter olmalıdır.",
+    "Invalid email or password.": "E-posta veya şifre hatalı.",
     "Enter a valid email address.": "Geçerli bir e-posta adresi giriniz.",
-    "Invalid role. Please select 'ALICI' or 'SATICI'.":
-      "Geçersiz rol. Lütfen 'ALICI' veya 'SATICI' olarak seçin.",
   };
 
   const translateError = (error) => {
@@ -66,22 +38,26 @@ const Register = () => {
       return errorMessages;
     }
     return translateError(
-      error.response?.data?.message || "Kayıt sırasında bir hata oluştu."
+      error.response?.data?.message || "Giriş sırasında bir hata oluştu."
     );
   };
 
+  const isFormValid =
+    email.trim() !== "" && password.trim() !== "" && termsAccepted;
+
+  const goToOtherPage = () => {
+    navigate("/register-seller"); // Yönlendirme yapılacak sayfanın rotası
+  };
+  const googleLogin = () => {
+    navigate("/register"); // Yönlendirme yapılacak sayfanın rotası
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Formun submit olayını engelle
+    e.preventDefault();
     setError("");
 
     if (!isFormValid) {
       setError("Lütfen tüm alanları doldurun ve şartları kabul edin.");
-      return;
-    }
-
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-      setError(passwordError);
       return;
     }
 
@@ -91,8 +67,6 @@ const Register = () => {
         {
           email,
           password,
-          username,
-          rol: "ALICI",
         },
         {
           headers: {
@@ -120,9 +94,9 @@ const Register = () => {
           <img src={logo} alt="" />
         </div>
         <form className="login-form" onSubmit={handleSubmit}>
-          <h2>
+          <h2 className="login-title">
             {" "}
-            <span className="green underlined">İmece'ye</span> Hoş geldin
+            <span className="green underlined">İmece'e</span> Hoş geldin
           </h2>
           <label className="green underlined login-label" htmlFor="email">
             E posta
@@ -137,19 +111,6 @@ const Register = () => {
             required
           />
 
-          <label className="green underlined login-label" htmlFor="username">
-            Kullanıcı Adı
-          </label>
-          <input
-            className="login-input"
-            type="text"
-            id="username"
-            value={username}
-            placeholder="Kullanıcı adını gir"
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-
           <label className="green underlined login-label" htmlFor="password">
             Şifre
           </label>
@@ -157,8 +118,8 @@ const Register = () => {
             className="login-input"
             type="password"
             id="password"
-            value={password}
             placeholder="Şifreni gir"
+            value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
@@ -205,18 +166,19 @@ const Register = () => {
 
           <div className="or-divider">Yada</div>
 
-          <button type="button" className="login-google-button clickable">
+          <div className="login-google-button clickable">
             <img className="login-google-logo" src={googleIcon} alt="Google" />{" "}
             <span> Google ile giriş yap</span>
-          </button>
+          </div>
         </form>
         <div className="login-redirect">
-          Zaten bir hesabınız var mı?{" "}
-          <span className="green pointer" onClick={goToOtherPage}>
-            Şimdi oturum açın
+          Henüz kurulmuş bir hesabınız yok mu?{" "}
+          <span onClick={goToOtherPage} className="green pointer">
+            Şimdi kayıt olun
           </span>
         </div>
       </div>
+
       <div className="auth_banner">
         <img src={banner} alt="" />
         <h2 className="auth-banner-imece">imece.com</h2>
@@ -225,4 +187,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default login;

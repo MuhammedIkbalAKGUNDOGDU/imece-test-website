@@ -45,21 +45,21 @@ const UrunEkle4 = () => {
   return (
     <div className="urunEkle1Container">
       <div className="urunEkle1Container-gridleft">
-        <div class="step ">
-          <div class="step-number">1</div>
-          <div class="step-title">ÜRÜN BİLGİLERİ</div>
+        <div className="step ">
+          <div className="step-number">1</div>
+          <div className="step-title">ÜRÜN BİLGİLERİ</div>
         </div>
-        <div class="step">
-          <div class="step-number">2</div>
-          <div class="step-title">SATIŞ BİLGİLERİ</div>
+        <div className="step">
+          <div className="step-number">2</div>
+          <div className="step-title">SATIŞ BİLGİLERİ</div>
         </div>
-        <div class="step">
-          <div class="step-number ">3</div>
-          <div class="step-title">ÜRÜN ÖZELLİKLERİ</div>
+        <div className="step">
+          <div className="step-number ">3</div>
+          <div className="step-title">ÜRÜN ÖZELLİKLERİ</div>
         </div>
-        <div class="step active">
-          <div class="step-number ">4</div>
-          <div class="step-title activetext">ÜRÜN ÖZELLİKLERİ</div>
+        <div className="step active">
+          <div className="step-number ">4</div>
+          <div className="step-title activetext">ÜRÜN ÖZELLİKLERİ</div>
         </div>
       </div>
       <div className="urunEkle1Container-gridrigth">

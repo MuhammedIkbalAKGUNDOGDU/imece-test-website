@@ -35,12 +35,17 @@ const Filter = () => {
           {[
             "Meyveler",
             "Sebzeler",
-            "Yeşillikler",
-            "Mantarlar",
-            "Baklagiller",
-            "Egzotik meyveler",
-            "Kuru yemişler",
-            "Kök sebzeler",
+            "Elektronik",
+            "Moda ve Giyim",
+            "Ev ve Yaşam",
+            "Kozmetik ve Kişisel Bakım",
+            "Spor ve Outdoor",
+            "Anne & Bebek Ürünleri",
+            "Kitap, Film, Müzik ve Hobi",
+            "Otomobil ve Motosiklet",
+            "Süpermarket & Gıda",
+            "Pet Shop (Evcil Hayvan Ürünleri)",
+            "Sağlık ve Medikal Ürünler",
           ].map((category) => (
             <li key={category}>
               <label>
@@ -62,6 +67,7 @@ const Filter = () => {
         </h3>
         <ul className="filter-list">
           {[
+            "0 - 300 TL",
             "300 - 500 TL",
             "500 - 700 TL",
             "700 - 900 TL",

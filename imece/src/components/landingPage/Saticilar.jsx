@@ -45,30 +45,9 @@ const Saticilar = () => {
 
         const data = await response.json();
         // Dummy veriler
-        const dummyData = [
-          { adi: "Test Şirket 1", logo: "https://picsum.photos/200" },
-          { adi: "Test Şirket 2", logo: "https://picsum.photos/201" },
-          { adi: "Test Şirket 3", logo: "https://picsum.photos/202" },
-          { adi: "Test Şirket 4", logo: "https://picsum.photos/203" },
-          { adi: "Test Şirket 5", logo: "https://picsum.photos/204" },
-          { adi: "Test Şirket 6", logo: "https://picsum.photos/205" },
-          { adi: "Test Şirket 7", logo: "https://picsum.photos/206" },
-          { adi: "Test Şirket 8", logo: "https://picsum.photos/207" },
-          { adi: "Test Şirket 9", logo: "https://picsum.photos/208" },
-          { adi: "Test Şirket 10", logo: "https://picsum.photos/209" },
-          { adi: "Test Şirket 1", logo: "https://picsum.photos/200" },
-          { adi: "Test Şirket 2", logo: "https://picsum.photos/201" },
-          { adi: "Test Şirket 3", logo: "https://picsum.photos/202" },
-          { adi: "Test Şirket 4", logo: "https://picsum.photos/203" },
-          { adi: "Test Şirket 5", logo: "https://picsum.photos/204" },
-          { adi: "Test Şirket 6", logo: "https://picsum.photos/205" },
-          { adi: "Test Şirket 7", logo: "https://picsum.photos/206" },
-          { adi: "Test Şirket 8", logo: "https://picsum.photos/207" },
-          { adi: "Test Şirket 9", logo: "https://picsum.photos/208" },
-          { adi: "Test Şirket 10", logo: "https://picsum.photos/209" },
-        ];
+      
         
-        setSellers([...data, ...dummyData]);
+        setSellers([...data]);
       } catch (error) {
         setError(error.message);
       } finally {

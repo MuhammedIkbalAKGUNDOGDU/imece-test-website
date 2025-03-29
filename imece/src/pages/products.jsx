@@ -95,9 +95,12 @@ const Products = () => {
   return (
     <div className="products-body">
       <Header />
+
+      {/*
       <div className="grupalim-products">
         <GrupAlimTekilAlim />
       </div>
+      */}
       <MobileFilter />
       <div className="products-products">
         <Filter />

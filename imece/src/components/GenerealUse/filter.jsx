@@ -48,7 +48,10 @@ const Filter = ({ onFilterChange }) => {
     <div className="filter-container">
       {/* Kategori */}
       <div className="filter-section">
-        <h3 className="filter-title" onClick={() => setIsCategoryOpen(!isCategoryOpen)}>
+        <h3
+          className="filter-title"
+          onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+        >
           Kategori <span>{isCategoryOpen ? "▲" : "▼"}</span>
         </h3>
         {isCategoryOpen && (
@@ -85,7 +88,10 @@ const Filter = ({ onFilterChange }) => {
 
       {/* Fiyat Aralığı */}
       <div className="filter-section">
-        <h3 className="filter-title" onClick={() => setIsPriceOpen(!isPriceOpen)}>
+        <h3
+          className="filter-title"
+          onClick={() => setIsPriceOpen(!isPriceOpen)}
+        >
           Fiyat aralığı <span>{isPriceOpen ? "▲" : "▼"}</span>
         </h3>
         {isPriceOpen && (
@@ -106,6 +112,7 @@ const Filter = ({ onFilterChange }) => {
                     value={price}
                     checked={selectedPrice === price}
                     onChange={() => handlePriceChange(price)}
+                    onClick={() => handlePriceChange(price)}
                   />
                   {price}
                 </label>
@@ -117,7 +124,10 @@ const Filter = ({ onFilterChange }) => {
 
       {/* Değerlendirme Puanı */}
       <div className="filter-section">
-        <h3 className="filter-title" onClick={() => setIsRatingOpen(!isRatingOpen)}>
+        <h3
+          className="filter-title"
+          onClick={() => setIsRatingOpen(!isRatingOpen)}
+        >
           Değerlendirme puanı <span>{isRatingOpen ? "▲" : "▼"}</span>
         </h3>
         {isRatingOpen && (
@@ -131,6 +141,7 @@ const Filter = ({ onFilterChange }) => {
                     value={rating}
                     checked={selectedRating === rating}
                     onChange={() => handleRatingChange(rating)}
+                    onClick={() => handleRatingChange(rating)}
                   />
                   {`⭐ ${rating} yıldız ve üzeri`}
                 </label>

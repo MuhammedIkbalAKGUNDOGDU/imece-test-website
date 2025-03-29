@@ -1,5 +1,11 @@
 import React from "react";
-import { FaStar, FaStarHalfAlt, FaRegStar, FaHeart, FaRegHeart } from "react-icons/fa";
+import {
+  FaStar,
+  FaStarHalfAlt,
+  FaRegStar,
+  FaHeart,
+  FaRegHeart,
+} from "react-icons/fa";
 
 const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
   const handleFavoriteClick = () => {
@@ -45,6 +51,9 @@ const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
           <h3 className="text-sm sm:text-lg font-bold text-gray-900 line-clamp-1">
             {data.urun_adi}
           </h3>
+          <h2 className="text-xs sm:text-md font-bold text-gray-900 line-clamp-1">
+            {data.fiyat} TL
+          </h2>
           {data.urun_adi.length > 15 && (
             <div className="absolute hidden group-hover:block bg-white shadow-xl rounded-md p-2 z-20 left-0 top-full mt-1 w-full border border-gray-200">
               {data.urun_adi}

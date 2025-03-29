@@ -40,14 +40,14 @@ const Header = () => {
       </div>
       <div
         className={`header-buttons clickable pointer ${
-          location.pathname === "/products" ? "active" : ""
+          location.pathname === "/favoriler" ? "active" : ""
         }`}
-        onClick={() => navigate("/products")}
+        onClick={() => navigate("/favoriler")}
       >
         <div className="header-products-svg icon">
           <CiShop className="icon-svg" />
         </div>
-        <p className="pointer">Ürünler</p>
+        <p className="pointer">Favoriler</p>
       </div>
       <div
         className={`header-buttons clickable pointer ${

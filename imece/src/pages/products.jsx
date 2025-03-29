@@ -20,8 +20,7 @@ const Products = () => {
     rating: null,
   });
 
-  const apiKey =
-    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const apiKey = "WNjZXMttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
   const accessToken = localStorage.getItem("accessToken");
 
   const headers = {
@@ -32,24 +31,15 @@ const Products = () => {
 
   const fetchUserAndData = async () => {
     try {
-      const userRes = await axios.get(
-        "https://imecehub.com/api/users/kullanicilar/me/",
-        { headers }
-      );
+      const userRes = await axios.get("https://imecehub.com/api/users/kullanicilar/me/", { headers });
       const id = userRes.data.id;
       setUserId(id);
 
-      const productsRes = await axios.get(
-        "https://imecehub.com/api/products/urunler/",
-        { headers }
-      );
+      const productsRes = await axios.get("https://imecehub.com/api/products/urunler/", { headers });
       setProducts(productsRes.data);
       setFilteredProducts(productsRes.data);
 
-      const fullUserRes = await axios.get(
-        `https://imecehub.com/api/users/kullanicilar/${id}/`,
-        { headers }
-      );
+      const fullUserRes = await axios.get(`https://imecehub.com/api/users/kullanicilar/${id}/`, { headers });
       setFavorites(fullUserRes.data.favori_urunler || []);
     } catch (err) {
       console.error("Veri çekme hatası:", err);
@@ -61,34 +51,48 @@ const Products = () => {
     }
   };
 
+  const handleFavoriteToggle = async (productId) => {
+    if (!userId) return;
+
+    const isCurrentlyFavorite = favorites.includes(productId);
+
+    try {
+      const requestBody = isCurrentlyFavorite
+        ? { remove_favori_urunler: [productId] }
+        : { favori_urunler: [...favorites, productId] };
+
+      await axios.patch(`https://imecehub.com/api/users/kullanicilar/${userId}/`, requestBody, { headers });
+
+      const updatedFavorites = isCurrentlyFavorite
+        ? favorites.filter((id) => id !== productId)
+        : [...favorites, productId];
+
+      setFavorites(updatedFavorites);
+    } catch (err) {
+      console.error("Favori güncelleme hatası:", err.response?.data || err.message || err);
+      setError("Favoriler güncellenirken bir hata oluştu.");
+    }
+  };
+
   useEffect(() => {
     fetchUserAndData();
   }, []);
 
-  console.log(products);
   useEffect(() => {
     const applyFilters = () => {
       let filtered = [...products];
 
       if (filters.categories.length > 0) {
-        filtered = filtered.filter((product) =>
-          filters.categories.includes(product.kategori)
-        );
+        filtered = filtered.filter((product) => filters.categories.includes(product.kategori));
       }
 
       if (filters.price) {
-        const [minPrice, maxPrice] = filters.price
-          .split(" - ")
-          .map((p) => parseInt(p.replace(" TL", ""), 10));
-        filtered = filtered.filter(
-          (product) => product.fiyat >= minPrice && product.fiyat <= maxPrice
-        );
+        const [minPrice, maxPrice] = filters.price.split(" - ").map((p) => parseInt(p.replace(" TL", ""), 10));
+        filtered = filtered.filter((product) => product.fiyat >= minPrice && product.fiyat <= maxPrice);
       }
 
       if (filters.rating !== null) {
-        filtered = filtered.filter(
-          (product) => product.degerlendirme_puani >= filters.rating
-        );
+        filtered = filtered.filter((product) => product.degerlendirme_puani >= filters.rating);
       }
 
       setFilteredProducts(filtered);
@@ -115,6 +119,7 @@ const Products = () => {
               items={filteredProducts}
               cardType="card4"
               favorites={favorites}
+              onFavoriteToggle={handleFavoriteToggle}
             />
           ) : (
             <p>Ürün bulunamadı</p>

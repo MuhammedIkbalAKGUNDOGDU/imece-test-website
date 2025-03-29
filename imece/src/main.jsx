@@ -25,6 +25,7 @@ import ProfileForUretici from "./pages/ProfilUreticiPage";
 import SavePaymentCard from "./pages/savePaymentCard";
 import SaticiRegister from "./pages/saticiRegister";
 import SaticiLogin from "./pages/saticiLogin";
+import Favoriler from "./pages/favoriler";
 import { UrunProvider } from "./context/UrunContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -39,6 +40,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/register" element={<Register />}></Route>
         <Route path="/new-password" element={<RefreshPassowrd />}></Route>
         <Route path="/order-page" element={<OrderPage />}></Route>
+        <Route path="/favoriler" element={<Favoriler />}></Route>
         <Route
           path="/order-page/choose-group"
           element={<ChooseGroup />}

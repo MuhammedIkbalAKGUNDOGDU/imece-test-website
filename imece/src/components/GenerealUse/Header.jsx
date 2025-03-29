@@ -10,6 +10,7 @@ import { IoHomeOutline } from "react-icons/io5";
 import { CiUser } from "react-icons/ci";
 import { CiShop } from "react-icons/ci";
 import { CiMenuBurger } from "react-icons/ci";
+import { CiHeart } from "react-icons/ci";
 
 const Header = () => {
   const navigate = useNavigate(); // Yönlendirme için
@@ -40,14 +41,25 @@ const Header = () => {
       </div>
       <div
         className={`header-buttons clickable pointer ${
+          location.pathname === "/products" ? "active" : ""
+        }`}
+        onClick={() => navigate("/products")}
+      >
+        <div className="header-products-svg icon">
+          <CiShop className="icon-svg" />
+        </div>
+        <p className="pointer">Ürünler</p>
+      </div>
+      <div
+        className={`header-buttons clickable pointer ${
           location.pathname === "/favoriler" ? "active" : ""
         }`}
         onClick={() => navigate("/favoriler")}
       >
         <div className="header-products-svg icon">
-          <CiShop className="icon-svg" />
+          <CiHeart className="icon-svg" />
         </div>
-        <p className="pointer">Favoriler</p>
+        <p className="pointer">Favorilerim</p>
       </div>
       <div
         className={`header-buttons clickable pointer ${
@@ -58,7 +70,7 @@ const Header = () => {
         <div className="header-basket-svg icon">
           <PiShoppingCartLight className="icon-svg" />
         </div>
-        <p className="pointer">Sepetin</p>
+        <p className="pointer">Sepetim</p>
       </div>
       <div
         className={`header-buttons clickable pointer ${
@@ -69,7 +81,7 @@ const Header = () => {
         <div className="header-profile-svg icon">
           <CiUser className="icon-svg" />
         </div>
-        <p className="pointer">Profilin</p>
+        <p className="pointer">Hesabım</p>
       </div>
       <div className={"header-buttons header-more clickable pointer"}>
         <div className="header-menu-svg icon">

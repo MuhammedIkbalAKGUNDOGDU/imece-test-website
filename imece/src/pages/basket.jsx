@@ -33,12 +33,6 @@ export default function CartPage() {
         <AddressSection />
         <div className="bg-white shadow-lg p-3 sm:p-4 md:p-6 rounded-lg my-2 md:my-4">
           <div className="flex flex-col gap-4">{cartItems}</div>
-          <button
-            onClick={addItem}
-            className="w-full flex items-center justify-center border border-dashed p-3 sm:p-4 text-sm sm:text-base text-gray-600 rounded-lg mt-4 hover:bg-gray-50"
-          >
-            + Ürün ekle
-          </button>
         </div>
         <PaymentSection />
       </div>

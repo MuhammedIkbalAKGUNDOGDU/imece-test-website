@@ -1,22 +1,51 @@
 import React from "react";
 import Header from "../components/GenerealUse/Header";
 import "../styles/orderPage.css";
-import { FaLongArrowAltRight } from "react-icons/fa";
+import { FaLongArrowAltRight, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 import { FaStar } from "react-icons/fa";
 import { FaStarHalf } from "react-icons/fa";
 import productsimg from "../assets/images/productPageImg.png";
 import profilfoto from "../assets/images/profilfoto.png";
 import { useEffect } from "react";
 import { FaAward } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"; // useNavigate import edildi
+import { useLocation, useNavigate } from "react-router-dom"; // useNavigate import edildi
 import ItemCard from "../components/GenerealUse/itemCard2";
 const orderPage = () => {
   const navigate = useNavigate(); // Yönlendirme için useNavigate kullanıldı
 
+  const location = useLocation();
+  const product = location.state?.product;
+
+  console.log(product);
   useEffect(() => {
     // Sayfanın en üstüne kaydır
     window.scrollTo(0, 0);
   }, []);
+
+  const renderStars = (rating) => {
+    let stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<FaStar key={i} className="text-yellow-400 text-2xl" />);
+    }
+
+    if (hasHalfStar) {
+      stars.push(
+        <FaStarHalfAlt key="half" className="text-yellow-400 text-2xl" />
+      );
+    }
+
+    while (stars.length < 5) {
+      stars.push(
+        <FaRegStar key={stars.length} className="text-yellow-400 text-2xl" />
+      );
+    }
+
+    return stars;
+  };
+
   return (
     <>
       <div className="order-page-body">
@@ -24,11 +53,14 @@ const orderPage = () => {
         <div className="order-page-firstslide">
           <div className="order-page-grid1">
             <div className="order-page-photos">
-              <img src={productsimg} alt="" />
+              <img src={product.kapak_gorseli} alt="" />
             </div>
             <div className="order-page-explanation">
               <div className="order-page-explanation-title">
-                <p> Turuncu Mandalina</p>
+                <p className="text-2xl font-bold capitalize">
+                  {" "}
+                  {product.urun_adi}
+                </p>
               </div>
               <div className="order-page-expanation-text">
                 <p>
@@ -73,32 +105,12 @@ const orderPage = () => {
               </div>
             </div>
             <div className="order-page-rate ">
-              <p>4.5</p>
+              <p>{product.degerlendirme_puani}</p>
               <div className="flex">
-                {" "}
-                <FaStar
-                  color="yellow"
-                  style={{ width: "2em", height: "20px" }}
-                />
-                <FaStar
-                  color="yellow"
-                  style={{ width: "2em", height: "20px" }}
-                />
-                <FaStar
-                  color="yellow"
-                  style={{ width: "2em", height: "20px" }}
-                />
-                <FaStar
-                  color="yellow"
-                  style={{ width: "2em", height: "20px" }}
-                />
-                <FaStarHalf
-                  color="yellow"
-                  style={{ width: "2em", height: "20px" }}
-                />
+                {renderStars(product.degerlendirme_puani)}
               </div>
               <p>imece Onaylı</p>
-              <FaAward color="yellow" />
+              <FaAward className="w-8 h-auto" color="yellow" />
             </div>
             <div className="order-page-lab-results">
               <div className="order-page-lab-title">Labaratuvar sonuçları</div>
@@ -116,12 +128,12 @@ const orderPage = () => {
             </div>
             <div className="order-page-price">
               <div className="order-page-price-1">
-                <p className="order-page-bold">1 KG: 36TL</p>
+                <p className="order-page-bold">1 KG: {product.fiyat} TL</p>
                 <p className="green">Ucuz fiyatlandırma</p>
               </div>
               <div className="order-page-price-2">
                 <p>Ürün için son tarih: 20.09.24</p>
-                <p>Kalan ürün: 100KG</p>
+                <p>Kalan ürün: {product.stok_durumu}</p>
               </div>
             </div>
             <div
@@ -144,7 +156,7 @@ const orderPage = () => {
           <p className="order-page-other-products-title">
             Satıcının Diğer Ürünler
           </p>
-          <div className="order-page-other-products-cards">
+          {/* <div className="order-page-other-products-cards">
             <ItemCard />
             <ItemCard />
             <ItemCard />
@@ -167,7 +179,7 @@ const orderPage = () => {
             <ItemCard />
             <ItemCard />
             <ItemCard />
-          </div>
+          </div> */}
         </div>
       </div>
     </>

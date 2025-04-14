@@ -83,12 +83,7 @@ const Header = () => {
         </div>
         <p className="pointer">Hesabım</p>
       </div>
-      <div className={"header-buttons header-more clickable pointer"}>
-        <div className="header-menu-svg icon">
-          <CiMenuBurger className="icon-svg" />
-        </div>
-        <p className="pointer">Daha Fazlası</p>
-      </div>
+      
     </div>
   );
 };

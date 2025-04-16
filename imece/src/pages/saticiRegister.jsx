@@ -92,7 +92,7 @@ const Register = () => {
           email,
           password,
           username,
-          rol: "ALICI",
+          rol: "SATICI",
         },
         {
           headers: {

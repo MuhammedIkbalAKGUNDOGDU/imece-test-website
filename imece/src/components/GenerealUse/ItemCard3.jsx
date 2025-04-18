@@ -61,6 +61,16 @@ const ItemCard3 = ({ data }) => {
         <div className="flex items-center mt-1 space-x-0.5 sm:space-x-1">
           {renderStars(data.degerlendirme_puani)}
         </div>
+        <div className="relative group">
+          <p className="text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2 leading-tight line-clamp-2 sm:line-clamp-3">
+            {data.aciklama}
+          </p>
+          {data.aciklama.length > 50 && (
+            <div className="absolute hidden group-hover:block bg-white shadow-xl rounded-md p-2 z-20 left-0 top-full mt-1 w-full border border-gray-200">
+              {data.aciklama}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-auto flex justify-end">

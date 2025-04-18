@@ -63,21 +63,7 @@ const orderPage = () => {
                 </p>
               </div>
               <div className="order-page-expanation-text">
-                <p>
-                  "Evlat, bu mandalina öyle marketteki gibi değildir. Bizim
-                  tarlada, güneşin altında, toprağın kokusuyla büyür. Her birini
-                  elimle toplarım, özenle seçerim. O turuncu kabuğunu soyduğunda
-                  içinden çıkan koku var ya, işte o, çocukluğumun kokusu gibi
-                  gelir bana. Bizim mandalinalar, tatlıdır, suludur. Dalından
-                  yeni kopmuş gibi taptaze kalır. İçine bir lokma attın mı,
-                  yüzün güler. Hele o vitaminler... Eskiden hastalanmayalım diye
-                  bir avuç yerdik, şimdilerde bile iyi gelir bünyeye. C vitamini
-                  mi dersin, güç kuvvet mi dersin, hepsi var işte. Bak, doğanın
-                  bize sunduğu bu nimet, öyle her meyveye benzemez. Yılların
-                  birikimi, güneşin sıcaklığı, toprağın bereketi, hepsi bu
-                  turuncu toplarda. Soy da ye, evlat. Hem damağına şenlik, hem
-                  sağlığına destek!"
-                </p>
+                <p>{product.aciklama}</p>
               </div>
             </div>
           </div>

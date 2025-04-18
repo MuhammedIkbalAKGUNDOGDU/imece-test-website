@@ -47,7 +47,6 @@ const LandingPage = () => {
         const response = await axios.get(popularProductsUrl, {
           headers: {
             "X-API-Key": apiKey,
-            Authorization: `Bearer ${accesToken}`,
             "Content-Type": "application/json",
           },
         });

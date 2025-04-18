@@ -41,7 +41,10 @@ const Products = () => {
 
       const productsRes = await axios.get(
         "https://imecehub.com/api/products/urunler/",
-        { headers }
+        {
+          "X-API-Key": apiKey,
+          "Content-Type": "application/json",
+        }
       );
       setProducts(productsRes.data);
       setFilteredProducts(productsRes.data);

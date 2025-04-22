@@ -40,7 +40,7 @@ const LandingPage = () => {
         );
       }
     };
-
+    console.log(accesToken);
     // Popüler ürünleri çekme
     const fetchPopularProducts = async () => {
       try {

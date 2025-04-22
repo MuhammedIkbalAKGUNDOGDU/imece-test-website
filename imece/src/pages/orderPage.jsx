@@ -118,7 +118,6 @@ const orderPage = () => {
                 <p className="green">Ucuz fiyatlandırma</p>
               </div>
               <div className="order-page-price-2">
-                <p>Ürün için son tarih: 20.09.24</p>
                 <p>Kalan ürün: {product.stok_durumu}</p>
               </div>
             </div>
@@ -129,7 +128,7 @@ const orderPage = () => {
               <p>Grup Satın Alım</p>
             </div>
             <div className="order-page-personal-buy pointer clickable">
-              <p>Tekil Satın Alım</p>
+              <p>Sepete ekle</p>
             </div>
           </div>
         </div>

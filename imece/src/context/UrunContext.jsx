@@ -10,12 +10,16 @@ export const useUrun = () => useContext(UrunContext);
 export const UrunProvider = ({ children }) => {
   const [urunBilgileri, setUrunBilgileri] = useState({
     urunAdi: "",
-    urunAciklamasi: "",
-    urunTipi: "",
-    urunMiktari: "",
-    urunFiyati: "",
-    kgBasiFiyat: "",
-    urunOzellikleri: "",
+    urunAciklama: "",
+    urunKategori: "",
+    urunAltKategori: "",
+    stokAdedi: "",
+    satisTuru: "",
+    urunPerakendeFiyati: "",
+    urunMinFiyati: "",
+    satisTuru: "",
+    urunSertifika: null,
+    urunLaboratuvarSonucu: null, 
   });
 
   // Güncelleme fonksiyonu

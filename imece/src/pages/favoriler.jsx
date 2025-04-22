@@ -43,7 +43,6 @@ const Favoriler = () => {
       );
       const allProducts = productsRes.data;
 
-      console.log("favoriler : ", userFavorites, "others :", allProducts);
       const favoriteProducts = allProducts.filter((product) =>
         userFavorites.includes(product.urun_id)
       );

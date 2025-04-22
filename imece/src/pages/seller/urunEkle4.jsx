@@ -2,11 +2,14 @@ import React, { useState, useRef } from "react";
 import "../../styles/seller/add1.css";
 import { useNavigate } from "react-router-dom"; // Yönlendirme için hook'u import et
 import yuklemeYap from "../../assets/images/yuklemeYap.png";
+import { useUrun } from "../../context/UrunContext";
 
 const UrunEkle4 = () => {
   const [descriptionFilled, setDescriptionFilled] = useState(false);
   const [categorySelected, setCategorySelected] = useState(false);
   const [nameSelected, setNameSelected] = useState(false);
+  const { urunBilgileri, updateUrunBilgileri } = useUrun();
+  console.log(urunBilgileri);
   const navigate = useNavigate(); // useNavigate hook'unu çağır
 
   const fileInputRef = useRef(null);
@@ -44,23 +47,27 @@ const UrunEkle4 = () => {
 
   return (
     <div className="urunEkle1Container">
-      <div className="urunEkle1Container-gridleft">
-        <div className="step ">
-          <div className="step-number">1</div>
-          <div className="step-title">ÜRÜN BİLGİLERİ</div>
-        </div>
-        <div className="step">
-          <div className="step-number">2</div>
-          <div className="step-title">SATIŞ BİLGİLERİ</div>
-        </div>
-        <div className="step">
-          <div className="step-number ">3</div>
-          <div className="step-title">ÜRÜN ÖZELLİKLERİ</div>
-        </div>
-        <div className="step active">
-          <div className="step-number ">4</div>
-          <div className="step-title activetext">ÜRÜN ÖZELLİKLERİ</div>
-        </div>
+      <div className="flex flex-row lg:flex-col gap-4 h-20 lg:h-auto p-4 shadow-md rounded-lg bg-white">
+        {[
+          "ÜRÜN BİLGİLERİ",
+          "SATIŞ BİLGİLERİ",
+          "ÜRÜN ÖZELLİKLERİ",
+          "ÜRÜN ÖZELLİKLERİ",
+        ].map((step, index) => (
+          <div
+            key={index}
+            className="flex flex-col w-full items-center lg:flex-row gap-3 text-gray-500"
+          >
+            <div
+              className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm ${
+                index === 3 ? "bg-green-500 text-white" : "bg-gray-300"
+              }`}
+            >
+              {index + 1}
+            </div>
+            <div className="hidden lg:block text-sm">{step}</div>
+          </div>
+        ))}
       </div>
       <div className="urunEkle1Container-gridrigth">
         <div className="min-h-screen flex items-center justify-center ">
@@ -86,7 +93,7 @@ const UrunEkle4 = () => {
                   <span className="text-lg">📏</span>
                   <span className="ml-2">
                     Görsel 1200x1800, en fazla 5mb boyutunda olmalı
-                  </span>
+                  </span> 
                 </div>
                 <div className="flex items-center">
                   <span className="text-lg">📄</span>

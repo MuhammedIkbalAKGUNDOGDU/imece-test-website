@@ -20,7 +20,10 @@ const UrunEkle1 = () => {
     descriptionFilled;
 
   useEffect(() => {
-    if (urunBilgileri.urunKategori && altKategoriler[urunBilgileri.urunKategori]) {
+    if (
+      urunBilgileri.urunKategori &&
+      altKategoriler[urunBilgileri.urunKategori]
+    ) {
       setSubCategoryList(altKategoriler[urunBilgileri.urunKategori]);
     }
   }, []);

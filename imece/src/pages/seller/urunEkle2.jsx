@@ -11,7 +11,6 @@ const UrunEkle2 = () => {
   const navigate = useNavigate();
   const { urunBilgileri, updateUrunBilgileri } = useUrun();
 
-  console.log(urunBilgileri);
 
   useEffect(() => {
     if (urunBilgileri.stokAdedi) {

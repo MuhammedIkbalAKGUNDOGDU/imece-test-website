@@ -18,13 +18,20 @@ export const UrunProvider = ({ children }) => {
     urunPerakendeFiyati: "",
     urunMinFiyati: "",
     satisTuru: "",
-    urunSertifika: null,
-    urunLaboratuvarSonucu: null, 
+    sertifika: null,
+    labSonucu: null,
+    urunFotografi: null,
   });
 
   // Güncelleme fonksiyonu
-  const updateUrunBilgileri = (field, value) => {
-    setUrunBilgileri((prev) => ({ ...prev, [field]: value }));
+  const updateUrunBilgileri = (fieldOrObject, value) => {
+    if (typeof fieldOrObject === "object" && fieldOrObject !== null) {
+      // Eğer obje geldiyse: { sertifika: file, labSonucu: file }
+      setUrunBilgileri((prev) => ({ ...prev, ...fieldOrObject }));
+    } else {
+      // Eğer string key ve value geldiyse
+      setUrunBilgileri((prev) => ({ ...prev, [fieldOrObject]: value }));
+    }
   };
 
   return (

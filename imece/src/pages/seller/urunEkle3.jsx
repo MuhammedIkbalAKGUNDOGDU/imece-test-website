@@ -26,16 +26,14 @@ const UrunEkle3 = () => {
     if (file) {
       setSertifika(file);
       updateUrunBilgileri({ sertifika: file });
-      console.log("Sertifika dosyası context'e gönderildi:", file);
     }
   };
 
   const handleLabChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setSertifika(file);
-      updateUrunBilgileri({ sertifika: file });
-      console.log("Sertifika dosyası context'e gönderildi:", file);
+      setLabSonucu(file);
+      updateUrunBilgileri({ labSonucu: file });
     }
   };
 

@@ -12,6 +12,7 @@ const UrunEkle1 = () => {
 
   const [subCategoryList, setSubCategoryList] = useState([]);
   const [subCategorySelected, setSubCategorySelected] = useState(false);
+  const id = localStorage.getItem("userId");
 
   const isFormValid =
     nameSelected &&
@@ -21,24 +22,25 @@ const UrunEkle1 = () => {
 
   useEffect(() => {
     if (
-      urunBilgileri.urunKategori &&
-      altKategoriler[urunBilgileri.urunKategori]
+      urunBilgileri.ana_kategori &&
+      altKategoriler[urunBilgileri.ana_kategori]
     ) {
-      setSubCategoryList(altKategoriler[urunBilgileri.urunKategori]);
+      setSubCategoryList(altKategoriler[urunBilgileri.ana_kategori]);
     }
   }, []);
 
   useEffect(() => {
-    if (urunBilgileri.urunKategori) {
+    updateUrunBilgileri("satici_id", id);
+    if (urunBilgileri.ana_kategori) {
       setCategorySelected(true);
     }
-    if (urunBilgileri.urunAltKategori) {
+    if (urunBilgileri.alt_kategori) {
       setSubCategorySelected(true);
     }
-    if (urunBilgileri.urunAciklama) {
+    if (urunBilgileri.urun_aciklama) {
       setDescriptionFilled(true);
     }
-    if (urunBilgileri.urunAdi) {
+    if (urunBilgileri.urun_adi) {
       setNameSelected(true);
     }
   }, []);
@@ -85,31 +87,31 @@ const UrunEkle1 = () => {
   const handleNameChange = (e) => {
     const value = e.target.value;
     setNameSelected(value.trim() !== "");
-    updateUrunBilgileri("urunAdi", value);
+    updateUrunBilgileri("urun_adi", value);
   };
 
   const handleDescriptionChange = (e) => {
     const value = e.target.value;
     setDescriptionFilled(value.trim() !== "");
-    updateUrunBilgileri("urunAciklama", value);
+    updateUrunBilgileri("urun_aciklama", value);
   };
 
   const handleCategoryChange = (e) => {
     const value = e.target.value;
     setCategorySelected(value.trim() !== "");
-    updateUrunBilgileri("urunKategori", value);
+    updateUrunBilgileri("ana_kategori", value);
 
     // Alt kategorileri güncelle
     const subCats = altKategoriler[value] || [];
     setSubCategoryList(subCats);
     setSubCategorySelected(false);
-    updateUrunBilgileri("urunAltKategori", "");
+    updateUrunBilgileri("alt_kategori", "");
   };
 
   const handleSubCategoryChange = (e) => {
     const value = e.target.value;
     setSubCategorySelected(value.trim() !== "");
-    updateUrunBilgileri("urunAltKategori", value);
+    updateUrunBilgileri("alt_kategori", value);
   };
 
   return (
@@ -120,7 +122,7 @@ const UrunEkle1 = () => {
           "ÜRÜN BİLGİLERİ",
           "SATIŞ BİLGİLERİ",
           "ÜRÜN ÖZELLİKLERİ",
-          "ÜRÜN ÖZELLİKLERİ",
+          "ÜRÜN GÖRSELİ",
         ].map((step, index) => (
           <div
             key={index}
@@ -153,7 +155,7 @@ const UrunEkle1 = () => {
             placeholder="Ürünün adını girin"
             type="text"
             id="urunAdı"
-            value={urunBilgileri.urunAdi || ""}
+            value={urunBilgileri.urun_adi || ""}
             onChange={handleNameChange}
           />
         </div>
@@ -170,7 +172,7 @@ const UrunEkle1 = () => {
             }`}
             id="kategori"
             name="kategori"
-            value={urunBilgileri.urunKategori || ""}
+            value={urunBilgileri.ana_kategori || ""}
             onChange={handleCategoryChange}
           >
             <option value="" disabled>
@@ -184,7 +186,7 @@ const UrunEkle1 = () => {
           </select>
         </div>
         {/* ALT KATEGORİ */}
-        {urunBilgileri.urunKategori && subCategoryList.length > 0 && (
+        {urunBilgileri.ana_kategori && subCategoryList.length > 0 && (
           <div>
             <label
               className="block text-lg font-bold mb-2"
@@ -200,7 +202,7 @@ const UrunEkle1 = () => {
               }`}
               id="altKategori"
               name="altKategori"
-              value={urunBilgileri.urunAltKategori || ""}
+              value={urunBilgileri.alt_kategori || ""}
               onChange={handleSubCategoryChange}
             >
               <option value="" disabled>
@@ -228,7 +230,7 @@ const UrunEkle1 = () => {
             id="aciklama"
             placeholder="Ürün açıklaması"
             rows="6"
-            value={urunBilgileri.urunAciklama || ""}
+            value={urunBilgileri.urun_aciklama || ""}
             onChange={handleDescriptionChange}
           />
         </div>

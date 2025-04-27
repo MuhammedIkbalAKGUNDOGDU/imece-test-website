@@ -9,18 +9,18 @@ export const useUrun = () => useContext(UrunContext);
 // Provider bileşeni
 export const UrunProvider = ({ children }) => {
   const [urunBilgileri, setUrunBilgileri] = useState({
-    urunAdi: "",
-    urunAciklama: "",
-    urunKategori: "",
-    urunAltKategori: "",
-    stokAdedi: "",
-    satisTuru: "",
-    urunPerakendeFiyati: "",
-    urunMinFiyati: "",
-    satisTuru: "",
-    sertifika: null,
-    labSonucu: null,
-    urunFotografi: null,
+    satici_id: "",
+    urun_adi: "",
+    urun_aciklama: "",
+    ana_kategori: "",
+    alt_kategori: "",
+    stok_miktari: "",
+    satis_turu: "",
+    urun_perakende_fiyati: "",
+    urun_min_fiyati: "",
+    urun_sertifika_pdf: null,
+    urun_lab_sonuc_pdf: null,
+    kapak_gorsel: null,
   });
 
   // Güncelleme fonksiyonu

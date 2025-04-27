@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/GenerealUse/Header";
 import "../styles/orderPage.css";
 import { FaLongArrowAltRight, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
@@ -10,13 +10,58 @@ import { useEffect } from "react";
 import { FaAward } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom"; // useNavigate import edildi
 import ItemCard from "../components/GenerealUse/itemCard2";
+import axios from "axios";
 const orderPage = () => {
   const navigate = useNavigate(); // Yönlendirme için useNavigate kullanıldı
-
+  const [sellerInfo, setSellerInfo] = useState(null);
+  const [sellerProducts, setSellerProducts] = useState(null);
   const location = useLocation();
   const product = location.state?.product;
 
   console.log(product);
+  useEffect(() => {
+    const fetchSellerInfo = async () => {
+      try {
+        const response = await axios({
+          method: "post",
+          url: "https://imecehub.com/users/seller-info/",
+          data: {
+            kullanici_id: product.satici,
+          },
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        setSellerInfo(response.data);
+      } catch (error) {
+        console.error("Satıcı bilgileri alınamadı:", error);
+      }
+    };
+
+    fetchSellerInfo();
+  }, []);
+  useEffect(() => {
+    const fetchSellerInfo = async () => {
+      try {
+        const response = await axios({
+          method: "post",
+          url: "https://imecehub.com/users/seller-products/",
+          data: {
+            kullanici_id: product.satici,
+          },
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        setSellerProducts(response.data);
+      } catch (error) {
+        console.error("Satıcı bilgileri alınamadı:", error);
+      }
+    };
+
+    fetchSellerInfo();
+  }, []);
+
   useEffect(() => {
     // Sayfanın en üstüne kaydır
     window.scrollTo(0, 0);
@@ -72,18 +117,13 @@ const orderPage = () => {
               <div className="order-page-seller-1">
                 <img
                   className="order-page-profil-photo"
-                  src={profilfoto}
+                  src={sellerInfo?.profil_fotograf}
                   alt="profilPhoto"
                 />
-                <p>Yusuf Yılmaz</p>
+                <p>{sellerInfo?.magaza_adi}</p>
               </div>
               <div className="order-page-seller-2">
-                <p>
-                  Merhabalar, ben Yusuf Yılmaz kendimi bildim bileli tarım
-                  yaparım, aile yadigarı bir meslek, en iyi mandalina ağaçlarına
-                  sahibiz, nesiller önce büyük dedem yurt dışından fidan
-                  getirtmiş...
-                </p>
+                <p>{sellerInfo?.magaza_adi}</p>
               </div>
               <div className="order-page-seller-absolute ">
                 <p className="pointer">Profili İncele</p>
@@ -95,23 +135,37 @@ const orderPage = () => {
               <div className="flex">
                 {renderStars(product.degerlendirme_puani)}
               </div>
-              <p>imece Onaylı</p>
-              <FaAward className="w-8 h-auto" color="yellow" />
+              {product?.imece_onayli && (
+                <div className="flex items-center gap-2">
+                  <p className="text-yellow-500 font-semibold">İmece Onaylı</p>
+                  <FaAward className="w-8 h-auto" color="yellow" />
+                </div>
+              )}
             </div>
-            <div className="order-page-lab-results">
-              <div className="order-page-lab-title">Labaratuvar sonuçları</div>
-              <div className="order-page-lab-explanation">
-                Yusuf yılmaz’ın Turuncu mandalina adlı ürününün{" "}
-                <span className="green pointer">labaratuvar sonucunu</span>
-                incelemek için <span className="green pointer">“incele”</span>
-                butonuna basın.
-              </div>
-              <div className="order-page-lab-button-container">
-                <div className="order-page-lab-button clickable pointer">
-                  İncele
+            {product?.lab_sonuc_pdf && (
+              <div className="order-page-lab-results">
+                <div className="order-page-lab-title">
+                  Labaratuvar sonuçları
+                </div>
+                <div className="order-page-lab-explanation">
+                  {sellerInfo?.magaza_adi} satıcısının {product.urun_adi} adlı
+                  ürününün{" "}
+                  <span className="green pointer">labaratuvar sonucunu</span>
+                  incelemek için <span className="green pointer">“incele”</span>
+                  butonuna basın.
+                </div>
+                <div className="order-page-lab-button-container">
+                  <div
+                    onClick={() => {
+                      window.open(product.lab_sonuc_pdf, "_blank");
+                    }}
+                    className="order-page-lab-button clickable pointer"
+                  >
+                    İncele
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             <div className="order-page-price">
               <div className="order-page-price-1">
                 <p className="order-page-bold">1 KG: {product.fiyat} TL</p>
@@ -132,11 +186,11 @@ const orderPage = () => {
             </div>
           </div>
         </div>
-        <div className="order-page-other-pictures">
+        {/* <div className="order-page-other-pictures">
           <p className="order-page-other-pictures-title">
             Yusuf Yılmazın Paylaştığı Bazı Görseller
           </p>
-        </div>
+        </div> */}
         <div className="order-page-other-products">
           <p className="order-page-other-products-title">
             Satıcının Diğer Ürünler

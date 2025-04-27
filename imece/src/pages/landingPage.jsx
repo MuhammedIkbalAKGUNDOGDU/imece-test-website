@@ -40,7 +40,6 @@ const LandingPage = () => {
         );
       }
     };
-    console.log(accesToken);
     // Popüler ürünleri çekme
     const fetchPopularProducts = async () => {
       try {
@@ -79,7 +78,7 @@ const LandingPage = () => {
         {!accesToken && <AliciAndSaticiOl />}
 
         <Saticilar />
-        <Categries />
+        {/* <Categries /> */}
         {/*
           <GrupAlimTekilAlim /> 
         */}

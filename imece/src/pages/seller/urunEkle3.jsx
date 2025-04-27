@@ -12,20 +12,20 @@ const UrunEkle3 = () => {
   const fileInputRefSertifika = useRef(null);
   const fileInputRefLab = useRef(null);
 
-  const [sertifika, setSertifika] = useState(null);
-  const [labSonucu, setLabSonucu] = useState(null);
+  const [urun_sertifika_pdf, setSertifika] = useState(null);
+  const [urun_lab_sonuc_pdf, setLabSonucu] = useState(null);
 
-  const kategori = urunBilgileri.urunKategori?.toLowerCase();
-  const satisTuru = urunBilgileri.satisTuru?.toLowerCase();
+  const kategori = urunBilgileri.ana_kategori?.toLowerCase();
+  const satis_turu = urunBilgileri.satis_turu?.toLowerCase();
 
   const isMeyveSebze = kategori === "meyveler" || kategori === "sebzeler";
-  const isToptan = satisTuru === "toptan";
+  const isToptan = satis_turu === "2";
 
   const handleSertifikaChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       setSertifika(file);
-      updateUrunBilgileri({ sertifika: file });
+      updateUrunBilgileri({ urun_sertifika_pdf: file });
     }
   };
 
@@ -33,7 +33,7 @@ const UrunEkle3 = () => {
     const file = event.target.files[0];
     if (file) {
       setLabSonucu(file);
-      updateUrunBilgileri({ labSonucu: file });
+      updateUrunBilgileri({ urun_lab_sonuc_pdf: file });
     }
   };
 
@@ -71,7 +71,7 @@ const UrunEkle3 = () => {
           "ÜRÜN BİLGİLERİ",
           "SATIŞ BİLGİLERİ",
           "ÜRÜN ÖZELLİKLERİ",
-          "ÜRÜN ÖZELLİKLERİ",
+          "ÜRÜN GÖRSELİ",
         ].map((step, index) => (
           <div
             key={index}

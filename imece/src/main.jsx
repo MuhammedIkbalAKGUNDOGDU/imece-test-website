@@ -7,7 +7,7 @@ import Login from "./pages/login";
 import Register from "./pages/register";
 import RefreshPassowrd from "./pages/refreshPassword";
 import Products from "./pages/products";
-import Profile from "./pages/profile";
+import Profile from "./pages/Profile";
 import Basket from "./pages/basket";
 import OrderPage from "./pages/orderPage";
 import ChooseGroup from "./pages/chooseGroup";

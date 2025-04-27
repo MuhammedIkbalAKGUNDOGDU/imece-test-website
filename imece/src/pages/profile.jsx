@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Header from "../components/GenerealUse/Header";
-import Profile from "../components/profileComponents/Profile"
+import Profile from "../components/profileComponents/Profile";
 
 export default function ProfilUreticiPage() {
   const [userData, setUserData] = useState(null);
@@ -35,6 +35,6 @@ export default function ProfilUreticiPage() {
         <Header />
       </div>
       <Profile />
-     </div>
+    </div>
   );
 }

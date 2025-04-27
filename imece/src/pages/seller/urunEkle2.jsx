@@ -6,55 +6,55 @@ const UrunEkle2 = () => {
   const [amountSelected, setAmountSelected] = useState(false);
   const [priceSelected, setPriceSelected] = useState(false);
   const [minPriceSelected, setMinPriceSelected] = useState(false);
-  const [satisTuru, setSatisTuru] = useState("perakende");
+  const [satisTuru, setSatisTuru] = useState("1");
 
   const navigate = useNavigate();
   const { urunBilgileri, updateUrunBilgileri } = useUrun();
 
-
+  console.log(urunBilgileri);
   useEffect(() => {
-    if (urunBilgileri.stokAdedi) {
+    if (urunBilgileri.stok_miktari) {
       setAmountSelected(true);
     }
-    if (urunBilgileri.urunPerakendeFiyati) {
+    if (urunBilgileri.urun_perakende_fiyati) {
       setPriceSelected(true);
     }
-    if (urunBilgileri.urunMinFiyati) {
+    if (urunBilgileri.urun_min_fiyati) {
       setMinPriceSelected(true);
     }
-    if (urunBilgileri.satisTuru) {
+    if (urunBilgileri.satis_turu) {
       setSatisTuru(true);
     }
   }, []);
 
   const isFormValid = () => {
     if (!amountSelected || !satisTuru || !priceSelected) return false;
-    if (urunBilgileri.satisTuru === "toptan" && !minPriceSelected) return false;
+    if (urunBilgileri.satis_turu === "2" && !minPriceSelected) return false;
     return true;
   };
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
     setAmountSelected(value.trim() !== "");
-    updateUrunBilgileri("stokAdedi", value);
+    updateUrunBilgileri("stok_miktari", value);
   };
 
   const handlePriceChange = (e) => {
     const value = e.target.value;
     setPriceSelected(value.trim() !== "");
-    updateUrunBilgileri("urunPerakendeFiyati", value);
+    updateUrunBilgileri("urun_perakende_fiyati", value);
   };
 
   const handleMinPriceChange = (e) => {
     const value = e.target.value;
     setMinPriceSelected(value.trim() !== "");
-    updateUrunBilgileri("urunMinFiyati", value);
+    updateUrunBilgileri("urun_min_fiyati", value);
   };
 
   const handleSatisTuruChange = (e) => {
     const value = e.target.value;
     setSatisTuru(value);
-    updateUrunBilgileri("satisTuru", value);
+    updateUrunBilgileri("satis_turu", value);
   };
 
   return (
@@ -64,7 +64,7 @@ const UrunEkle2 = () => {
           "ÜRÜN BİLGİLERİ",
           "SATIŞ BİLGİLERİ",
           "ÜRÜN ÖZELLİKLERİ",
-          "ÜRÜN ÖZELLİKLERİ",
+          "ÜRÜN GÖRSELİ",
         ].map((step, index) => (
           <div
             key={index}
@@ -91,7 +91,7 @@ const UrunEkle2 = () => {
             id="urunMiktari"
             type="number"
             placeholder="Ürünün miktarını girin"
-            value={urunBilgileri.stokAdedi || ""}
+            value={urunBilgileri.stok_miktari || ""}
             onChange={handleAmountChange}
             className={`max-w-[1000px] w-full p-2 text-base rounded-lg border-2 transition-colors ${
               amountSelected
@@ -108,8 +108,8 @@ const UrunEkle2 = () => {
               <input
                 type="radio"
                 name="satisTuru"
-                value="perakende"
-                checked={urunBilgileri.satisTuru === "perakende"}
+                value="1"
+                checked={urunBilgileri.satis_turu === "1"}
                 onChange={handleSatisTuruChange}
               />
               Perakende Satış
@@ -118,8 +118,8 @@ const UrunEkle2 = () => {
               <input
                 type="radio"
                 name="satisTuru"
-                value="toptan"
-                checked={urunBilgileri.satisTuru === "toptan"}
+                value="2"
+                checked={urunBilgileri.satis_turu === "2"}
                 onChange={handleSatisTuruChange}
               />
               Toptan Satış
@@ -127,7 +127,8 @@ const UrunEkle2 = () => {
           </div>
         </div>
 
-        {(urunBilgileri.satisTuru === "perakende" || urunBilgileri.satisTuru === "toptan") && (
+        {(urunBilgileri.satis_turu === "1" ||
+          urunBilgileri.satis_turu === "2") && (
           <div>
             <label
               htmlFor="UrunFiyati"
@@ -139,7 +140,7 @@ const UrunEkle2 = () => {
               id="UrunFiyati"
               type="number"
               placeholder="Fiyatı belirleyiniz"
-              value={urunBilgileri.urunPerakendeFiyati || ""}
+              value={urunBilgileri.urun_perakende_fiyati || ""}
               onChange={handlePriceChange}
               className={`max-w-[1000px] w-full p-2 text-base rounded-lg border-2 transition-colors ${
                 priceSelected
@@ -150,7 +151,7 @@ const UrunEkle2 = () => {
           </div>
         )}
 
-        {urunBilgileri.satisTuru === "toptan" && (
+        {urunBilgileri.satis_turu === "2" && (
           <div>
             <label
               htmlFor="UrunMinFiyati"
@@ -162,7 +163,7 @@ const UrunEkle2 = () => {
               id="UrunMinFiyati"
               type="number"
               placeholder="Minimum fiyatı belirleyiniz"
-              value={urunBilgileri.urunMinFiyati || ""}
+              value={urunBilgileri.urun_min_fiyati || ""}
               onChange={handleMinPriceChange}
               className={`max-w-[1000px] w-full p-2 text-base rounded-lg border-2 transition-colors ${
                 minPriceSelected

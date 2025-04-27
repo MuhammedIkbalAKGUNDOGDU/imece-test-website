@@ -7,36 +7,60 @@ const UrunEkle4 = () => {
   const { urunBilgileri, updateUrunBilgileri } = useUrun();
   const navigate = useNavigate();
 
+  const apiKey =
+    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const token = localStorage.getItem("accessToken");
   const [previewUrl, setPreviewUrl] = useState(
-    urunBilgileri.urunFotografi
-      ? URL.createObjectURL(urunBilgileri.urunFotografi)
+    urunBilgileri.kapak_gorsel
+      ? URL.createObjectURL(urunBilgileri.kapak_gorsel)
       : null
   );
-
-  const [submissionStatus, setSubmissionStatus] = useState(null); // Başarı veya hata durumu
+  const [submissionStatus, setSubmissionStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      updateUrunBilgileri({ urunFotografi: file });
+      updateUrunBilgileri({ kapak_gorsel: file });
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  const handleSubmit = () => {
-    // İşlem başarılı ya da başarısız kontrolü
-    const isSuccess = Math.random() > 0.5; // Burada başarılı ya da başarısız bir işlem simüle ediliyor
+  const handleSubmit = async () => {
+    try {
+      const formData = new FormData();
+      for (const key in urunBilgileri) {
+        if (urunBilgileri[key] !== null && urunBilgileri[key] !== undefined) {
+          formData.append(key, urunBilgileri[key]);
+        }
+      }
 
-    if (isSuccess) {
-      setSubmissionStatus("success");
-      setErrorMessage("");
-    } else {
+      const response = await fetch(
+        "https://imecehub.com/api/products/urunler/ekle/",
+        {
+          method: "POST",
+          body: formData,
+          headers: {
+            "X-API-Key": apiKey,
+            Authorization: `Bearer ${token}`,
+            // ❌ Content-Type yazılmayacak
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setSubmissionStatus("error");
+        setErrorMessage(errorData?.message || "Bilinmeyen bir hata oluştu.");
+      } else {
+        setSubmissionStatus("success");
+        setErrorMessage("");
+      }
+    } catch (error) {
       setSubmissionStatus("error");
-      setErrorMessage("Görsel boyutu çok büyük. 5MB'dan küçük olmalı.");
+      setErrorMessage(error.message || "Ağ hatası oluştu.");
     }
 
-    // 5 saniye sonra durumu sıfırlıyoruz
     setTimeout(() => {
       setSubmissionStatus(null);
     }, 5000);
@@ -49,7 +73,7 @@ const UrunEkle4 = () => {
           "ÜRÜN BİLGİLERİ",
           "SATIŞ BİLGİLERİ",
           "ÜRÜN ÖZELLİKLERİ",
-          "ÜRÜN ÖZELLİKLERİ",
+          "ÜRÜN GÖRSELİ",
         ].map((step, index) => (
           <div
             key={index}
@@ -57,7 +81,7 @@ const UrunEkle4 = () => {
           >
             <div
               className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-sm ${
-                index === 2 ? "bg-green-500 text-white" : "bg-gray-300"
+                index === 3 ? "bg-green-500 text-white" : "bg-gray-300"
               }`}
             >
               {index + 1}
@@ -73,7 +97,6 @@ const UrunEkle4 = () => {
             <h2 className="text-xl font-bold mb-6">Ürün Görseli Yükleyin</h2>
 
             <div className="flex gap-6">
-              {/* Görsel Yükleme Alanı */}
               <label className="relative border-2 border-dashed border-gray-300 rounded-lg w-1/2 h-64 flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-gray-100 overflow-hidden text-center">
                 {!previewUrl && (
                   <>
@@ -98,12 +121,11 @@ const UrunEkle4 = () => {
                 )}
               </label>
 
-              {/* Yükleme Kuralları */}
               <div className="w-1/2 space-y-4 text-sm text-gray-600">
                 <div className="flex items-center">
                   <span className="text-lg">📏</span>
                   <span className="ml-2">
-                    Görsel 1200x1800, en fazla 5mb boyutunda olmalı
+                    Görsel 1200x1800, en fazla 5MB olmalı
                   </span>
                 </div>
                 <div className="flex items-center">
@@ -112,24 +134,20 @@ const UrunEkle4 = () => {
                 </div>
                 <div className="flex items-center">
                   <span className="text-lg">➕</span>
-                  <span className="ml-2">
-                    JPG veya PNG formatında dosya yükleyin
-                  </span>
+                  <span className="ml-2">JPG veya PNG formatı olmalı</span>
                 </div>
               </div>
             </div>
 
-            {/* İşlem Durumu */}
             {submissionStatus && (
               <div
-                className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 rounded-lg w-80 pt-10 pb-10  ${
+                className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 rounded-lg w-80 pt-10 pb-10 ${
                   submissionStatus === "success"
                     ? "bg-green-100 text-green-700"
                     : "bg-red-100 text-red-700"
                 }`}
               >
-                <div className="flex  items-center justify-between">
-                  {" "}
+                <div className="flex items-center justify-between">
                   <span className="font-bold">
                     {submissionStatus === "success"
                       ? "İşlem Başarılı!"
@@ -144,7 +162,6 @@ const UrunEkle4 = () => {
               </div>
             )}
 
-            {/* Butonlar */}
             <div className="flex justify-between mt-8">
               <button
                 className="text-[#22FF22] flex items-center hover:underline"

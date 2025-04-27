@@ -6,8 +6,11 @@ import {
   FaHeart,
   FaRegHeart,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
+  const navigate = useNavigate();
+
   const handleFavoriteClick = () => {
     onFavoriteToggle(data.urun_id || data.id);
   };
@@ -36,8 +39,15 @@ const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
     return stars;
   };
 
+  const handleClick = () => {
+    navigate("/order-page", { state: { product: data } });
+  };
+
   return (
-    <div className="bg-white rounded-lg sm:rounded-2xl shadow p-2 sm:p-4 w-[160px] sm:w-[220px] h-[260px] sm:h-[380px] flex flex-col">
+    <div
+      onClick={handleClick}
+      className="bg-white rounded-lg sm:rounded-2xl shadow p-2 sm:p-4 w-[160px] sm:w-[220px] h-[260px] sm:h-[380px] flex flex-col"
+    >
       <div className="w-full h-28 sm:h-44 bg-gray-100 rounded-lg sm:rounded-xl overflow-hidden">
         <img
           src={data.kapak_gorseli}

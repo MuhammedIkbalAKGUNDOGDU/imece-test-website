@@ -8,41 +8,43 @@ import Comments from "@/components/profileComponents/Comments.jsx";
 import Header from "../components/GenerealUse/Header";
 
 export default function ProfilUreticiPage() {
-  const [userData, setUserData] = useState(null);
-  const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
-  const accesToken = localStorage.getItem("accessToken");
-  const apiKey =
-    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const [sellerInfo, setSellerInfo] = useState(null);
 
   useEffect(() => {
-    // API isteği
-    axios
-      .get(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${accesToken}`,
-          "X-API-Key": apiKey, // API anahtarı
-          "Content-Type": "application/json",
-        },
-      })
-      .then((response) => {
-        setUserData(response.data); // Kullanıcı verisini state'e at
-        console.log("data : ", response.data);
-      })
-      .catch((error) => {
-        console.error("Veri çekme hatası:", error);
-      });
-  }, [accesToken]);
+    const fetchSellerInfo = async () => {
+      try {
+        const id = 3; // kullanacağın ID
+        const response = await axios({
+          method: "post",
+          url: "https://imecehub.com/users/seller-info-full/",
+          data: {
+            kullanici_id: id,
+          },
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        setSellerInfo(response.data);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Satıcı bilgileri alınamadı:", error);
+      }
+    };
 
+    fetchSellerInfo();
+  }, []);
+
+  console.log(sellerInfo);
   return (
     <div>
       <div className="mx-[4%] md:mx-[8%] mb-8">
         <Header />
       </div>
-      <ProfilGiris />
+      {/* <ProfilGiris sellerInfo={sellerInfo} />
       <ProfileStatistics />
       <AboutSection />
       <Posts />
-      <Comments />
+      <Comments /> */}
       <p className="mt-10">Satıştaki ürünler</p>
     </div>
   );

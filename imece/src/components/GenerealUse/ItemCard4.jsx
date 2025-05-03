@@ -1,3 +1,4 @@
+import axios from "axios";
 import React from "react";
 import {
   FaStar,
@@ -10,9 +11,36 @@ import { useNavigate } from "react-router-dom";
 
 const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
   const navigate = useNavigate();
-
-  const handleFavoriteClick = () => {
+  const apiKey =
+    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation(); // Kartın genel tıklamasını engeller
     onFavoriteToggle(data.urun_id || data.id);
+  };
+
+  const handleAddToCart = async (e) => {
+    e.stopPropagation();
+    try {
+      const response = await axios.post(
+        "https://imecehub.com/api/payment/siparisitem/sepet-ekle/",
+        {
+          miktar: 1,
+          urun_id: data.urun_id || data.id,
+        },
+        {
+          headers: {
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
+      alert("Ürün sepete eklendi!");
+      console.log("Sepet yanıtı:", response.data);
+    } catch (error) {
+      console.error("Sepete ekleme başarısız:", error);
+      alert("Bir hata oluştu, lütfen tekrar deneyin.");
+    }
   };
 
   const renderStars = (rating = 0) => {
@@ -62,7 +90,7 @@ const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
             {data.urun_adi}
           </h3>
           <h2 className="text-xs sm:text-md font-bold text-gray-900 line-clamp-1">
-            {data.fiyat} TL
+            {data.urun_perakende_fiyati} TL
           </h2>
           {data.urun_adi.length > 15 && (
             <div className="absolute hidden group-hover:block bg-white shadow-xl rounded-md p-2 z-20 left-0 top-full mt-1 w-full border border-gray-200">
@@ -86,7 +114,10 @@ const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
       </div>
 
       <div className="mt-2 sm:mt-3 flex items-center gap-1 sm:gap-2">
-        <button className="flex-grow bg-green-600 text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded text-xs sm:text-sm font-medium">
+        <button
+          onClick={handleAddToCart}
+          className="flex-grow bg-green-600 text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded text-xs sm:text-sm font-medium"
+        >
           Sepete Ekle
         </button>
         <button onClick={handleFavoriteClick} className="p-1.5 text-red-500">

@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Header from "../components/GenerealUse/Header";
 import Profile from "../components/profileComponents/Profile";
+import { apiKey } from "../config";  // veya "../constants" dosya ismine göre
 
 export default function ProfilUreticiPage() {
   const [userData, setUserData] = useState(null);
   const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
   const accesToken = localStorage.getItem("accessToken");
-  const apiKey =
-    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+ 
 
   useEffect(() => {
     // API isteği

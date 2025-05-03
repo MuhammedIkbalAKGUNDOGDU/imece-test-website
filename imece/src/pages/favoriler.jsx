@@ -3,6 +3,7 @@ import axios from "axios";
 import Header from "../components/GenerealUse/Header";
 import ItemGrid from "../components/GenerealUse/ItemGrid";
 import LoadingSpinner from "../components/GenerealUse/loadingSpinner";
+import { apiKey } from "../config";  // veya "../constants" dosya ismine göre
 
 const Favoriler = () => {
   const [products, setProducts] = useState([]);
@@ -11,8 +12,7 @@ const Favoriler = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const apiKey =
-    "WNjZXMttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+ 
   const accessToken = localStorage.getItem("accessToken");
 
   const headers = {

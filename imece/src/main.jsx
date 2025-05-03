@@ -45,10 +45,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           path="/order-page/choose-group"
           element={<ChooseGroup />}
         ></Route>
-        <Route
+        {/* <Route
           path="/order-page/create-group"
           element={<CreateGroup />}
-        ></Route>
+        ></Route> */}
         <Route path="/Urun-Ekle-1" element={<AddUrun />}></Route>
         <Route path="/Urun-Ekle-2" element={<AddUrun2 />}></Route>
         <Route path="/Urun-Ekle-3" element={<AddUrun3 />}></Route>

@@ -11,12 +11,12 @@ import Categries from "../components/landingPage/Categries";
 import IndirimliUrunler from "../components/landingPage/IndirimliUrunler";
 import GrupAlimTekilAlim from "../components/landingPage/GrupAlimTekilAlim";
 import ItemGrid from "../components/GenerealUse/ItemGrid";
+import { apiKey } from "../config";  // veya "../constants" dosya ismine göre
 
 const LandingPage = () => {
   const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
   const accesToken = localStorage.getItem("accessToken");
-  const apiKey =
-    "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
+ 
   const popularProductsUrl = "https://imecehub.com/products/populer-urunler/";
 
   const [items, setItems] = useState([]); // Popüler ürünler için state
@@ -45,7 +45,6 @@ const LandingPage = () => {
       try {
         const response = await axios.get(popularProductsUrl, {
           headers: {
-            "X-API-Key": apiKey,
             "Content-Type": "application/json",
           },
         });
@@ -58,7 +57,6 @@ const LandingPage = () => {
     fetchUserData();
     fetchPopularProducts(); // Popüler ürünleri yükle
   }, [apiUrl, accesToken, apiKey]);
-
   return (
     <div>
       <div className="landingPage">
@@ -86,7 +84,7 @@ const LandingPage = () => {
         {/* Popüler Ürünler */}
         <div className="container mx-auto py-8">
           <h2 className="text-2xl font-bold mb-6 text-left">Popüler Ürünler</h2>
-          <ItemGrid items={items} />
+          <ItemGrid cardType="card4" items={items} />
         </div>
 
         <IndirimliUrunler />

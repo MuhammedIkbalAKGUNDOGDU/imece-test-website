@@ -95,7 +95,6 @@ const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
     }
   };
 
-  console.log(data);
   return (
     <div
       onClick={handleClick}

@@ -39,8 +39,9 @@ export default function ProfilUreticiPage() {
         <Header />
       </div>
       <ProfileGiris sellerInfo={sellerInfo} />
-      <AboutSection sellerDescription={sellerInfo?.profil_tanitim_yazisi} />
-      {/* <Posts /> */}
+      <ProfileStatistics />
+      <AboutSection />
+      <Posts />
       <Comments />
       <p className="mt-10">Satıştaki ürünler</p>
     </div>

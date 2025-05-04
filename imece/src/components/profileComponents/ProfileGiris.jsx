@@ -1,23 +1,17 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
-import { Pencil, X, Camera, Upload, Check } from "lucide-react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import axios from "axios";
-import ProfileModal from "./ProfileModal";
 import { apiKey } from "../../config";
 
 // API için temel URL - ortamlara göre değiştirilebilir
 const API_BASE_URL = "https://imecehub.com/users/seller-info-full/";
 
 export default function ProfileGiris({ sellerInfo }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [saveError, setSaveError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState({
-    id: 1, // Profil kimliği - db.json'daki ilk öğe
+    id: 1,
     name: "ikbal",
     profession: "tornacı",
     location: "istanbul",
@@ -31,10 +25,6 @@ export default function ProfileGiris({ sellerInfo }) {
     profileImagePreview: null,
     backgroundImagePreview: null,
   });
-
-  const profileImageInputRef = useRef(null);
-  const backgroundImageInputRef = useRef(null);
-  console.log(sellerInfo);
 
   // İlk yükleme için profil verilerini getir
   useEffect(() => {
@@ -78,137 +68,6 @@ export default function ProfileGiris({ sellerInfo }) {
     };
 
     fetchProfileData();
-  }, []);
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-    // Reset form state
-    setSaveSuccess(false);
-    setSaveError(null);
-
-    // Reset previews when opening modal
-    setProfileData((prev) => ({
-      ...prev,
-      profileImagePreview: null,
-      backgroundImagePreview: null,
-      profileImageFile: null,
-      backgroundImageFile: null,
-    }));
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      setIsSaving(true);
-      setSaveSuccess(false);
-      setSaveError(null);
-
-      // Güncellenmiş profil verileri
-      const updatedProfile = {
-        name: profileData.name,
-        profession: profileData.profession,
-        location: profileData.location,
-        farmName: profileData.farmName,
-        confirmedSeller: profileData.confirmedSeller,
-        confirmedSellerExpirationDate: profileData.confirmedSellerExpirationDate
-          .toISOString()
-          .split("T")[0],
-        profileImage:
-          profileData.profileImagePreview || profileData.profileImage,
-        backgroundImage:
-          profileData.backgroundImagePreview || profileData.backgroundImage,
-      };
-
-      // JSON Server'a PUT isteği gönder (ID ile)
-      const response = await axios.put(
-        `${API_BASE_URL}/profile/1`,
-        updatedProfile
-      );
-
-      // Başarılı yanıt kontrolü
-      if (response.status === 200) {
-        // State'i güncelle
-        setProfileData((prev) => ({
-          ...prev,
-          ...updatedProfile,
-          profileImagePreview: null,
-          backgroundImagePreview: null,
-          profileImageFile: null,
-          backgroundImageFile: null,
-        }));
-
-        setSaveSuccess(true);
-
-        // Bildirimi göster ve modali kapat
-        setTimeout(() => {
-          setIsModalOpen(false);
-        }, 1500);
-
-        console.log(
-          "Profil güncellendi: Profil bilgileriniz başarıyla kaydedildi."
-        );
-      } else {
-        throw new Error("Profil güncellenirken bir hata oluştu.");
-      }
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      setSaveError(
-        "Profil bilgileriniz kaydedilirken bir hata oluştu. Lütfen tekrar deneyin."
-      );
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProfileData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleProfileImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileData((prev) => ({
-          ...prev,
-          profileImageFile: file,
-          profileImagePreview: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleBackgroundImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileData((prev) => ({
-          ...prev,
-          backgroundImageFile: file,
-          backgroundImagePreview: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const triggerProfileImageUpload = useCallback(() => {
-    profileImageInputRef.current?.click();
-  }, []);
-
-  const triggerBackgroundImageUpload = useCallback(() => {
-    backgroundImageInputRef.current?.click();
   }, []);
 
   // Yükleme durumu için gösterilecek içerik

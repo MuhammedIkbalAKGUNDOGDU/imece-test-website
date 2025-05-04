@@ -241,7 +241,12 @@ const orderPage = () => {
               <div className="order-page-seller-2">
                 <p>{sellerInfo?.magaza_adi}</p>
               </div>
-              <div className="order-page-seller-absolute ">
+              <div
+                className="order-page-seller-absolute pointer"
+                onClick={() =>
+                  navigate(`/profile/satici-profili/${product?.satici}`)
+                }
+              >
                 <p className="pointer">Profili İncele</p>
                 <FaLongArrowAltRight className="pointer" />
               </div>

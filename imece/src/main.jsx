@@ -61,9 +61,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/login-seller" element={<SaticiLogin />}></Route>
 
         <Route
-          path="/profile/satici-profili"
+          path="/profile/satici-profili/:id"
           element={<ProfileForUretici />}
-        ></Route>
+        />
         <Route
           path="/financial-dashboard"
           element={<FinancialDashboard />}

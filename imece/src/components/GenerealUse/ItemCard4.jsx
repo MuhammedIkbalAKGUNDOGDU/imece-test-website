@@ -71,10 +71,35 @@ const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
     navigate("/order-page", { state: { product: data } });
   };
 
+  const joinGroup = async (e) => {
+    e.stopPropagation();
+    try {
+      const response = await axios.post(
+        "https://imecehub.com/api/payment/siparisitem/gruba-katil/", // örnek URL
+        {
+          urun_id: data.urun_id || data.id,
+        },
+        {
+          headers: {
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
+      alert("Gruba başarıyla katıldınız!");
+      console.log("Grup yanıtı:", response.data);
+    } catch (error) {
+      console.error("Gruba katılım başarısız:", error);
+      alert("Gruba katılırken bir hata oluştu.");
+    }
+  };
+
+  console.log(data);
   return (
     <div
       onClick={handleClick}
-      className="bg-white rounded-lg sm:rounded-2xl shadow p-2 sm:p-4 w-[160px] sm:w-[220px] h-[260px] sm:h-[380px] flex flex-col"
+      className="bg-white rounded-lg sm:rounded-2xl shadow p-2 sm:p-4 w-[160px] sm:w-[220px] h-[260px] sm:h-[380px] flex flex-col cursor-pointer"
     >
       <div className="w-full h-28 sm:h-44 bg-gray-100 rounded-lg sm:rounded-xl overflow-hidden">
         <img
@@ -115,10 +140,26 @@ const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
 
       <div className="mt-2 sm:mt-3 flex items-center gap-1 sm:gap-2">
         <button
-          onClick={handleAddToCart}
-          className="flex-grow bg-green-600 text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded text-xs sm:text-sm font-medium"
+          onClick={(e) => {
+            if (data.satis_turu === 1) {
+              handleAddToCart(e);
+            } else if (data.satis_turu === 2) {
+              joinGroup(e);
+            }
+          }}
+          className={`flex-grow text-white py-1.5 sm:py-2 px-2 sm:px-3 rounded text-xs sm:text-sm font-medium ${
+            data.satis_turu === 1
+              ? "bg-green-600"
+              : data.satis_turu === 2
+              ? "bg-[#ff7a00]"
+              : "bg-gray-500"
+          }`}
         >
-          Sepete Ekle
+          {data.satis_turu === 1
+            ? "Sepete Ekle"
+            : data.satis_turu === 2
+            ? "Gruba Katıl"
+            : "İşlem"}
         </button>
         <button onClick={handleFavoriteClick} className="p-1.5 text-red-500">
           {isFavorite ? <FaHeart size={16} /> : <FaRegHeart size={16} />}

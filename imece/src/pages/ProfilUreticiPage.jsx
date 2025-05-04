@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import AboutSection from "@/components/profileComponents/AboutSection.jsx";
-import ProfilGiris from "@/components/profileComponents/ProfilGiris.jsx";
+import ProfileGiris from "@/components/profileComponents/ProfileGiris.jsx";
 import ProfileStatistics from "@/components/profileComponents/ProfileStatistics.jsx";
 import Posts from "@/components/profileComponents/Posts.jsx";
 import Comments from "@/components/profileComponents/Comments.jsx";
@@ -25,7 +25,6 @@ export default function ProfilUreticiPage() {
           },
         });
         setSellerInfo(response.data);
-        console.log(response.data);
       } catch (error) {
         console.error("Satıcı bilgileri alınamadı:", error);
       }
@@ -34,17 +33,16 @@ export default function ProfilUreticiPage() {
     fetchSellerInfo();
   }, []);
 
-  console.log(sellerInfo);
   return (
     <div>
       <div className="mx-[4%] md:mx-[8%] mb-8">
         <Header />
       </div>
-      {/* <ProfilGiris sellerInfo={sellerInfo} />
+      <ProfileGiris sellerInfo={sellerInfo} />
       <ProfileStatistics />
       <AboutSection />
       <Posts />
-      <Comments /> */}
+      <Comments />
       <p className="mt-10">Satıştaki ürünler</p>
     </div>
   );

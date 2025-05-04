@@ -1,20 +1,21 @@
-"use client"
+"use client";
 
-import { useState, useRef, useCallback, useEffect } from "react"
-import { Pencil, X, Camera, Upload, Check } from "lucide-react"
-import { format } from 'date-fns'
-import axios from "axios"
-import ProfileModal from './ProfileModal';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Pencil, X, Camera, Upload, Check } from "lucide-react";
+import { format } from "date-fns";
+import axios from "axios";
+import ProfileModal from "./ProfileModal";
+import { apiKey } from "../../config";
 
 // API için temel URL - ortamlara göre değiştirilebilir
-const API_BASE_URL = "http://localhost:3001";
+const API_BASE_URL = "https://imecehub.com/users/seller-info-full/";
 
-export default function ProfileGiris() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [saveSuccess, setSaveSuccess] = useState(false)
-  const [saveError, setSaveError] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
+export default function ProfileGiris({ idSatici }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState({
     id: 1, // Profil kimliği - db.json'daki ilk öğe
     name: "",
@@ -28,34 +29,44 @@ export default function ProfileGiris() {
     profileImageFile: null,
     backgroundImageFile: null,
     profileImagePreview: null,
-    backgroundImagePreview: null
-  })
+    backgroundImagePreview: null,
+  });
 
-  const profileImageInputRef = useRef(null)
-  const backgroundImageInputRef = useRef(null)
+  const profileImageInputRef = useRef(null);
+  const backgroundImageInputRef = useRef(null);
 
   // İlk yükleme için profil verilerini getir
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         setIsLoading(true);
-        // JSON Server'da id=1 olan profili al
-        // Eğer profile/2 Seçersek db.json'daki 2. profili alır.
-        const response = await axios.get(`${API_BASE_URL}/profile/1`);
-        
-        // API yanıtı bir obje olmalı
+
+        // Parametrik ID (örneğin route'tan alınmış olabilir)
+
+        const response = await axios({
+          method: "post",
+          url: "https://imecehub.com/users/seller-info-full/",
+          data: {
+            kullanici_id: idSatici,
+          },
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
         if (response.data) {
           const profileFromApi = response.data;
-          
-          // Tarih formatını düzelt
-          const expirationDate = profileFromApi.confirmedSellerExpirationDate 
-            ? new Date(profileFromApi.confirmedSellerExpirationDate) 
+
+          // Tarih varsa dönüştür
+          const expirationDate = profileFromApi.confirmedSellerExpirationDate
+            ? new Date(profileFromApi.confirmedSellerExpirationDate)
             : new Date();
-          
-          setProfileData(prev => ({
+
+          // Profil state'ini güncelle
+          setProfileData((prev) => ({
             ...prev,
             ...profileFromApi,
-            confirmedSellerExpirationDate: expirationDate
+            confirmedSellerExpirationDate: expirationDate,
           }));
         }
       } catch (error) {
@@ -69,33 +80,33 @@ export default function ProfileGiris() {
   }, []);
 
   const handleOpenModal = () => {
-    setIsModalOpen(true)
+    setIsModalOpen(true);
     // Reset form state
-    setSaveSuccess(false)
-    setSaveError(null)
-    
+    setSaveSuccess(false);
+    setSaveError(null);
+
     // Reset previews when opening modal
-    setProfileData(prev => ({
+    setProfileData((prev) => ({
       ...prev,
       profileImagePreview: null,
       backgroundImagePreview: null,
       profileImageFile: null,
-      backgroundImageFile: null
-    }))
-  }
+      backgroundImageFile: null,
+    }));
+  };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       setIsSaving(true);
       setSaveSuccess(false);
       setSaveError(null);
-      
+
       // Güncellenmiş profil verileri
       const updatedProfile = {
         name: profileData.name,
@@ -103,101 +114,130 @@ export default function ProfileGiris() {
         location: profileData.location,
         farmName: profileData.farmName,
         confirmedSeller: profileData.confirmedSeller,
-        confirmedSellerExpirationDate: profileData.confirmedSellerExpirationDate.toISOString().split('T')[0],
-        profileImage: profileData.profileImagePreview || profileData.profileImage,
-        backgroundImage: profileData.backgroundImagePreview || profileData.backgroundImage
+        confirmedSellerExpirationDate: profileData.confirmedSellerExpirationDate
+          .toISOString()
+          .split("T")[0],
+        profileImage:
+          profileData.profileImagePreview || profileData.profileImage,
+        backgroundImage:
+          profileData.backgroundImagePreview || profileData.backgroundImage,
       };
-  
+
       // JSON Server'a PUT isteği gönder (ID ile)
-      const response = await axios.put(`${API_BASE_URL}/profile/1`, updatedProfile);
-      
+      const response = await axios.put(
+        `${API_BASE_URL}/profile/1`,
+        updatedProfile
+      );
+
       // Başarılı yanıt kontrolü
       if (response.status === 200) {
         // State'i güncelle
-        setProfileData(prev => ({
+        setProfileData((prev) => ({
           ...prev,
           ...updatedProfile,
           profileImagePreview: null,
           backgroundImagePreview: null,
           profileImageFile: null,
-          backgroundImageFile: null
+          backgroundImageFile: null,
         }));
-        
+
         setSaveSuccess(true);
-        
+
         // Bildirimi göster ve modali kapat
         setTimeout(() => {
           setIsModalOpen(false);
         }, 1500);
-        
-        console.log("Profil güncellendi: Profil bilgileriniz başarıyla kaydedildi.");
+
+        console.log(
+          "Profil güncellendi: Profil bilgileriniz başarıyla kaydedildi."
+        );
       } else {
         throw new Error("Profil güncellenirken bir hata oluştu.");
       }
     } catch (error) {
       console.error("Error saving profile:", error);
-      setSaveError("Profil bilgileriniz kaydedilirken bir hata oluştu. Lütfen tekrar deneyin.");
+      setSaveError(
+        "Profil bilgileriniz kaydedilirken bir hata oluştu. Lütfen tekrar deneyin."
+      );
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setProfileData(prev => ({
+    const { name, value } = e.target;
+    setProfileData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleProfileImageChange = (e) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setProfileData(prev => ({
+        setProfileData((prev) => ({
           ...prev,
           profileImageFile: file,
-          profileImagePreview: reader.result
-        }))
-      }
-      reader.readAsDataURL(file)
+          profileImagePreview: reader.result,
+        }));
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleBackgroundImageChange = (e) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setProfileData(prev => ({
+        setProfileData((prev) => ({
           ...prev,
           backgroundImageFile: file,
-          backgroundImagePreview: reader.result
-        }))
-      }
-      reader.readAsDataURL(file)
+          backgroundImagePreview: reader.result,
+        }));
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const triggerProfileImageUpload = useCallback(() => {
-    profileImageInputRef.current?.click()
-  }, [])
+    profileImageInputRef.current?.click();
+  }, []);
 
   const triggerBackgroundImageUpload = useCallback(() => {
-    backgroundImageInputRef.current?.click()
-  }, [])
+    backgroundImageInputRef.current?.click();
+  }, []);
 
   // Yükleme durumu için gösterilecek içerik
   if (isLoading) {
     return (
       <div className="max-w-[1580px] min-w-[428px] h-[306px] md:h-[380px] lg:h-[622px] mx-auto bg-white rounded-lg overflow-hidden shadow-lg border border-gray-100 font-primary flex items-center justify-center">
         <div className="flex flex-col items-center justify-center">
-          <svg className="animate-spin h-12 w-12 text-[#22ff22]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <svg
+            className="animate-spin h-12 w-12 text-[#22ff22]"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
           </svg>
-          <p className="mt-4 text-lg text-[#1c274c]">Profil bilgileri yükleniyor...</p>
+          <p className="mt-4 text-lg text-[#1c274c]">
+            Profil bilgileri yükleniyor...
+          </p>
         </div>
       </div>
     );
@@ -205,10 +245,13 @@ export default function ProfileGiris() {
 
   return (
     <div className="max-w-[1580px] min-w-[428px] h-[306px] md:h-[380px] lg:h-[622px] mx-auto bg-white rounded-lg overflow-hidden shadow-lg border border-gray-100 font-primary">
-      
       {/* Banner Image */}
       <div className="relative h-[111px] md:h-[176px] lg:h-[276px] md:w-full">
-        <img src={profileData.backgroundImage} alt="Field landscape" className="w-full h-full object-cover" />
+        <img
+          src={profileData.backgroundImage}
+          alt="Field landscape"
+          className="w-full h-full object-cover"
+        />
 
         {/* Profile Picture */}
         <div className="absolute -mt-14 ml-5 md:-bottom-16 md:left-8">
@@ -239,29 +282,44 @@ export default function ProfileGiris() {
           {/* left side */}
           <div className="flex-1">
             {/* Name - profession - location */}
-            <h1 className="text-base md:text-2xl lg:text-4xl font-bold lg:font-extrabold text-[#1c274c]">{profileData.name}</h1>
-            <p className="text-xs mt-1 md:text-lg lg:text-2xl lg:font-medium lg:mt-2 text-[#717171]">{profileData.profession}</p>
-            <p className="text-xs mt-1 md:text-[15px] lg:text-xl lg:font-light lg:mt-2 text-[#898989]">{profileData.location}</p>
+            <h1 className="text-base md:text-2xl lg:text-4xl font-bold lg:font-extrabold text-[#1c274c]">
+              {profileData.name}
+            </h1>
+            <p className="text-xs mt-1 md:text-lg lg:text-2xl lg:font-medium lg:mt-2 text-[#717171]">
+              {profileData.profession}
+            </p>
+            <p className="text-xs mt-1 md:text-[15px] lg:text-xl lg:font-light lg:mt-2 text-[#898989]">
+              {profileData.location}
+            </p>
           </div>
 
           {/* right side */}
           <div className="flex-col">
             {/* Farm Info Card */}
             <div>
-              <h2 className="text-[9.2px] md:text-sm lg:text-xl border border-[#d0d0d0] rounded-[10px] font-extrabold text-[#1c274c] py-3 px-3 lg:px-6 lg:py-6 -mt-2">{profileData.farmName}</h2>
+              <h2 className="text-[9.2px] md:text-sm lg:text-xl border border-[#d0d0d0] rounded-[10px] font-extrabold text-[#1c274c] py-3 px-3 lg:px-6 lg:py-6 -mt-2">
+                {profileData.farmName}
+              </h2>
             </div>
 
             {/* Confirmed Seller */}
             {profileData.confirmedSeller && (
               <div className="flex items-center mt-2 gap-1 lg:gap-2">
-                <p className="text-sm md:text-lg lg:text-3xl font-extrabold text-gradient bg-gradient-to-r from-[#FFE600] to-[#998A00] bg-clip-text text-transparent">imece onaylı Satıcı</p>
-                <img className="lg:w-[28px] lg:h-[35px]" src="/ikon.png" alt="" />
+                <p className="text-sm md:text-lg lg:text-3xl font-extrabold text-gradient bg-gradient-to-r from-[#FFE600] to-[#998A00] bg-clip-text text-transparent">
+                  imece onaylı Satıcı
+                </p>
+                <img
+                  className="lg:w-[28px] lg:h-[35px]"
+                  src="/ikon.png"
+                  alt=""
+                />
               </div>
             )}
 
             {/* Confirmed Seller Expiration Date */}
             <div className="text-[10px] lg:text-base font-medium lg:ml-16 lg:mt-1 text-[#1C274C] kanit">
-              {format(profileData.confirmedSellerExpirationDate, 'dd/MM/yyyy')} Tarihine kadar geçerli
+              {format(profileData.confirmedSellerExpirationDate, "dd/MM/yyyy")}{" "}
+              Tarihine kadar geçerli
             </div>
           </div>
         </div>
@@ -286,14 +344,16 @@ export default function ProfileGiris() {
       {/* Custom Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div 
+          <div
             className="bg-white rounded-2xl w-full max-w-md relative animate-in fade-in zoom-in duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-2xl font-bold text-[#1c274c]">Profili düzenle</h2>
-              <button 
-                onClick={handleCloseModal} 
+              <h2 className="text-2xl font-bold text-[#1c274c]">
+                Profili düzenle
+              </h2>
+              <button
+                onClick={handleCloseModal}
                 className="text-[#898989] hover:text-[#1c274c] transition-colors p-1 rounded-full hover:bg-gray-100"
               >
                 <X className="w-6 h-6" />
@@ -308,7 +368,7 @@ export default function ProfileGiris() {
                   <p>Profil bilgileriniz başarıyla kaydedildi!</p>
                 </div>
               )}
-              
+
               {saveError && (
                 <div className="bg-red-50 text-red-800 px-4 py-3 rounded-lg flex items-center gap-2 animate-in fade-in duration-300">
                   <X className="w-5 h-5 text-red-500" />
@@ -321,7 +381,10 @@ export default function ProfileGiris() {
                 <div className="grid grid-cols-2 gap-4">
                   {/* Profile Image Upload */}
                   <div className="space-y-2">
-                    <label htmlFor="profileImage" className="text-[#1c274c] text-sm font-medium block">
+                    <label
+                      htmlFor="profileImage"
+                      className="text-[#1c274c] text-sm font-medium block"
+                    >
                       Profil Fotoğrafı
                     </label>
                     <div
@@ -342,7 +405,9 @@ export default function ProfileGiris() {
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full">
                           <Camera className="w-8 h-8 text-[#898989]" />
-                          <span className="text-xs text-[#898989] mt-1">Değiştir</span>
+                          <span className="text-xs text-[#898989] mt-1">
+                            Değiştir
+                          </span>
                         </div>
                       )}
                       <input
@@ -358,7 +423,10 @@ export default function ProfileGiris() {
 
                   {/* Background Image Upload */}
                   <div className="space-y-2">
-                    <label htmlFor="backgroundImage" className="text-[#1c274c] text-sm font-medium block">
+                    <label
+                      htmlFor="backgroundImage"
+                      className="text-[#1c274c] text-sm font-medium block"
+                    >
                       Arkaplan Fotoğrafı
                     </label>
                     <div
@@ -379,7 +447,9 @@ export default function ProfileGiris() {
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full">
                           <Upload className="w-8 h-8 text-[#898989]" />
-                          <span className="text-xs text-[#898989] mt-1">Değiştir</span>
+                          <span className="text-xs text-[#898989] mt-1">
+                            Değiştir
+                          </span>
                         </div>
                       )}
                       <input
@@ -399,7 +469,10 @@ export default function ProfileGiris() {
 
               {/* Profile Info Fields */}
               <div className="space-y-2">
-                <label htmlFor="name" className="text-[#1c274c] font-medium block">
+                <label
+                  htmlFor="name"
+                  className="text-[#1c274c] font-medium block"
+                >
                   İsim Soyisim
                 </label>
                 <input
@@ -412,7 +485,10 @@ export default function ProfileGiris() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="profession" className="text-[#1c274c] font-medium block">
+                <label
+                  htmlFor="profession"
+                  className="text-[#1c274c] font-medium block"
+                >
                   Meslek
                 </label>
                 <input
@@ -425,7 +501,10 @@ export default function ProfileGiris() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="location" className="text-[#1c274c] font-medium block">
+                <label
+                  htmlFor="location"
+                  className="text-[#1c274c] font-medium block"
+                >
                   Konum
                 </label>
                 <input
@@ -438,7 +517,10 @@ export default function ProfileGiris() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="farmName" className="text-[#1c274c] font-medium block">
+                <label
+                  htmlFor="farmName"
+                  className="text-[#1c274c] font-medium block"
+                >
                   Çiftlik İsmi
                 </label>
                 <input
@@ -498,5 +580,5 @@ export default function ProfileGiris() {
         </div>
       )}
     </div>
-  )
+  );
 }

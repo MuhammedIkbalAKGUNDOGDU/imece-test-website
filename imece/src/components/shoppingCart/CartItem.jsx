@@ -87,7 +87,7 @@ export default function CartItem({ onRemove, data }) {
         <div className="ml-4 flex flex-col text-left space-y-1">
           <h3
             onClick={handleClick}
-            className="font-semibold text-base lg:text-lg text-black cursor-pointer"
+            className="capitalize font-semibold text-base lg:text-lg text-black cursor-pointer"
           >
             {productInfo?.urun_adi}
           </h3>

@@ -46,7 +46,7 @@ export default function PaymentSection() {
       <div className="w-full md:w-1/3 flex flex-col items-start m-auto px-4 mt-5 md:mt-0">
         <button 
           onClick={handlePurchase}
-          className={`px-6 py-2 main-green-background text-white rounded-md w-full ${
+          className={`px-6 py-2 bg-green-500 text-white rounded-md w-full ${
             !termsAccepted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'
           }`}
         >

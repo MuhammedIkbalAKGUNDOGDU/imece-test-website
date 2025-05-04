@@ -159,7 +159,7 @@ const Products = () => {
           .split(" - ")
           .map((p) => parseInt(p.replace(" TL", ""), 10));
         filtered = filtered.filter(
-          (product) => product.fiyat >= minPrice && product.fiyat <= maxPrice
+          (product) => product.urun_perakende_fiyati >= minPrice && product.urun_perakende_fiyati <= maxPrice
         );
       }
 

@@ -26,7 +26,35 @@ const orderPage = () => {
   const id = parseInt(localStorage.getItem("userId"), 10);
 
   const token = localStorage.getItem("accessToken");
+  const [productComments, setProductComments] = useState([]);
 
+  useEffect(() => {
+    const fetchProductComments = async () => {
+      try {
+        const response = await axios.post(
+          "https://imecehub.com/api/products/urunyorum/takecommentsforproduct/",
+          {
+            urun_id: product?.urun_id,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, 
+              "X-API-Key": apiKey,
+            },
+          }
+        );
+        setProductComments(response.data);
+        console.log("Yorumlar:", response.data);
+      } catch (error) {
+        console.error("Yorumlar alınamadı:", error);
+      }
+    };
+  
+    if (product?.urun_id) {
+      fetchProductComments();
+    }
+  }, [product]);
   useEffect(() => {
     const fetchGroupInfo = async () => {
       try {
@@ -65,6 +93,7 @@ const orderPage = () => {
           },
           headers: {
             "Content-Type": "application/json",
+            "X-API-Key": apiKey,
           },
         });
         setSellerInfo(response.data);
@@ -206,7 +235,6 @@ const orderPage = () => {
       alert("Bir hata oluştu, lütfen tekrar deneyin.");
     }
   };
-
   return (
     <>
       <div className="order-page-body">

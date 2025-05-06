@@ -1,23 +1,38 @@
 import { useState, useEffect } from "react";
 import CommentCard from "./CommentCard";
 
-const Comments = () => {
+const Comments = ({ sellerId }) => {
   const [comments, setComments] = useState([]);
+  console.log(sellerId);
+  const fetchComments = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const apiKey = "senin_api_keyin"; // Gerekirse dışarıdan al
 
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        const response = await fetch("http://localhost:3001/comments");
-        const data = await response.json();
-        setComments(data);
-      } catch (error) {
-        console.error("Yorumlar yüklenirken hata oluştu:", error);
+      const response = await fetch(
+        "https://imecehub.com/api/products/urunyorum/takecommentsforseller/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "X-API-Key": apiKey,
+          },
+          body: JSON.stringify({ magaza_id: sellerId }), // ✅ DÜZELTİLDİ
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Sunucu hatası: " + response.status);
       }
-    };
 
-    fetchComments();
-  }, []);
-
+      const data = await response.json();
+      setComments(data);
+    } catch (error) {
+      console.error("Yorumlar yüklenirken hata oluştu:", error);
+    }
+  };
+  console.log(comments);
   return (
     <div className="min-w-[428px] max-w-[1580px] h-auto mx-auto pb-5 bg-white rounded-lg overflow-hidden shadow-lg border border-gray-100 mt-10">
       <div className="p-6">
@@ -29,10 +44,10 @@ const Comments = () => {
               className="min-w-[300px] md:min-w-0 snap-start"
             >
               <CommentCard
-                name={comment.name}
-                rating={comment.rating}
-                comment={comment.comment}
-                initial={comment.name.charAt(0)}
+                name={comment.kullanici_adi}
+                rating={comment.puan}
+                comment={comment.yorum}
+                initial={comment.kullanici_adi?.charAt(0) ?? "?"}
               />
             </div>
           ))}

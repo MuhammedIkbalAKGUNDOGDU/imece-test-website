@@ -14,6 +14,8 @@ export default function ProfilUreticiPage() {
   const { id } = useParams();
   const [sellerInfo, setSellerInfo] = useState(null);
   const [sellerProdcts, setSellerProducts] = useState(null);
+
+ 
   useEffect(() => {
     const fetchSellerInfo = async () => {
       try {
@@ -56,13 +58,12 @@ export default function ProfilUreticiPage() {
     };
     fetchSellerProducts();
   }, []);
-
   return (
     <div>
       <div className="mx-[4%] md:mx-[8%] mb-8">
         <Header />
       </div>
-      <ProfileGiris sellerInfo={sellerInfo} />
+      <ProfileGiris sellerInfo={sellerInfo} sellerId = {id} />
       <AboutSection sellerDescription={sellerInfo?.profil_tanitim_yazisi} />
       {/* <Posts /> */}
       <div className="container mx-auto py-8">
@@ -75,7 +76,7 @@ export default function ProfilUreticiPage() {
           <p>Ürünler yükleniyor...</p>
         )}
       </div>
-      <Comments />
+      <Comments sellerId={id} />
     </div>
   );
 }

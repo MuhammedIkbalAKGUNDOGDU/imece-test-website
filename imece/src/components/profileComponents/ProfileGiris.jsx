@@ -8,14 +8,13 @@ import { apiKey } from "../../config";
 // API için temel URL - ortamlara göre değiştirilebilir
 const API_BASE_URL = "https://imecehub.com/users/seller-info-full/";
 
-export default function ProfileGiris({ sellerInfo }) {
+export default function ProfileGiris({ sellerInfo, sellerId }) {
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState({
-    id: 1,
+    id: sellerId,
     name: "ikbal",
     profession: "tornacı",
     location: "istanbul",
-    farmName: "tornacım.com",
     confirmedSeller: true,
     confirmedSellerExpirationDate: new Date(),
     profileImage: "/placeholder.svg?height=200&width=200",
@@ -33,12 +32,11 @@ export default function ProfileGiris({ sellerInfo }) {
         setIsLoading(true);
 
         // Parametrik ID (örneğin route'tan alınmış olabilir)
-        const idSatici = 5;
         const response = await axios({
           method: "post",
           url: "https://imecehub.com/users/seller-info-full/",
           data: {
-            kullanici_id: idSatici,
+            kullanici_id: sellerId,
           },
           headers: {
             "Content-Type": "application/json",
@@ -70,6 +68,7 @@ export default function ProfileGiris({ sellerInfo }) {
     fetchProfileData();
   }, []);
 
+  console.log(profileData);
   // Yükleme durumu için gösterilecek içerik
   if (isLoading) {
     return (
@@ -132,7 +131,7 @@ export default function ProfileGiris({ sellerInfo }) {
           <div className="flex-1">
             {/* Name - profession - location */}
             <h1 className="uppercase text-base md:text-2xl lg:text-4xl font-bold lg:font-extrabold text-[#1c274c]">
-              {sellerInfo?.magaza_adi}
+              {profileData?.magaza_adi}
             </h1>
             <p className="capitalize text-xs mt-1 md:text-lg lg:text-2xl lg:font-medium lg:mt-2 text-[#717171]">
               {profileData.profession}
@@ -166,10 +165,15 @@ export default function ProfileGiris({ sellerInfo }) {
             )}
 
             {/* Confirmed Seller Expiration Date */}
-            <div className="text-[10px] lg:text-base font-medium lg:ml-16 lg:mt-1 text-[#1C274C] kanit">
-              {format(profileData.confirmedSellerExpirationDate, "dd/MM/yyyy")}{" "}
-              Tarihine kadar geçerli
-            </div>
+            {sellerInfo?.imece_onay && (
+              <div className="text-[10px] lg:text-base font-medium lg:ml-16 lg:mt-1 text-[#1C274C] kanit">
+                {format(
+                  profileData.confirmedSellerExpirationDate,
+                  "dd/MM/yyyy"
+                )}{" "}
+                Tarihine kadar geçerli
+              </div>
+            )}
           </div>
         </div>
       </div>

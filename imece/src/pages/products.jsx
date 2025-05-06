@@ -6,7 +6,7 @@ import Filter from "../components/GenerealUse/filter";
 import ItemGrid from "../components/GenerealUse/ItemGrid";
 import { products as mockProducts } from "../data/products";
 import LoadingSpinner from "../components/GenerealUse/loadingSpinner";
-import { apiKey } from "../config";  // veya "../constants" dosya ismine göre
+import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -21,7 +21,6 @@ const Products = () => {
     rating: null,
   });
 
-  
   const accessToken = localStorage.getItem("accessToken");
 
   const headers = {
@@ -65,6 +64,7 @@ const Products = () => {
 
     fetchUserAndData();
   }, []);
+
   const fetchFavorites = async () => {
     try {
       const res = await axios.get(
@@ -78,7 +78,7 @@ const Products = () => {
         }
       );
       const favs = res.data.map((item) => item.urun); // yalnızca ürün ID'lerini al
-
+      console.log(favs);
       return favs;
     } catch (error) {
       console.error("Favori ürünler alınamadı:", error);
@@ -105,7 +105,6 @@ const Products = () => {
       return false;
     }
   };
-
   const removeFavorite = async (userId, productId, headers) => {
     try {
       await axios.delete("https://imecehub.com/api/users/favori-urunler/", {
@@ -159,7 +158,9 @@ const Products = () => {
           .split(" - ")
           .map((p) => parseInt(p.replace(" TL", ""), 10));
         filtered = filtered.filter(
-          (product) => product.urun_perakende_fiyati >= minPrice && product.urun_perakende_fiyati <= maxPrice
+          (product) =>
+            product.urun_perakende_fiyati >= minPrice &&
+            product.urun_perakende_fiyati <= maxPrice
         );
       }
 

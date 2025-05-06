@@ -3,7 +3,7 @@ import axios from "axios";
 import Header from "../components/GenerealUse/Header";
 import ItemGrid from "../components/GenerealUse/ItemGrid";
 import LoadingSpinner from "../components/GenerealUse/loadingSpinner";
-import { apiKey } from "../config";  // veya "../constants" dosya ismine göre
+import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
 
 const Favoriler = () => {
   const [products, setProducts] = useState([]);
@@ -12,7 +12,6 @@ const Favoriler = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
- 
   const accessToken = localStorage.getItem("accessToken");
 
   const headers = {

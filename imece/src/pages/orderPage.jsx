@@ -12,7 +12,7 @@ import { useLocation, useNavigate } from "react-router-dom"; // useNavigate impo
 import ItemCard from "../components/GenerealUse/itemCard2";
 import axios from "axios";
 import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
-
+import Comments from "../components/GenerealUse/CommentsForProducts";
 const orderPage = () => {
   const navigate = useNavigate(); // Yönlendirme için useNavigate kullanıldı
   const [sellerInfo, setSellerInfo] = useState(null);
@@ -216,7 +216,7 @@ const orderPage = () => {
       const response = await axios.post(
         "https://imecehub.com/api/payment/siparisitem/sepet-ekle/",
         {
-          miktar: 4, // ya da kullanıcı seçimine göre ayarla
+          miktar: 1, // ya da kullanıcı seçimine göre ayarla
           urun_id: product.urun_id,
         },
         {

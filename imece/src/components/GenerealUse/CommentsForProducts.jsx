@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import CommentCard from "./CommentCard";
+import CommentCard from "./CommentCardForProducts";
 import { apiKey } from "../../config";
 
-const Comments = ({ sellerId  }) => {
+const Comments = ({ sellerId }) => {
   const [comments, setComments] = useState([]);
   const fetchComments = async () => {
     try {
@@ -17,7 +17,7 @@ const Comments = ({ sellerId  }) => {
             Authorization: `Bearer ${token}`,
             "X-API-Key": apiKey,
           },
-          body: JSON.stringify({ magaza_id: sellerId }), 
+          body: JSON.stringify({ magaza_id: sellerId }),
         }
       );
 

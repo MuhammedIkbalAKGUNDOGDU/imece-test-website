@@ -54,7 +54,6 @@ export default function CartPage() {
       .then((response) => {
         const items = response.data.sepet;
         setCartItems(items); // JSX değil, sadece veri
-        console.log(items);
       })
       .catch((error) => {
         console.error("Sepet verileri alınamadı:", error);

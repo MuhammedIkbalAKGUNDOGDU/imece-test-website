@@ -20,46 +20,41 @@ const Favoriler = () => {
     "Content-Type": "application/json",
   };
 
-  const fetchFavorites = async () => {
-    try {
-      const userRes = await axios.get(
-        "https://imecehub.com/api/users/kullanicilar/me/",
-        { headers }
-      );
-      const id = userRes.data.id;
-      setUserId(id);
-
-      const fullUserRes = await axios.get(
-        `https://imecehub.com/api/users/kullanicilar/${id}/`,
-        { headers }
-      );
-      const userFavorites = fullUserRes.data.favori_urunler || [];
-      setFavorites(userFavorites);
-
-      const productsRes = await axios.get(
-        "https://imecehub.com/api/products/urunler/",
-        { headers }
-      );
-      const allProducts = productsRes.data;
-
-      const favoriteProducts = allProducts.filter((product) =>
-        userFavorites.includes(product.urun_id)
-      );
-      setProducts(favoriteProducts);
-    } catch (err) {
-      console.error("Veri çekme hatası:", err);
-      setError("Veriler alınırken bir hata oluştu.");
-      setProducts(
-        mockProducts.filter((product) => favorites.includes(product.id))
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        // 1. Favori verilerini çek
+        const res = await axios.get(
+          "https://imecehub.com/api/users/favori-urunler/",
+          { headers }
+        );
+
+        const urunIdList = res.data.map((item) => item.urun); // her item.urun bir ID
+
+        setFavorites(urunIdList);
+
+        // 2. Her urun_id için ayrı istek at
+        const productRequests = urunIdList.map((urunId) =>
+          axios.get(`https://imecehub.com/api/products/urunler/${urunId}/`, {
+            headers,
+          })
+        );
+
+        const responses = await Promise.all(productRequests);
+        const productList = responses.map((res) => res.data);
+
+        setProducts(productList);
+      } catch (err) {
+        console.error("Favori ürünler alınamadı:", err);
+        setError("Favori ürünler alınırken hata oluştu.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchFavorites();
   }, []);
+
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <div className="text-red-600">{error}</div>;
@@ -71,8 +66,8 @@ const Favoriler = () => {
         {products.length > 0 ? (
           <ItemGrid items={products} cardType="card4" favorites={favorites} />
         ) : (
-          <p>Favori ürün bulunamadı</p>
-        )}
+        <p>Favori ürün bulunamadı</p>
+        )} 
       </div>
     </div>
   );

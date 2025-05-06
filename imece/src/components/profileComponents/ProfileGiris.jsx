@@ -68,7 +68,6 @@ export default function ProfileGiris({ sellerInfo, sellerId }) {
     fetchProfileData();
   }, []);
 
-  console.log(profileData);
   // Yükleme durumu için gösterilecek içerik
   if (isLoading) {
     return (

@@ -78,7 +78,6 @@ const Products = () => {
         }
       );
       const favs = res.data.map((item) => item.urun); // yalnızca ürün ID'lerini al
-      console.log(favs);
       return favs;
     } catch (error) {
       console.error("Favori ürünler alınamadı:", error);

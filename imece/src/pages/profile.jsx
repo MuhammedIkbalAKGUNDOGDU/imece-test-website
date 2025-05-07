@@ -7,7 +7,7 @@ import Orders from "../components/profileComponents/personelProfile/Orders";
 import Settings from "../components/profileComponents/personelProfile/Settings";
 import { apiKey } from "../config";
 import { useRef } from "react";
-
+import Profile2 from "../components/profileComponents/Profile";
 export default function ProfilUreticiPage() {
   const [userData, setUserData] = useState(null);
   const [currentMenu, setCurrentMenu] = useState("profile");
@@ -64,9 +64,11 @@ export default function ProfilUreticiPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Header />
+      <div className="mx-[8%]">
+        <Header />
+      </div>
       {/* Mobil Menü Butonu */}
-      <button
+      {/* <button
         className="md:hidden m-4 px-4 py-2 bg-gray-800 text-white rounded"
         onClick={toggleSidebar}
       >
@@ -89,7 +91,8 @@ export default function ProfilUreticiPage() {
         >
           {renderContent()}
         </main>{" "}
-      </div>
+      </div> */}
+      <Profile2 />
     </div>
   );
 }

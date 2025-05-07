@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ItemCard3 from "./ItemCard3";
 import ItemCard4 from "./ItemCard4";
 import axios from "axios";
-
+import { apiKey } from "../../config";
 const ItemGrid = ({ items, cardType = "card3", onFavoriteToggle }) => {
   const [favorites, setFavorites] = useState([]);
   const CardComponent = cardType === "card4" ? ItemCard4 : ItemCard3;
@@ -11,7 +11,6 @@ const ItemGrid = ({ items, cardType = "card3", onFavoriteToggle }) => {
     const fetchFavorites = async () => {
       try {
         const accessToken = localStorage.getItem("accessToken");
-        const apiKey = "senin_api_keyin"; // veya import ettiğin config dosyasından al
 
         const res = await axios.get(
           "https://imecehub.com/api/users/favori-urunler/",

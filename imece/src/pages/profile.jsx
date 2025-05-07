@@ -6,16 +6,35 @@ import Profile from "../components/profileComponents/personelProfile/Profile";
 import Orders from "../components/profileComponents/personelProfile/Orders";
 import Settings from "../components/profileComponents/personelProfile/Settings";
 import { apiKey } from "../config";
+import { useRef } from "react";
 
 export default function ProfilUreticiPage() {
   const [userData, setUserData] = useState(null);
   const [currentMenu, setCurrentMenu] = useState("profile");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+  const sidebarRef = useRef(null);
+  const mainRef = useRef(null);
   const accesToken = localStorage.getItem("accessToken");
   const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isSidebarOpen &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target)
+      ) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSidebarOpen]);
 
   useEffect(() => {
     axios
@@ -56,12 +75,20 @@ export default function ProfilUreticiPage() {
 
       <div className="flex flex-col md:flex-row">
         <Sidebar
+          ref={sidebarRef}
           currentMenu={currentMenu}
           setCurrentMenu={setCurrentMenu}
           isOpen={isSidebarOpen}
           toggleMenu={toggleSidebar}
         />
-        <main className="flex-1 p-4 md:ml-64">{renderContent()}</main>
+        <main
+          className="flex-1 p-4 md:ml-64"
+          onClick={() => {
+            if (isSidebarOpen) toggleSidebar(); // Mobilde menü açıkken tıklanınca kapat
+          }}
+        >
+          {renderContent()}
+        </main>{" "}
       </div>
     </div>
   );

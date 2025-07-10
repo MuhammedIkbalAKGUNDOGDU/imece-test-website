@@ -39,7 +39,7 @@ const orderPage = () => {
           {
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`, 
+              Authorization: `Bearer ${token}`,
               "X-API-Key": apiKey,
             },
           }
@@ -50,7 +50,7 @@ const orderPage = () => {
         console.error("Yorumlar alınamadı:", error);
       }
     };
-  
+
     if (product?.urun_id) {
       fetchProductComments();
     }
@@ -85,6 +85,7 @@ const orderPage = () => {
   useEffect(() => {
     const fetchSellerInfo = async () => {
       try {
+        console.log(product.satici);
         const response = await axios({
           method: "post",
           url: "https://imecehub.com/users/seller-info/",
@@ -115,6 +116,7 @@ const orderPage = () => {
           },
           headers: {
             "Content-Type": "application/json",
+            "X-API-Key": apiKey,
           },
         });
         setSellerProducts(response.data);

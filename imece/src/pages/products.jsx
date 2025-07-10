@@ -106,13 +106,14 @@ const Products = () => {
   };
   const removeFavorite = async (userId, productId, headers) => {
     try {
-      await axios.delete("https://imecehub.com/api/users/favori-urunler/", {
-        data: {
-          alici: userId,
-          urun: productId,
+      await axios.post(
+        "https://imecehub.com/users/delete-favourite/",
+        {
+          alici_id: userId,
+          urun_id: productId,
         },
-        headers,
-      });
+        { headers }
+      );
       return true;
     } catch (error) {
       console.error(

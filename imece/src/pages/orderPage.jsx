@@ -23,6 +23,8 @@ const orderPage = () => {
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState([]); // Yeni eklendi
+
   const id = parseInt(localStorage.getItem("userId"), 10);
 
   const token = localStorage.getItem("accessToken");
@@ -105,6 +107,7 @@ const orderPage = () => {
 
     fetchSellerInfo();
   }, []);
+
   useEffect(() => {
     const fetchSellerProducts = async () => {
       try {
@@ -162,38 +165,51 @@ const orderPage = () => {
       alert("Lütfen bir puan seçin.");
       return;
     }
-
     try {
-      const response = await axios.post(
+      const formData = new FormData();
+      formData.append("yorum", comment);
+      formData.append("puan", selectedRating);
+      formData.append("urun", product.urun_id);
+      formData.append("kullanici", id);
+      formData.append("magaza", product.satici);
+      console.log(product.satici);
+      if (selectedFiles.length > 0) {
+        selectedFiles.forEach((file) => {
+          formData.append("resimler", file);
+        });
+      }
+
+      const response = await fetch(
         "https://imecehub.com/api/products/urunyorum/yorum-ekle/",
         {
-          urun: product.urun_id,
-          magaza: product.satici,
-          puan: selectedRating,
-          yorum: comment,
-        },
-
-        {
+          method: "POST",
           headers: {
+            Authorization: `Bearer ${token}`,
             "X-API-Key": apiKey,
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Token burada olmalı
           },
+          body: formData,
         }
       );
 
-      console.log("Başarıyla gönderildi:", response.data);
-      alert("Puanınız ve yorumunuz başarıyla kaydedildi!");
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Hata:", errorData);
+        alert(
+          errorData?.detail ||
+            errorData?.message ||
+            "Yorum gönderilirken bir hata oluştu."
+        );
+        return;
+      }
 
-      // Formu sıfırlıyoruz
+      alert("Yorum başarıyla gönderildi.");
       setIsRatingOpen(false);
-      setSelectedRating(0);
       setComment("");
+      setSelectedRating(0);
+      setSelectedFiles([]);
     } catch (error) {
-      console.error("Puan gönderilemedi:", error);
-      console.log(comment, selectedRating, product.urun_id, product.satici);
-
-      alert("Bir hata oluştu, lütfen tekrar deneyin.");
+      console.error("İstek hatası:", error);
+      alert("Yorum gönderme sırasında bir hata oluştu.");
     }
   };
 
@@ -231,7 +247,6 @@ const orderPage = () => {
       );
 
       alert("Ürün sepete eklendi!");
-      console.log("Sepet yanıtı:", response.data);
     } catch (error) {
       console.error("Sepete ekleme başarısız:", error);
       alert("Bir hata oluştu, lütfen tekrar deneyin.");
@@ -290,46 +305,89 @@ const orderPage = () => {
                 <div className="flex">
                   {renderStars(product.degerlendirme_puani)}
                 </div>
+                <div
+                  className="text-xl font-bold "
+                  onClick={() => setIsRatingOpen(true)}
+                >
+                  Ürünü Değerlendir
+                </div>
               </div>
               {isRatingOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                  <div className="relative flex flex-col gap-3 p-6 border rounded-lg shadow bg-white w-96">
-                    {/* X Butonu */}
+                  <div className="relative bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+                    {/* Kapat Butonu */}
                     <button
                       onClick={() => setIsRatingOpen(false)}
-                      className="absolute top-2 right-2 text-gray-500 hover:text-black text-2xl"
+                      className="absolute top-2 right-3 text-2xl text-gray-400 hover:text-black"
                     >
                       &times;
                     </button>
 
-                    <p className="font-bold text-xl text-center">
-                      Puanını Seç:
-                    </p>
-                    <div className="flex gap-2 justify-center">
+                    <h2 className="text-xl font-bold text-center mb-4">
+                      Ürünü Değerlendir
+                    </h2>
+
+                    {/* Puan Seçimi */}
+                    <div className="flex justify-center gap-2 mb-4">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <FaStar
                           key={star}
                           onClick={() => setSelectedRating(star)}
-                          className={`cursor-pointer ${
+                          className={`cursor-pointer text-3xl transition ${
                             selectedRating >= star
                               ? "text-yellow-400"
                               : "text-gray-300"
-                          } text-3xl`}
+                          }`}
                         />
                       ))}
                     </div>
+
+                    {/* Yorum */}
                     <textarea
-                      placeholder="Yorumunuzu yazabilirsiniz (opsiyonel)"
+                      placeholder="Yorumunuzu yazabilirsiniz..."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
-                      className="p-2 border rounded w-full resize-none"
+                      className="w-full border rounded-lg p-3 mb-4 resize-none h-28 focus:outline-none focus:ring-2 focus:ring-green-400"
                     />
-                    <button
-                      onClick={handleSubmitRating}
-                      className="bg-green-500 text-white p-2 rounded font-bold"
-                    >
-                      Gönder
-                    </button>
+
+                    {/* Resim Yükleme */}
+                    <input
+                      type="file"
+                      multiple
+                      onChange={(e) =>
+                        setSelectedFiles(Array.from(e.target.files))
+                      }
+                      className="mb-4 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                    />
+
+                    {selectedFiles.length > 0 && (
+                      <div className="flex gap-2 overflow-x-auto mb-4">
+                        {selectedFiles.map((file, index) => (
+                          <img
+                            key={index}
+                            src={URL.createObjectURL(file)}
+                            alt="preview"
+                            className="w-20 h-20 object-cover rounded-md border"
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Butonlar */}
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => setIsRatingOpen(false)}
+                        className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+                      >
+                        İptal
+                      </button>
+                      <button
+                        onClick={handleSubmitRating}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                      >
+                        Gönder
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

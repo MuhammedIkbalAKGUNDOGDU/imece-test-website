@@ -22,37 +22,39 @@ const Favoriler = () => {
 
   useEffect(() => {
     const fetchUserAndFavorites = async () => {
-      try {
-        const userRes = await axios.get(
-          "https://imecehub.com/api/users/kullanicilar/me/",
-          { headers }
-        );
-        const id = userRes.data.id;
-        setUserId(id);
+      if (accessToken) {
+        try {
+          const userRes = await axios.get(
+            "https://imecehub.com/api/users/kullanicilar/me/",
+            { headers }
+          );
+          const id = userRes.data.id;
+          setUserId(id);
 
-        const res = await axios.get(
-          "https://imecehub.com/api/users/favori-urunler/",
-          { headers }
-        );
+          const res = await axios.get(
+            "https://imecehub.com/api/users/favori-urunler/",
+            { headers }
+          );
 
-        const urunIdList = res.data.map((item) => item.urun);
-        setFavorites(urunIdList);
+          const urunIdList = res.data.map((item) => item.urun);
+          setFavorites(urunIdList);
 
-        const productRequests = urunIdList.map((urunId) =>
-          axios.get(`https://imecehub.com/api/products/urunler/${urunId}/`, {
-            headers,
-          })
-        );
+          const productRequests = urunIdList.map((urunId) =>
+            axios.get(`https://imecehub.com/api/products/urunler/${urunId}/`, {
+              headers,
+            })
+          );
 
-        const responses = await Promise.all(productRequests);
-        const productList = responses.map((res) => res.data);
+          const responses = await Promise.all(productRequests);
+          const productList = responses.map((res) => res.data);
 
-        setProducts(productList);
-      } catch (err) {
-        console.error("Favori ürünler alınamadı:", err);
-        setError("Favori ürünler alınırken hata oluştu.");
-      } finally {
-        setIsLoading(false);
+          setProducts(productList);
+        } catch (err) {
+          console.error("Favori ürünler alınamadı:", err);
+          setError("Favori ürünler alınırken hata oluştu.");
+        } finally {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -112,7 +114,34 @@ const Favoriler = () => {
       }
     }
   };
-
+  if (!accessToken) {
+    return (
+      <>
+        <div className="mx-[4%] md:mx-[8%]">
+          <Header />
+        </div>
+        <div className="flex flex-col items-center justify-center min-h-screen text-center">
+          <p className="text-lg font-semibold mb-4">
+            Lütfen giriş yapın ya da kaydolun
+          </p>
+          <div className="flex gap-4">
+            <a
+              href="/login"
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
+              Giriş Yap
+            </a>
+            <a
+              href="/register"
+              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            >
+              Kaydol
+            </a>
+          </div>
+        </div>
+      </>
+    );
+  }
   if (isLoading) return <LoadingSpinner />;
   if (error) return <div className="text-red-600">{error}</div>;
 

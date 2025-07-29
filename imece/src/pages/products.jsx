@@ -32,12 +32,14 @@ const Products = () => {
   useEffect(() => {
     const fetchUserAndData = async () => {
       try {
-        const userRes = await axios.get(
-          "https://imecehub.com/api/users/kullanicilar/me/",
-          { headers }
-        );
-        const id = userRes.data.id;
-        setUserId(id);
+        if (accessToken) {
+          const userRes = await axios.get(
+            "https://imecehub.com/api/users/kullanicilar/me/",
+            { headers }
+          );
+          const id = userRes.data.id;
+          setUserId(id);
+        }
 
         const [productsRes, favs] = await Promise.all([
           axios.get("https://imecehub.com/api/products/urunler/", {
@@ -66,22 +68,24 @@ const Products = () => {
   }, []);
 
   const fetchFavorites = async () => {
-    try {
-      const res = await axios.get(
-        "https://imecehub.com/api/users/favori-urunler/",
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "X-API-Key": apiKey,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const favs = res.data.map((item) => item.urun); // yalnızca ürün ID'lerini al
-      return favs;
-    } catch (error) {
-      console.error("Favori ürünler alınamadı:", error);
-      return [];
+    if (accessToken) {
+      try {
+        const res = await axios.get(
+          "https://imecehub.com/api/users/favori-urunler/",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "X-API-Key": apiKey,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const favs = res.data.map((item) => item.urun); // yalnızca ürün ID'lerini al
+        return favs;
+      } catch (error) {
+        console.error("Favori ürünler alınamadı:", error);
+        return [];
+      }
     }
   };
 

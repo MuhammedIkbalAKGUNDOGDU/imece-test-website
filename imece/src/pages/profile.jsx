@@ -18,6 +18,7 @@ export default function ProfilUreticiPage() {
   const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -61,6 +62,35 @@ export default function ProfilUreticiPage() {
         return <div>Sayfa bulunamadı</div>;
     }
   };
+
+  if (!accessToken) {
+    return (
+      <>
+        <div className="mx-[4%] md:mx-[8%]">
+          <Header />
+        </div>
+        <div className="flex flex-col items-center justify-center min-h-screen text-center">
+          <p className="text-lg font-semibold mb-4">
+            Lütfen giriş yapın ya da kaydolun
+          </p>
+          <div className="flex gap-4">
+            <a
+              href="/login"
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
+              Giriş Yap
+            </a>
+            <a
+              href="/register"
+              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            >
+              Kaydol
+            </a>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">

@@ -57,6 +57,7 @@ const orderPage = () => {
       fetchProductComments();
     }
   }, [product]);
+
   useEffect(() => {
     const fetchGroupInfo = async () => {
       try {
@@ -107,6 +108,8 @@ const orderPage = () => {
 
     fetchSellerInfo();
   }, []);
+
+  console.log(product);
 
   useEffect(() => {
     const fetchSellerProducts = async () => {
@@ -228,6 +231,32 @@ const orderPage = () => {
       document.removeEventListener("keydown", handleEsc);
     };
   }, [isRatingOpen]);
+
+  const handleJoinGroup = async () => {
+    try {
+      const response = await axios.post(
+        "https://imecehub.com/products/groups/join/",
+        {
+          group_id: groupInfo?.group_id, // veya sabit örnek: 3
+          amount: 1, // sabit
+          address_id: 1, // sabit
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "X-API-Key": apiKey,
+          },
+        }
+      );
+
+      console.log("Gruba Katılım Başarılı:", response.data);
+      alert("Gruba başarıyla katıldınız!");
+    } catch (error) {
+      console.error("Gruba katılım başarısız:", error.response?.data || error);
+      alert("Gruba katılırken bir hata oluştu.");
+    }
+  };
 
   const handleAddToCart = async () => {
     try {
@@ -436,19 +465,20 @@ const orderPage = () => {
                 <p>Kalan ürün: {product.stok_durumu}</p>
               </div>
             </div>
+            {/* ✅ Gruba Katıl Butonu */}
             {product.satis_turu === 2 ? (
               <div
-                onClick={() => navigate("/order-page/choose-group")}
+                onClick={handleJoinGroup}
                 className="order-page-group-buy pointer clickable"
               >
-                <p>Grup Satın Alım</p>
+                <p>Gruba Katıl</p>
               </div>
             ) : (
               <div
                 onClick={handleAddToCart}
                 className="order-page-personal-buy pointer clickable"
               >
-                <p>Sepete ekle</p>
+                <p>Sepete Ekle</p>
               </div>
             )}
           </div>

@@ -3,6 +3,7 @@ import axios from "axios";
 import Header from "../components/GenerealUse/Header";
 import "../styles/landingpage.css";
 import "../styles/landingPage_styles/stories.css";
+import "../styles/landingPage_styles/campaignSlider.css";
 import Banner from "../components/landingPage/Banner";
 import goBottom from "../assets/vectors/goBottom.svg";
 import AliciAndSaticiOl from "../components/landingPage/AliciAndSaticiOl";
@@ -11,6 +12,8 @@ import Saticilar from "../components/landingPage/Saticilar";
 import IndirimliUrunler from "../components/landingPage/IndirimliUrunler";
 import ItemGrid from "../components/GenerealUse/ItemGrid";
 import StoriesComponent from "../components/landingPage/StoriesComponent";
+import CampaignSlider from "../components/landingPage/CampaignSlider";
+import WhatsAppButton from "../components/GenerealUse/WhatsAppButton";
 import { apiKey } from "../config";
 
 const LandingPage = () => {
@@ -121,8 +124,9 @@ const LandingPage = () => {
     <div>
       <div className="landingPage">
         <Header />
-        <Banner />
-
+        {/* Campaign Slider */}
+        <CampaignSlider />
+        
         {/* Stories Component */}
         <StoriesComponent />
 
@@ -133,9 +137,6 @@ const LandingPage = () => {
             alt="Aşağı Kaydır"
           />
         </div>
-
-        {!accesToken && <AliciAndSaticiOl />}
-        <Saticilar />
 
         {/* Popüler Ürünler */}
         <div className="container mx-auto py-8">
@@ -149,8 +150,14 @@ const LandingPage = () => {
         </div>
 
         <IndirimliUrunler />
+        <Saticilar />
+
+        {!accesToken && <AliciAndSaticiOl />}
       </div>
       <Footer />
+
+      {/* WhatsApp Button */}
+      <WhatsAppButton />
     </div>
   );
 };

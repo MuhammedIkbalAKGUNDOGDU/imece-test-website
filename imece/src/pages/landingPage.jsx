@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Header from "../components/GenerealUse/Header";
 import "../styles/landingpage.css";
+import "../styles/landingPage_styles/stories.css";
 import Banner from "../components/landingPage/Banner";
 import goBottom from "../assets/vectors/goBottom.svg";
 import AliciAndSaticiOl from "../components/landingPage/AliciAndSaticiOl";
@@ -9,6 +10,7 @@ import Footer from "../components/GenerealUse/Footer";
 import Saticilar from "../components/landingPage/Saticilar";
 import IndirimliUrunler from "../components/landingPage/IndirimliUrunler";
 import ItemGrid from "../components/GenerealUse/ItemGrid";
+import StoriesComponent from "../components/landingPage/StoriesComponent";
 import { apiKey } from "../config";
 
 const LandingPage = () => {
@@ -120,6 +122,9 @@ const LandingPage = () => {
       <div className="landingPage">
         <Header />
         <Banner />
+
+        {/* Stories Component */}
+        <StoriesComponent />
 
         <div className="flex justify-center">
           <img

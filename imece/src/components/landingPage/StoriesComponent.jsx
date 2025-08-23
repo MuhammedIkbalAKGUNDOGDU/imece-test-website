@@ -43,6 +43,105 @@ const StoriesComponent = () => {
         profileImage:
           "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
       },
+      {
+        id: 1,
+        title: "Yeni Ürün Kampanyası",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "En yeni ürünlerimizi keşfedin",
+        username: "imecehub",
+        profileImage:
+          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 2,
+        title: "İndirim Fırsatları",
+        image:
+          "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "%50'ye varan indirimler",
+        username: "kampanyalar",
+        profileImage:
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 3,
+        title: "Grup Alım Avantajları",
+        image:
+          "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Birlikte al, daha ucuza al",
+        username: "grup_alim",
+        profileImage:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 1,
+        title: "Yeni Ürün Kampanyası",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "En yeni ürünlerimizi keşfedin",
+        username: "imecehub",
+        profileImage:
+          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 2,
+        title: "İndirim Fırsatları",
+        image:
+          "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "%50'ye varan indirimler",
+        username: "kampanyalar",
+        profileImage:
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 3,
+        title: "Grup Alım Avantajları",
+        image:
+          "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Birlikte al, daha ucuza al",
+        username: "grup_alim",
+        profileImage:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 1,
+        title: "Yeni Ürün Kampanyası",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "En yeni ürünlerimizi keşfedin",
+        username: "imecehub",
+        profileImage:
+          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 2,
+        title: "İndirim Fırsatları",
+        image:
+          "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "%50'ye varan indirimler",
+        username: "kampanyalar",
+        profileImage:
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 3,
+        title: "Grup Alım Avantajları",
+        image:
+          "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Birlikte al, daha ucuza al",
+        username: "grup_alim",
+        profileImage:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      },
     ],
     stories: [
       {
@@ -69,6 +168,116 @@ const StoriesComponent = () => {
       },
       {
         id: 3,
+        title: "Yeni Özellikler",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Platform güncellemeleri",
+        username: "yeni_ozellikler",
+        profileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 4,
+        title: "Yeni Özellikler",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Platform güncellemeleri",
+        username: "yeni_ozellikler",
+        profileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 5,
+        title: "Yeni Özellikler",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Platform güncellemeleri",
+        username: "yeni_ozellikler",
+        profileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 5,
+        title: "Yeni Özellikler",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Platform güncellemeleri",
+        username: "yeni_ozellikler",
+        profileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 5,
+        title: "Yeni Özellikler",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Platform güncellemeleri",
+        username: "yeni_ozellikler",
+        profileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 5,
+        title: "Yeni Özellikler",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Platform güncellemeleri",
+        username: "yeni_ozellikler",
+        profileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 5,
+        title: "Yeni Özellikler",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Platform güncellemeleri",
+        username: "yeni_ozellikler",
+        profileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 5,
+        title: "Yeni Özellikler",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Platform güncellemeleri",
+        username: "yeni_ozellikler",
+        profileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 5,
+        title: "Yeni Özellikler",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Platform güncellemeleri",
+        username: "yeni_ozellikler",
+        profileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 5,
+        title: "Yeni Özellikler",
+        image:
+          "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",
+        duration: 5000,
+        description: "Platform güncellemeleri",
+        username: "yeni_ozellikler",
+        profileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      },
+      {
+        id: 5,
         title: "Yeni Özellikler",
         image:
           "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=600&fit=crop",

@@ -126,7 +126,7 @@ const LandingPage = () => {
         <Header />
         {/* Campaign Slider */}
         <CampaignSlider />
-        
+
         {/* Stories Component */}
         <StoriesComponent />
 

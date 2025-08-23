@@ -9,35 +9,44 @@ const AddressModal = ({
   isEditing = false,
 }) => {
   const [formData, setFormData] = useState({
-    adres_adi: "",
-    adres: "",
-    mahalle: "",
+    ulke: "Türkiye",
+    il: "",
     ilce: "",
-    sehir: "",
-    telefon: "",
-    varsayilan: false,
+    mahalle: "",
+    posta_kodu: "",
+    adres_satiri_1: "",
+    adres_satiri_2: "",
+    baslik: "",
+    adres_tipi: "ev",
+    varsayilan_adres: false,
   });
 
   useEffect(() => {
     if (address && isEditing) {
       setFormData({
-        adres_adi: address.adres_adi || "",
-        adres: address.adres || "",
-        mahalle: address.mahalle || "",
+        ulke: address.ulke || "Türkiye",
+        il: address.il || "",
         ilce: address.ilce || "",
-        sehir: address.sehir || "",
-        telefon: address.telefon || "",
-        varsayilan: address.varsayilan || false,
+        mahalle: address.mahalle || "",
+        posta_kodu: address.posta_kodu || "",
+        adres_satiri_1: address.adres_satiri_1 || "",
+        adres_satiri_2: address.adres_satiri_2 || "",
+        baslik: address.baslik || "",
+        adres_tipi: address.adres_tipi || "ev",
+        varsayilan_adres: address.varsayilan_adres || false,
       });
     } else {
       setFormData({
-        adres_adi: "",
-        adres: "",
-        mahalle: "",
+        ulke: "Türkiye",
+        il: "",
         ilce: "",
-        sehir: "",
-        telefon: "",
-        varsayilan: false,
+        mahalle: "",
+        posta_kodu: "",
+        adres_satiri_1: "",
+        adres_satiri_2: "",
+        baslik: "",
+        adres_tipi: "ev",
+        varsayilan_adres: false,
       });
     }
   }, [address, isEditing]);
@@ -75,17 +84,17 @@ const AddressModal = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Adres Adı */}
+          {/* Adres Başlığı */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Adres Adı
+              Adres Başlığı
             </label>
             <div className="relative">
               <Home className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                name="adres_adi"
-                value={formData.adres_adi}
+                name="baslik"
+                value={formData.baslik}
                 onChange={handleInputChange}
                 placeholder="Ev, İş, vb."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -94,16 +103,16 @@ const AddressModal = ({
             </div>
           </div>
 
-          {/* Adres */}
+          {/* Adres Satırı 1 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Adres
+              Adres Satırı 1
             </label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <textarea
-                name="adres"
-                value={formData.adres}
+                name="adres_satiri_1"
+                value={formData.adres_satiri_1}
                 onChange={handleInputChange}
                 placeholder="Sokak, cadde, bina no, daire no"
                 rows="3"
@@ -111,6 +120,21 @@ const AddressModal = ({
                 required
               />
             </div>
+          </div>
+
+          {/* Adres Satırı 2 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Adres Satırı 2 (Opsiyonel)
+            </label>
+            <input
+              type="text"
+              name="adres_satiri_2"
+              value={formData.adres_satiri_2}
+              onChange={handleInputChange}
+              placeholder="Bina, blok, kat bilgisi"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
           </div>
 
           {/* Mahalle */}
@@ -128,7 +152,7 @@ const AddressModal = ({
             />
           </div>
 
-          {/* İlçe ve Şehir */}
+          {/* İlçe ve İl */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -141,52 +165,71 @@ const AddressModal = ({
                 onChange={handleInputChange}
                 placeholder="İlçe"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Şehir
+                İl
               </label>
               <input
                 type="text"
-                name="sehir"
-                value={formData.sehir}
+                name="il"
+                value={formData.il}
                 onChange={handleInputChange}
-                placeholder="Şehir"
+                placeholder="İl"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                required
               />
             </div>
           </div>
 
-          {/* Telefon */}
+          {/* Posta Kodu */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Telefon
+              Posta Kodu
             </label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="tel"
-                name="telefon"
-                value={formData.telefon}
-                onChange={handleInputChange}
-                placeholder="0555 123 45 67"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
+            <input
+              type="text"
+              name="posta_kodu"
+              value={formData.posta_kodu}
+              onChange={handleInputChange}
+              placeholder="34000"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Adres Tipi */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Adres Tipi
+            </label>
+            <select
+              name="adres_tipi"
+              value={formData.adres_tipi}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            >
+              <option value="ev">Ev</option>
+              <option value="is">İş</option>
+              <option value="diger">Diğer</option>
+            </select>
           </div>
 
           {/* Varsayılan Adres */}
           <div className="flex items-center">
             <input
               type="checkbox"
-              name="varsayilan"
-              checked={formData.varsayilan}
+              name="varsayilan_adres"
+              checked={formData.varsayilan_adres}
               onChange={handleInputChange}
-              id="varsayilan"
+              id="varsayilan_adres"
               className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
             />
-            <label htmlFor="varsayilan" className="ml-2 text-sm text-gray-700">
+            <label
+              htmlFor="varsayilan_adres"
+              className="ml-2 text-sm text-gray-700"
+            >
               Bu adresi varsayılan adres olarak ayarla
             </label>
           </div>

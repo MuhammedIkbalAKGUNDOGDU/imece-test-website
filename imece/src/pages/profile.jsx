@@ -630,6 +630,9 @@ const AddressesContent = () => {
   const [isEditing, setIsEditing] = useState(false);
   const accessToken = localStorage.getItem("accessToken");
 
+  // addresses'in array olduğundan emin ol
+  const safeAddresses = Array.isArray(addresses) ? addresses : [];
+
   const fetchAddresses = async () => {
     if (!accessToken) {
       setIsLoading(false);
@@ -639,7 +642,7 @@ const AddressesContent = () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        "https://imecehub.com/api/logistics/adres/",
+        "https://imecehub.com/users/list-addresses/",
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -648,9 +651,58 @@ const AddressesContent = () => {
           },
         }
       );
-      setAddresses(response.data);
+
+      // Adres verilerini konsola yazdır
+      console.log("Adreslerim API Response:", response.data);
+      console.log("Response type:", typeof response.data);
+      console.log("Is Array:", Array.isArray(response.data));
+      console.log(
+        "Response keys:",
+        response.data ? Object.keys(response.data) : "No data"
+      );
+
+      // API'den gelen veriyi kontrol et ve array'e çevir
+      let addressesData = response.data;
+
+      // Eğer string ise JSON parse et
+      if (typeof response.data === "string") {
+        try {
+          addressesData = JSON.parse(response.data);
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          setError("Veri formatı hatalı");
+          return;
+        }
+      }
+
+      // Eğer object ise ve addresses property'si varsa onu al
+      if (
+        addressesData &&
+        typeof addressesData === "object" &&
+        !Array.isArray(addressesData)
+      ) {
+        if (addressesData.adresler) {
+          addressesData = addressesData.adresler;
+        } else if (addressesData.addresses) {
+          addressesData = addressesData.addresses;
+        } else if (addressesData.results) {
+          addressesData = addressesData.results;
+        } else if (addressesData.data) {
+          addressesData = addressesData.data;
+        }
+      }
+
+      // Array değilse boş array yap
+      if (!Array.isArray(addressesData)) {
+        console.warn("Addresses data is not an array:", addressesData);
+        addressesData = [];
+      }
+
+      setAddresses(addressesData);
     } catch (err) {
       console.error("Adres verileri alınırken hata:", err);
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
       setError("Adres bilgileri alınamadı");
     } finally {
       setIsLoading(false);
@@ -674,24 +726,55 @@ const AddressesContent = () => {
   };
 
   const handleDeleteAddress = async (addressId) => {
-    if (window.confirm("Bu adresi silmek istediğinizden emin misiniz?")) {
-      try {
-        await axios.delete(
-          `https://imecehub.com/api/logistics/adres/${addressId}/`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "X-API-Key": apiKey,
-              "Content-Type": "application/json",
-            },
-          }
+    // Silinecek adresi bul
+    const addressToDelete = safeAddresses.find((addr) => addr.id === addressId);
+
+    // Eğer bu varsayılan adres ise uyarı ver
+    if (addressToDelete && addressToDelete.varsayilan_adres) {
+      const hasOtherAddresses = safeAddresses.length > 1;
+
+      if (hasOtherAddresses) {
+        const confirmDelete = window.confirm(
+          "Bu adres varsayılan adresiniz. Silmek istediğinizden emin misiniz?\n\n" +
+            "Önce başka bir adresi varsayılan yapmanız önerilir."
         );
-        // Adres listesini yenile
-        fetchAddresses();
-      } catch (err) {
-        console.error("Adres silme hatası:", err);
-        alert("Adres silinirken bir hata oluştu");
+
+        if (!confirmDelete) {
+          return;
+        }
+      } else {
+        alert(
+          "Bu varsayılan adresiniz ve başka adresiniz bulunmuyor. Önce yeni bir adres ekleyin."
+        );
+        return;
       }
+    } else {
+      // Normal adres silme onayı
+      if (!window.confirm("Bu adresi silmek istediğinizden emin misiniz?")) {
+        return;
+      }
+    }
+
+    try {
+      await axios.delete("https://imecehub.com/users/delete-address/", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "X-API-Key": apiKey,
+          "Content-Type": "application/json",
+        },
+        data: {
+          adres_id: addressId,
+        },
+      });
+      // Adres listesini yenile
+      fetchAddresses();
+      alert("Adres başarıyla silindi");
+    } catch (err) {
+      console.error("Adres silme hatası:", err);
+      console.error("Error response:", err.response?.data);
+      const errorMessage =
+        err.response?.data?.error || "Adres silinirken bir hata oluştu";
+      alert(errorMessage);
     }
   };
 
@@ -699,9 +782,45 @@ const AddressesContent = () => {
     try {
       if (isEditing && editingAddress) {
         // Güncelleme - PUT metodu
+        const updateData = {
+          adres_id: editingAddress.id,
+          ...formData,
+        };
+
+        // Eğer bu adres varsayılan yapılıyorsa, diğer adresleri false yap
+        if (formData.varsayilan_adres) {
+          console.log(
+            "Varsayılan adres güncelleniyor, diğerleri false yapılıyor..."
+          );
+          // Önce tüm adresleri false yap
+          for (const address of safeAddresses) {
+            if (address.id !== editingAddress.id) {
+              try {
+                await axios.put(
+                  "https://imecehub.com/users/update-address/",
+                  {
+                    adres_id: address.id,
+                    varsayilan_adres: false,
+                  },
+                  {
+                    headers: {
+                      Authorization: `Bearer ${accessToken}`,
+                      "X-API-Key": apiKey,
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+              } catch (error) {
+                console.log(`Adres ${address.id} güncellenirken hata:`, error);
+              }
+            }
+          }
+        }
+
+        // Şimdi bu adresi güncelle - Swagger'daki endpoint'i kullan
         await axios.put(
-          `https://imecehub.com/api/logistics/adres/${editingAddress.id}/`,
-          formData,
+          "https://imecehub.com/users/update-address/",
+          updateData,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -712,17 +831,46 @@ const AddressesContent = () => {
         );
       } else {
         // Yeni adres ekleme - POST metodu
-        await axios.post(
-          "https://imecehub.com/api/logistics/adres/",
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "X-API-Key": apiKey,
-              "Content-Type": "application/json",
-            },
+        console.log("Yeni adres ekleme isteği gönderiliyor...");
+        console.log("Request data:", formData);
+        console.log("Request data JSON:", JSON.stringify(formData, null, 2));
+
+        // Eğer bu adres varsayılan yapılıyorsa, diğer adresleri false yap
+        if (formData.varsayilan_adres) {
+          console.log(
+            "Yeni varsayılan adres ekleniyor, diğerleri false yapılıyor..."
+          );
+          // Önce tüm adresleri false yap
+          for (const address of safeAddresses) {
+            try {
+              await axios.put(
+                "https://imecehub.com/users/update-address/",
+                {
+                  adres_id: address.id,
+                  varsayilan_adres: false,
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    "X-API-Key": apiKey,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+            } catch (error) {
+              console.log(`Adres ${address.id} güncellenirken hata:`, error);
+            }
           }
-        );
+        }
+
+        // Şimdi yeni adresi ekle - Swagger'daki endpoint'i kullan
+        await axios.post("https://imecehub.com/users/add-address/", formData, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+          },
+        });
       }
 
       // Modal'ı kapat ve listeyi yenile
@@ -730,9 +878,20 @@ const AddressesContent = () => {
       setEditingAddress(null);
       setIsEditing(false);
       fetchAddresses();
+      alert(
+        isEditing ? "Adres başarıyla güncellendi" : "Adres başarıyla eklendi"
+      );
     } catch (err) {
       console.error("Adres kaydetme hatası:", err);
-      alert("Adres kaydedilirken bir hata oluştu");
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+      console.error("Error message:", err.message);
+      console.error("Request URL:", err.config?.url);
+      console.error("Request method:", err.config?.method);
+      console.error("Request data:", err.config?.data);
+      const errorMessage =
+        err.response?.data?.error || "Adres kaydedilirken bir hata oluştu";
+      alert(errorMessage);
     }
   };
 
@@ -740,6 +899,65 @@ const AddressesContent = () => {
     setIsModalOpen(false);
     setEditingAddress(null);
     setIsEditing(false);
+  };
+
+  const handleSetDefaultAddress = async (addressId) => {
+    try {
+      // Önce tüm adresleri varsayılan olmaktan çıkar
+      // Önce tüm adresleri false yap
+      console.log(
+        "Varsayılan adres güncelleniyor, diğerleri false yapılıyor..."
+      );
+      for (const address of safeAddresses) {
+        if (address.id !== addressId) {
+          try {
+            await axios.put(
+              "https://imecehub.com/users/update-address/",
+              {
+                adres_id: address.id,
+                varsayilan_adres: false,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "X-API-Key": apiKey,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+          } catch (error) {
+            console.log(`Adres ${address.id} güncellenirken hata:`, error);
+          }
+        }
+      }
+
+      // Şimdi bu adresi varsayılan yap - Swagger'daki endpoint'i kullan
+      await axios.put(
+        "https://imecehub.com/users/update-address/",
+        {
+          adres_id: addressId,
+          varsayilan_adres: true,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // Adres listesini yenile
+      fetchAddresses();
+      alert("Varsayılan adres başarıyla güncellendi");
+    } catch (err) {
+      console.error("Varsayılan adres güncelleme hatası:", err);
+      console.error("Error response:", err.response?.data);
+      const errorMessage =
+        err.response?.data?.error ||
+        "Varsayılan adres güncellenirken bir hata oluştu";
+      alert(errorMessage);
+    }
   };
 
   if (isLoading) {
@@ -795,14 +1013,14 @@ const AddressesContent = () => {
         </button>
       </div>
 
-      {addresses.length === 0 ? (
+      {safeAddresses.length === 0 ? (
         <div className="text-center py-12 empty-state">
           <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4 empty-state-icon" />
           <p className="text-gray-500">Henüz adres eklenmemiş</p>
         </div>
       ) : (
         <div className="grid gap-4">
-          {addresses.map((address, index) => (
+          {safeAddresses.map((address, index) => (
             <div
               key={index}
               className="p-4 border border-gray-200 rounded-lg group-card"
@@ -811,29 +1029,63 @@ const AddressesContent = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="font-semibold text-gray-800">
-                      {address.adres_adi || "Adres"}
+                      {address.baslik || "Adres"}
                     </h3>
-                    {address.varsayilan && (
+                    {address.varsayilan_adres && (
                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                         Varsayılan
                       </span>
                     )}
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                      {address.adres_tipi === "ev"
+                        ? "Ev"
+                        : address.adres_tipi === "is"
+                        ? "İş"
+                        : "Diğer"}
+                    </span>
                   </div>
                   <p className="text-gray-600 text-sm mb-1">
-                    {address.adres || "Adres bilgisi bulunamadı"}
+                    {address.adres_satiri_1 || "Adres bilgisi bulunamadı"}
                   </p>
+                  {address.adres_satiri_2 && (
+                    <p className="text-gray-600 text-sm mb-1">
+                      {address.adres_satiri_2}
+                    </p>
+                  )}
                   <p className="text-gray-500 text-sm">
                     {address.mahalle && `${address.mahalle}, `}
                     {address.ilce && `${address.ilce}, `}
-                    {address.sehir && address.sehir}
+                    {address.il && address.il}
+                    {address.posta_kodu && ` ${address.posta_kodu}`}
                   </p>
-                  {address.telefon && (
+                  {address.ulke && (
                     <p className="text-gray-500 text-sm mt-1">
-                      📞 {address.telefon}
+                      🌍 {address.ulke}
                     </p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 ml-4">
+                  {!address.varsayilan_adres && (
+                    <button
+                      onClick={() => handleSetDefaultAddress(address.id)}
+                      className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                      title="Varsayılan Yap"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </button>
+                  )}
                   <button
                     onClick={() => handleEditAddress(address)}
                     className="p-2 text-gray-400 hover:text-blue-600 transition-colors edit-button"

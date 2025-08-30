@@ -19,13 +19,14 @@ import AddUrun4 from "./pages/seller/urunEkle4";
 import PostCreate from "./pages/PostCreatePage";
 import CartPage from "./pages/basket";
 import ChatPage from "./pages/ChatPage";
-import FinancialDashboard from "./pages/financialDashboard";
 import NotFound404 from "./pages/404Page";
 import ProfileForUretici from "./pages/ProfilUreticiPage";
 import SavePaymentCard from "./pages/savePaymentCard";
 import SaticiRegister from "./pages/saticiRegister";
 import SaticiLogin from "./pages/saticiLogin";
 import SellerLandingPage from "./pages/seller/sellerLandingPage";
+import SellerOrders from "./pages/seller/sellerOrders";
+import SellerFinancialDashboard from "./pages/seller/financialDashboard";
 import Favoriler from "./pages/favoriler";
 import { UrunProvider } from "./context/UrunContext";
 
@@ -61,15 +62,17 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/register-seller" element={<SaticiRegister />}></Route>
         <Route path="/satici-login" element={<SaticiLogin />}></Route>
         <Route path="/seller/landing" element={<SellerLandingPage />}></Route>
+        <Route path="/seller/orders" element={<SellerOrders />}></Route>
+        <Route
+          path="/seller/financial-dashboard"
+          element={<SellerFinancialDashboard />}
+        ></Route>
 
         <Route
           path="/profile/satici-profili/:id"
           element={<ProfileForUretici />}
         />
-        <Route
-          path="/financial-dashboard"
-          element={<FinancialDashboard />}
-        ></Route>
+       
         <Route path="/*" element={<NotFound404 />}></Route>
       </Routes>
     </BrowserRouter>

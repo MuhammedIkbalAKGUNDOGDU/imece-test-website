@@ -115,6 +115,14 @@ const SellerLandingPage = () => {
     navigate("/products");
   };
 
+  const handleViewOrders = () => {
+    navigate("/seller/orders");
+  };
+
+  const handleViewFinancialDashboard = () => {
+    navigate("/seller/financial-dashboard");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -334,6 +342,68 @@ const SellerLandingPage = () => {
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+            onClick={handleViewOrders}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Siparişlerim
+                </h3>
+                <p className="text-gray-600">
+                  Siparişlerinizi takip edin ve kargo işlemlerini yönetin
+                </p>
+              </div>
+              <div className="p-3 rounded-full bg-orange-100 text-orange-600">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+            onClick={handleViewFinancialDashboard}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Finansal Dashboard
+                </h3>
+                <p className="text-gray-600">
+                  Satış raporlarınızı ve finansal durumunuzu takip edin
+                </p>
+              </div>
+              <div className="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                   />
                 </svg>
               </div>

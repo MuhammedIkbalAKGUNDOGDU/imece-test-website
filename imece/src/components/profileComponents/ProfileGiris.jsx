@@ -31,6 +31,8 @@ export default function ProfileGiris({ sellerInfo, sellerId }) {
       try {
         setIsLoading(true);
 
+       
+
         // Parametrik ID (örneğin route'tan alınmış olabilir)
         const response = await axios({
           method: "post",
@@ -40,8 +42,10 @@ export default function ProfileGiris({ sellerInfo, sellerId }) {
           },
           headers: {
             "Content-Type": "application/json",
+            "X-API-Key": apiKey,
           },
         });
+
 
         if (response.data) {
           const profileFromApi = response.data;
@@ -60,13 +64,14 @@ export default function ProfileGiris({ sellerInfo, sellerId }) {
         }
       } catch (error) {
         console.error("Profil verileri alınamadı:", error);
+        console.error("Hata detayı:", error.response?.data);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchProfileData();
-  }, []);
+  }, [sellerId]);
 
   // Yükleme durumu için gösterilecek içerik
   if (isLoading) {

@@ -9,16 +9,18 @@ import Header from "../components/GenerealUse/Header";
 import { useParams } from "react-router-dom";
 import ItemCard4 from "../components/GenerealUse/ItemCard4";
 import ItemGrid from "../components/GenerealUse/ItemGrid";
+import { apiKey } from "../config";
 
 export default function ProfilUreticiPage() {
   const { id } = useParams();
   const [sellerInfo, setSellerInfo] = useState(null);
   const [sellerProdcts, setSellerProducts] = useState(null);
 
- 
   useEffect(() => {
     const fetchSellerInfo = async () => {
       try {
+        
+
         const response = await axios({
           method: "post",
           url: "https://imecehub.com/users/seller-info-full/",
@@ -27,16 +29,19 @@ export default function ProfilUreticiPage() {
           },
           headers: {
             "Content-Type": "application/json",
+            "X-API-Key": apiKey,
           },
         });
+        console.log("ProfilUreticiPage - API Response:", response.data);
         setSellerInfo(response.data);
       } catch (error) {
         console.error("Satıcı bilgileri alınamadı:", error);
+        console.error("Hata detayı:", error.response?.data);
       }
     };
 
     fetchSellerInfo();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     const fetchSellerProducts = async () => {
@@ -49,6 +54,7 @@ export default function ProfilUreticiPage() {
           },
           headers: {
             "Content-Type": "application/json",
+            "X-API-Key": apiKey,
           },
         });
         setSellerProducts(response.data);
@@ -63,7 +69,7 @@ export default function ProfilUreticiPage() {
       <div className="mx-[4%] md:mx-[8%] mb-8">
         <Header />
       </div>
-      <ProfileGiris sellerInfo={sellerInfo} sellerId = {id} />
+      <ProfileGiris sellerInfo={sellerInfo} sellerId={id} />
       <AboutSection sellerDescription={sellerInfo?.profil_tanitim_yazisi} />
       {/* <Posts /> */}
       <div className="container mx-auto py-8">

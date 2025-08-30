@@ -107,8 +107,9 @@ const SellerLandingPage = () => {
     navigate("/Urun-Ekle-1");
   };
 
-  const handleViewProfile = () => {
-    navigate("/profile/satici-profili/3"); // ProfilUreticiPage route'u
+  const handleViewProfileFromHero = () => {
+    const userId = localStorage.getItem("userId");
+    navigate(`/profile/satici-profili/${userId}`); // ProfilUreticiPage route'u
   };
 
   const handleViewProducts = () => {
@@ -121,6 +122,28 @@ const SellerLandingPage = () => {
 
   const handleViewFinancialDashboard = () => {
     navigate("/seller/financial-dashboard");
+  };
+
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
+  const handleProfileSettings = () => {
+    setShowProfileModal(true);
+  };
+
+  const handleViewProfile = () => {
+    setShowProfileModal(false);
+    const userId = localStorage.getItem("userId");
+    navigate(`/profile/satici-profili/${userId}`);
+  };
+
+  const handleEditProfile = () => {
+    setShowProfileModal(false);
+    // İleride profil düzenleme sayfasına yönlendirilecek
+    console.log("Profil düzenleme sayfasına yönlendirilecek");
+  };
+
+  const closeModal = () => {
+    setShowProfileModal(false);
   };
 
   if (loading) {
@@ -164,11 +187,87 @@ const SellerLandingPage = () => {
                 Yeni Ürün Ekle
               </button>
               <button
-                onClick={handleViewProfile}
+                onClick={handleViewProfileFromHero}
                 className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-green-600 transition-colors duration-200"
               >
                 Profilimi Görüntüle
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Seller Profile Card */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <div className="flex items-center space-x-6">
+            <div className="relative">
+              <img
+                src={
+                  sellerInfo?.profil_fotograf ||
+                  "https://via.placeholder.com/80x80?text=Profil"
+                }
+                alt="Profil Fotoğrafı"
+                className="w-20 h-20 rounded-full object-cover border-4 border-green-100"
+              />
+              {sellerInfo?.imece_onay && (
+                <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-1">
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {sellerInfo?.magaza_adi || "Mağaza Adı"}
+                </h2>
+                {sellerInfo?.imece_onay && (
+                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                    İmece Onaylı
+                  </span>
+                )}
+              </div>
+              <p className="text-gray-600 mb-2">
+                <span className="font-medium">Meslek:</span>{" "}
+                {sellerInfo?.profession || "Belirtilmemiş"}
+              </p>
+              {sellerInfo?.profil_tanitim_yazisi && (
+                <p className="text-gray-700 italic">
+                  "{sellerInfo.profil_tanitim_yazisi}"
+                </p>
+              )}
+              <div className="flex items-center space-x-4 mt-3">
+                <div className="flex items-center space-x-1">
+                  <svg
+                    className="w-4 h-4 text-yellow-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span className="text-sm text-gray-600">
+                    {sellerInfo?.degerlendirme_puani || 0} / 5
+                  </span>
+                </div>
+                <div className="text-sm text-gray-500">
+                  •{" "}
+                  {sellerInfo?.imece_onay_last_date
+                    ? `Onay: ${new Date(
+                        sellerInfo.imece_onay_last_date
+                      ).toLocaleDateString("tr-TR")}`
+                    : "Onay tarihi belirtilmemiş"}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -412,7 +511,7 @@ const SellerLandingPage = () => {
 
           <div
             className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-            onClick={handleViewProfile}
+            onClick={handleProfileSettings}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -534,6 +633,77 @@ const SellerLandingPage = () => {
           )}
         </div>
       </div>
+
+      {/* Profile Modal */}
+      {showProfileModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-white rounded-lg p-8 max-w-md w-full mx-4 transform transition-all duration-300 ease-out"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">
+                Profil Ayarları
+              </h3>
+              <div className="space-y-4">
+                <button
+                  onClick={handleViewProfile}
+                  className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                  Profili Gör
+                </button>
+                <button
+                  onClick={handleEditProfile}
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Profili Düzenle
+                </button>
+                <button
+                  onClick={closeModal}
+                  className="w-full bg-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-400 transition-colors duration-200"
+                >
+                  İptal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Logout Button */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

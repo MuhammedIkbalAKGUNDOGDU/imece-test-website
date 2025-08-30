@@ -31,8 +31,6 @@ export default function ProfileGiris({ sellerInfo, sellerId }) {
       try {
         setIsLoading(true);
 
-       
-
         // Parametrik ID (örneğin route'tan alınmış olabilir)
         const response = await axios({
           method: "post",
@@ -45,7 +43,6 @@ export default function ProfileGiris({ sellerInfo, sellerId }) {
             "X-API-Key": apiKey,
           },
         });
-
 
         if (response.data) {
           const profileFromApi = response.data;

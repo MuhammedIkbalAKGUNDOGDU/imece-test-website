@@ -19,8 +19,6 @@ export default function ProfilUreticiPage() {
   useEffect(() => {
     const fetchSellerInfo = async () => {
       try {
-        
-
         const response = await axios({
           method: "post",
           url: "https://imecehub.com/users/seller-info-full/",

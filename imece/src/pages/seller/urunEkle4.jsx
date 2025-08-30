@@ -17,6 +17,7 @@ const UrunEkle4 = () => {
   );
   const [submissionStatus, setSubmissionStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -27,6 +28,12 @@ const UrunEkle4 = () => {
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return; // Eğer zaten gönderiliyorsa işlemi durdur
+
+    setIsSubmitting(true);
+    setSubmissionStatus(null);
+    setErrorMessage("");
+
     try {
       const formData = new FormData();
       for (const key in urunBilgileri) {
@@ -52,18 +59,20 @@ const UrunEkle4 = () => {
         const errorData = await response.json();
         setSubmissionStatus("error");
         setErrorMessage(errorData?.message || "Bilinmeyen bir hata oluştu.");
+        setIsSubmitting(false);
       } else {
         setSubmissionStatus("success");
         setErrorMessage("");
+        // Başarılı durumda 2 saniye sonra seller landing page'e yönlendir
+        setTimeout(() => {
+          navigate("/seller/landing");
+        }, 2000);
       }
     } catch (error) {
       setSubmissionStatus("error");
       setErrorMessage(error.message || "Ağ hatası oluştu.");
+      setIsSubmitting(false);
     }
-
-    setTimeout(() => {
-      setSubmissionStatus(null);
-    }, 5000);
   };
 
   return (
@@ -159,6 +168,14 @@ const UrunEkle4 = () => {
                     <span className="text-2xl">❌</span>
                   )}
                 </div>
+                {submissionStatus === "success" && (
+                  <p className="text-sm mt-2">
+                    Satıcı ana sayfasına yönlendiriliyorsunuz...
+                  </p>
+                )}
+                {submissionStatus === "error" && errorMessage && (
+                  <p className="text-sm mt-2">{errorMessage}</p>
+                )}
               </div>
             )}
 
@@ -172,9 +189,21 @@ const UrunEkle4 = () => {
               <div className="flex gap-4">
                 <button
                   onClick={handleSubmit}
-                  className="bg-[#22FF22] text-white px-6 py-3 rounded-lg hover:bg-green-600"
+                  disabled={isSubmitting}
+                  className={`px-6 py-3 rounded-lg flex items-center gap-2 ${
+                    isSubmitting
+                      ? "bg-gray-400 text-white cursor-not-allowed"
+                      : "bg-[#22FF22] text-white hover:bg-green-600"
+                  }`}
                 >
-                  Onayla
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      İşleniyor...
+                    </>
+                  ) : (
+                    "Onayla"
+                  )}
                 </button>
               </div>
             </div>

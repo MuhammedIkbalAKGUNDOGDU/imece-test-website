@@ -13,7 +13,7 @@ const Register = () => {
   const apiUrl = "https://imecehub.com/users/rq_register/";
 
   const goToOtherPage = () => {
-    navigate("/login-seller"); // Yönlendirme yapılacak sayfanın rotası
+    navigate("/satici-login"); // Yönlendirme yapılacak sayfanın rotası
   };
 
   const [email, setEmail] = useState("");

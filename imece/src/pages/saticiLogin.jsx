@@ -5,7 +5,7 @@ import logo from "../assets/images/logo.png";
 import googleIcon from "../assets/vectors/google.svg";
 import { useNavigate } from "react-router-dom"; // Yönlendirme için hook'u import et
 import axios from "axios";
-import { apiKey } from "../config";  // veya "../constants" dosya ismine göre
+import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
 
 const login = () => {
   const navigate = useNavigate(); // useNavigate hook'unu çağır
@@ -15,7 +15,6 @@ const login = () => {
   const [error, setError] = useState("");
 
   const apiUrl = "https://imecehub.com/users/rq_login/";
- 
 
   const errorTranslations = {
     "Invalid email or password.": "E-posta veya şifre hatalı.",
@@ -79,7 +78,11 @@ const login = () => {
       if (response.data.status === "success") {
         localStorage.setItem("accessToken", response.data.tokens.access);
         localStorage.setItem("refreshToken", response.data.tokens.refresh);
-        navigate("/");
+        localStorage.setItem(
+          "userId",
+          response.data.user_id || response.data.user?.id
+        );
+        navigate("/seller/landing");
       }
     } catch (error) {
       const errorMessage = formatErrorMessage(error);

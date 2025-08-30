@@ -25,6 +25,7 @@ import ProfileForUretici from "./pages/ProfilUreticiPage";
 import SavePaymentCard from "./pages/savePaymentCard";
 import SaticiRegister from "./pages/saticiRegister";
 import SaticiLogin from "./pages/saticiLogin";
+import SellerLandingPage from "./pages/seller/sellerLandingPage";
 import Favoriler from "./pages/favoriler";
 import { UrunProvider } from "./context/UrunContext";
 
@@ -58,7 +59,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/chat" element={<ChatPage />}></Route>
         <Route path="/add-card" element={<SavePaymentCard />}></Route>
         <Route path="/register-seller" element={<SaticiRegister />}></Route>
-        <Route path="/login-seller" element={<SaticiLogin />}></Route>
+        <Route path="/satici-login" element={<SaticiLogin />}></Route>
+        <Route path="/seller/landing" element={<SellerLandingPage />}></Route>
 
         <Route
           path="/profile/satici-profili/:id"

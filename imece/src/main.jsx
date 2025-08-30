@@ -72,7 +72,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           path="/profile/satici-profili/:id"
           element={<ProfileForUretici />}
         />
-       
+
         <Route path="/*" element={<NotFound404 />}></Route>
       </Routes>
     </BrowserRouter>

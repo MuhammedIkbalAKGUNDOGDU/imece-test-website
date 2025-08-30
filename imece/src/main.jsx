@@ -27,6 +27,7 @@ import SaticiLogin from "./pages/saticiLogin";
 import SellerLandingPage from "./pages/seller/sellerLandingPage";
 import SellerOrders from "./pages/seller/sellerOrders";
 import SellerFinancialDashboard from "./pages/seller/financialDashboard";
+import ProductManagement from "./pages/admin/ProductManagement";
 import Favoriler from "./pages/favoriler";
 import { UrunProvider } from "./context/UrunContext";
 
@@ -71,6 +72,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route
           path="/profile/satici-profili/:id"
           element={<ProfileForUretici />}
+        />
+
+        <Route
+          path="/admin/product-management"
+          element={<ProductManagement />}
         />
 
         <Route path="/*" element={<NotFound404 />}></Route>

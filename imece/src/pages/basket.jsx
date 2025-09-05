@@ -21,6 +21,10 @@ export default function CartPage() {
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false); // Özel başarı modalı için state
   const [showPaymentErrorModal, setShowPaymentErrorModal] = useState(false); // Özel hata modalı için state
   const [paymentMessage, setPaymentMessage] = useState(""); // Ödeme modalları için mesaj
+  const [selectedAddresses, setSelectedAddresses] = useState({
+    teslimat_adres_id: null,
+    fatura_adres_id: null,
+  });
 
   const token = localStorage.getItem("accessToken");
   const accessToken = localStorage.getItem("accessToken");
@@ -107,6 +111,84 @@ export default function CartPage() {
       setError("Sepet verileri yüklenirken bir sorun oluştu.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Siparişi onaylama fonksiyonu (ödeme öncesi çağrılır)
+  const handleOrderConfirmation = async () => {
+    try {
+      console.log("=== SİPARİŞ ONAYLAMA BAŞLADI ===");
+      console.log("API Key:", apiKey ? "Mevcut" : "Eksik");
+      console.log("Token:", token ? "Mevcut" : "Eksik");
+
+      // Adres bilgilerini state'den al
+      const teslimat_adres_id = selectedAddresses.teslimat_adres_id;
+      const fatura_adres_id = selectedAddresses.fatura_adres_id;
+
+      console.log("Teslimat Adres ID:", teslimat_adres_id);
+      console.log("Fatura Adres ID:", fatura_adres_id);
+
+      // Adres seçimi kontrolü
+      if (!teslimat_adres_id || !fatura_adres_id) {
+        showCustomModal(
+          "Lütfen teslimat ve fatura adreslerini seçin.",
+          "error"
+        );
+        return false; // Başarısız
+      }
+
+      const orderResponse = await axios.post(
+        "https://imecehub.com/api/payment/siparisitem/siparisi-onayla/",
+        {
+          teslimat_adres_id: teslimat_adres_id,
+          fatura_adres_id: fatura_adres_id,
+        },
+        {
+          headers: {
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 10000, // 10 saniye timeout
+        }
+      );
+
+      console.log("Sipariş Onaylama Yanıtı:", orderResponse.data);
+
+      if (orderResponse.data.durum === "ONAYLANDI") {
+        showCustomModal(
+          `Siparişiniz başarıyla onaylandı! Sipariş ID: ${orderResponse.data.siparis_id}, Toplam Fiyat: ${orderResponse.data.toplam_fiyat} TL`,
+          "success"
+        );
+        return true; // Başarılı
+      } else if (orderResponse.data.durum === "STOK_YETERSIZ") {
+        showCustomModal(
+          "Stok yetersizliği: " +
+            orderResponse.data.yetersiz_urunler
+              .map((item) => item.urun_adi)
+              .join(", "),
+          "error"
+        );
+        return false; // Başarısız
+      } else {
+        showCustomModal(
+          "Sipariş onaylama başarısız: " +
+            (orderResponse.data.hata || "Bilinmeyen hata."),
+          "error"
+        );
+        return false; // Başarısız
+      }
+    } catch (err) {
+      console.error(
+        "Sipariş onaylama hatası:",
+        err.response ? err.response.data : err
+      );
+      showCustomModal(
+        "Sipariş onaylanırken bir hata oluştu: " +
+          (err.response?.data?.hata || err.message || "Bilinmeyen hata."),
+        "error"
+      );
+      return false; // Başarısız
     }
   };
 
@@ -212,6 +294,18 @@ export default function CartPage() {
     };
 
     try {
+      // ÖNCE SİPARİŞİ ONAYLA
+      console.log("Sipariş onaylanıyor...");
+      const orderConfirmed = await handleOrderConfirmation();
+
+      if (!orderConfirmed) {
+        setLoading(false);
+        return; // Sipariş onaylanamadıysa ödeme yapma
+      }
+
+      // Sipariş başarılıysa ödemeye geç
+      console.log("Sipariş onaylandı, ödeme yapılıyor...");
+
       // Gerçek API isteği
       const response = await axios.post(
         "https://imecehub.com/api/payment/siparisitem/trigger-payment/", // Belirtilen endpoint
@@ -331,8 +425,11 @@ export default function CartPage() {
       </div>
 
       <div className="bg-white w-full max-w-5xl mx-auto p-3 sm:p-4 md:p-6 mt-12">
-        <AddressSection />{" "}
-        {/* Adres seçimi bölümü (şu anlık sabit adres ID'leri kullanılıyor) */}
+        <AddressSection
+          onAddressSelect={setSelectedAddresses}
+          selectedAddresses={selectedAddresses}
+        />
+        {/* Adres seçimi bölümü */}
         {loading && (
           <div className="text-center text-blue-500">Yükleniyor...</div>
         )}
@@ -492,7 +589,7 @@ export default function CartPage() {
                   : "bg-green-600 hover:bg-green-700"
               }`}
           >
-            {loading ? "Sipariş Onaylanıyor..." : "Siparişi Onayla"}
+            {loading ? "İşlem Yapılıyor..." : "Siparişi Onayla ve Öde"}
           </button>
         </div>
       </div>

@@ -161,7 +161,7 @@ const SellerLandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-4">
-              Hoş geldin, {sellerInfo?.ad || "Satıcı"}!
+              Hoş geldin, {sellerInfo?.magaza_adi || "Satıcı"}!
             </h1>
             <p className="text-xl text-green-100 mb-8">
               İmece'de satış yapmaya devam et ve kazancını artır

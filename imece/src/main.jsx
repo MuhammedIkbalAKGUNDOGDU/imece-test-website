@@ -28,6 +28,7 @@ import SellerLandingPage from "./pages/seller/sellerLandingPage";
 import SellerOrders from "./pages/seller/sellerOrders";
 import SellerFinancialDashboard from "./pages/seller/financialDashboard";
 import ProductManagement from "./pages/admin/ProductManagement";
+import EarlyAccessAdmin from "./pages/admin/EarlyAccessAdmin";
 import Favoriler from "./pages/favoriler";
 import EarlyAccess from "./pages/earlyAccess";
 import { UrunProvider } from "./context/UrunContext";
@@ -79,6 +80,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           path="/admin/product-management"
           element={<ProductManagement />}
         />
+
+        <Route path="/admin/early-access" element={<EarlyAccessAdmin />} />
 
         <Route path="/early-access" element={<EarlyAccess />}></Route>
 

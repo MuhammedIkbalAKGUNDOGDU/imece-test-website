@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../styles/earlyAccess.css";
 import { API_BASE_URL } from "../config";
+import emailjs from "@emailjs/browser";
 
 const EarlyAccess = () => {
   const [email, setEmail] = useState("");
@@ -13,15 +14,21 @@ const EarlyAccess = () => {
   const [modalName, setModalName] = useState("");
   const [modalSubmitted, setModalSubmitted] = useState(false);
   const [registrationCount, setRegistrationCount] = useState(0);
+  const [displayCount, setDisplayCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const features = [
     {
       icon: "🎯",
-      title: "%2 Komisyon İndirimi",
+      title: "Ömür Bayu %2 Komisyon İndirimi",
       description: "Erken kayıt olan satıcılar için özel komisyon indirimi",
     },
     {
@@ -69,6 +76,33 @@ const EarlyAccess = () => {
   useEffect(() => {
     fetchRegistrationCount();
   }, []);
+
+  // Animate counter when registrationCount changes
+  useEffect(() => {
+    if (registrationCount > 0) {
+      const duration = 2000; // 2 seconds
+      const steps = 60; // 60 steps for smooth animation
+      const increment = registrationCount / steps;
+      const stepDuration = duration / steps;
+
+      let currentStep = 0;
+      const timer = setInterval(() => {
+        currentStep++;
+        const newDisplayCount = Math.min(
+          Math.floor(increment * currentStep),
+          registrationCount
+        );
+        setDisplayCount(newDisplayCount);
+
+        if (currentStep >= steps) {
+          clearInterval(timer);
+          setDisplayCount(registrationCount);
+        }
+      }, stepDuration);
+
+      return () => clearInterval(timer);
+    }
+  }, [registrationCount]);
 
   const fetchRegistrationCount = async () => {
     try {
@@ -158,6 +192,50 @@ const EarlyAccess = () => {
     return num.toString().padStart(3, "0");
   };
 
+  // Handle contact form submission with EmailJS
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+
+    if (contactEmail && contactPhone) {
+      setIsSendingEmail(true);
+
+      try {
+        // EmailJS template parameters
+        const templateParams = {
+          to_email: "info@imecehub.com",
+          from_email: contactEmail,
+          phone: contactPhone,
+          message: contactMessage || "Genel bilgi almak istiyorum.",
+          subject: "İmece Hub - Bilgilendirme Talebi",
+          reply_to: contactEmail,
+          name: contactEmail.split("@")[0], // Email'den isim çıkar
+          time: new Date().toLocaleString("tr-TR"), // Türkçe tarih formatı
+        };
+
+        // Send email using EmailJS
+        const result = await emailjs.send(
+          "service_f1b32ft", // EmailJS service ID
+          "template_rsphufi", // EmailJS template ID
+          templateParams,
+          "Y853P3sW1qMfC2sm3" // EmailJS public key
+        );
+
+        if (result.status === 200) {
+          setShowSuccessModal(true);
+          // Clear form after successful sending
+          setContactEmail("");
+          setContactPhone("");
+          setContactMessage("");
+        }
+      } catch (error) {
+        console.error("Email gönderme hatası:", error);
+        alert("Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.");
+      } finally {
+        setIsSendingEmail(false);
+      }
+    }
+  };
+
   return (
     <div className="early-access-page">
       {/* Hero Section */}
@@ -193,7 +271,7 @@ const EarlyAccess = () => {
                 {isLoading ? (
                   <span className="counter-loading">...</span>
                 ) : (
-                  formatCounterNumber(registrationCount)
+                  formatCounterNumber(displayCount)
                     .split("")
                     .map((digit, index) => (
                       <span key={index} className="counter-digit">
@@ -324,7 +402,7 @@ const EarlyAccess = () => {
               <ul className="benefits-list">
                 <li>
                   <span className="benefit-icon">🎁</span>
-                  <span>%2 komisyon indirimi</span>
+                  <span>Ömür Bayu %2 Komisyon İndirimi</span>
                 </li>
                 <li>
                   <span className="benefit-icon">👥</span>
@@ -336,7 +414,9 @@ const EarlyAccess = () => {
                 </li>
                 <li>
                   <span className="benefit-icon">📱</span>
-                  <span>Sosyal medya entegrasyonu ile güçlü bağlar</span>
+                  <span>
+                    Platform içi sosyal medya entegrasyonu ile güçlü bağlar
+                  </span>
                 </li>
                 <li>
                   <span className="benefit-icon">📢</span>
@@ -348,7 +428,7 @@ const EarlyAccess = () => {
                 </li>
                 <li>
                   <span className="benefit-icon">🏪</span>
-                  <span>Operakende ve toptan satış imkanları</span>
+                  <span>Perakende ve toptan satış imkanları</span>
                 </li>
                 <li>
                   <span className="benefit-icon">⚡</span>
@@ -397,13 +477,15 @@ const EarlyAccess = () => {
             </p>
 
             <div className="contact-form">
-              <form className="info-form">
+              <form className="info-form" onSubmit={handleContactSubmit}>
                 <div className="form-row">
                   <div className="form-group">
                     <input
                       type="email"
                       placeholder="E-posta adresiniz"
                       className="form-input"
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
                       required
                     />
                   </div>
@@ -412,6 +494,8 @@ const EarlyAccess = () => {
                       type="tel"
                       placeholder="Telefon numaranız"
                       className="form-input"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
                       required
                     />
                   </div>
@@ -421,10 +505,23 @@ const EarlyAccess = () => {
                     placeholder="Merak ettiğiniz konuları yazabilirsiniz (opsiyonel)"
                     className="form-textarea"
                     rows="4"
+                    value={contactMessage}
+                    onChange={(e) => setContactMessage(e.target.value)}
                   ></textarea>
                 </div>
-                <button type="submit" className="contact-btn">
-                  Bilgilendirme İste
+                <button
+                  type="submit"
+                  className={`contact-btn ${isSendingEmail ? "loading" : ""}`}
+                  disabled={isSendingEmail}
+                >
+                  {isSendingEmail ? (
+                    <>
+                      <span className="loading-spinner"></span>
+                      Gönderiliyor...
+                    </>
+                  ) : (
+                    "Bilgilendirme İste"
+                  )}
                 </button>
               </form>
             </div>
@@ -557,6 +654,48 @@ const EarlyAccess = () => {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <div
+            className="modal-content success-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="success-modal-content">
+              <div className="success-animation">
+                <div className="success-checkmark">
+                  <div className="check-icon">✓</div>
+                </div>
+              </div>
+              <h2 className="success-title">Mesajınız Başarıyla Gönderildi!</h2>
+              <p className="success-message">
+                Bilgilendirme talebiniz alındı. Size en kısa sürede dönüş
+                yapacağız.
+              </p>
+              <div className="success-details">
+                <div className="detail-item">
+                  <span className="detail-icon">📧</span>
+                  <span>E-posta adresinize onay mesajı gönderildi</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-icon">⏰</span>
+                  <span>24 saat içinde size dönüş yapacağız</span>
+                </div>
+              </div>
+              <button
+                className="success-close-btn"
+                onClick={() => setShowSuccessModal(false)}
+              >
+                Tamam
+              </button>
             </div>
           </div>
         </div>

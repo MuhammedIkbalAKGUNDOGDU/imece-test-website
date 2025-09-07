@@ -46,7 +46,7 @@ const SellerOrders = () => {
         return;
       }
 
-      // Önce temel sipariş listesini al
+      // Tüm siparişleri detaylı olarak al
       const response = await axios.post(
         `${API_BASE_URL}/logistics/siparis-lojistik/satici-siparisler/`,
         {
@@ -57,51 +57,15 @@ const SellerOrders = () => {
         }
       );
 
-      console.log("Satıcı siparişleri (temel):", response.data);
+      console.log("Tüm siparişler (detaylı):", response.data);
 
-      // Her sipariş için detayları al
-      const ordersWithDetails = await Promise.all(
-        (response.data || []).map(async (order) => {
-          try {
-            const detailResponse = await axios.post(
-              `${API_BASE_URL}/logistics/siparis-lojistik/get-siparis/`,
-              {
-                order_id: order.siparis_id,
-                satici_id: sellerId,
-              },
-              {
-                headers: getHeaders(),
-              }
-            );
+      // API'den gelen veriyi doğrudan kullan, orderId ekle
+      const ordersWithOrderId = (response.data || []).map((order) => ({
+        ...order,
+        orderId: order.siparis_id, // UI için orderId ekle
+      }));
 
-            console.log(
-              `Sipariş ${order.siparis_id} detayları:`,
-              detailResponse.data
-            );
-
-            // Temel bilgileri ve detayları birleştir
-            return {
-              ...order,
-              ...detailResponse.data,
-              orderId: order.siparis_id, // UI için orderId ekle
-            };
-          } catch (detailError) {
-            console.error(
-              `Sipariş ${order.siparis_id} detayları alınırken hata:`,
-              detailError
-            );
-            // Detay alınamazsa temel bilgileri döndür
-            return {
-              ...order,
-              orderId: order.siparis_id,
-              error: "Detaylar alınamadı",
-            };
-          }
-        })
-      );
-
-      console.log("Tüm siparişler (detaylı):", ordersWithDetails);
-      setOrders(ordersWithDetails);
+      setOrders(ordersWithOrderId);
     } catch (error) {
       console.error("Siparişler getirilirken hata:", error);
       setError("Siparişler yüklenirken bir hata oluştu.");
@@ -111,43 +75,21 @@ const SellerOrders = () => {
     }
   };
 
-  // Belirli bir siparişin detaylarını göster (artık zaten yüklenmiş)
-  const fetchOrderDetails = async (orderId) => {
-    try {
-      // Önce mevcut orders listesinden siparişi bul
-      const existingOrder = orders.find(
-        (order) => order.orderId === orderId || order.siparis_id === orderId
-      );
+  // Belirli bir siparişin detaylarını göster (zaten yüklenmiş)
+  const fetchOrderDetails = (orderId) => {
+    // Mevcut orders listesinden siparişi bul
+    const existingOrder = orders.find(
+      (order) => order.orderId === orderId || order.siparis_id === orderId
+    );
 
-      if (existingOrder && !existingOrder.error) {
-        // Detaylar zaten yüklenmiş, direkt göster
-        console.log("Sipariş detayları (önceden yüklenmiş):", existingOrder);
-        setOrderDetails(existingOrder);
-        setShowOrderDetails(true);
-        return;
-      }
-
-      // Eğer detaylar yüklenmemişse, tekrar yükle
-      const sellerId = getSellerId();
-      if (!sellerId) return;
-
-      const response = await axios.post(
-        `${API_BASE_URL}/logistics/siparis-lojistik/get-siparis/`,
-        {
-          order_id: orderId,
-          satici_id: sellerId,
-        },
-        {
-          headers: getHeaders(),
-        }
-      );
-
-      console.log("Sipariş detayları (yeniden yüklendi):", response.data);
-      setOrderDetails(response.data);
+    if (existingOrder) {
+      // Detaylar zaten yüklenmiş, direkt göster
+      console.log("Sipariş detayları:", existingOrder);
+      setOrderDetails(existingOrder);
       setShowOrderDetails(true);
-    } catch (error) {
-      console.error("Sipariş detayları getirilirken hata:", error);
-      setError("Sipariş detayları yüklenirken bir hata oluştu.");
+    } else {
+      console.error("Sipariş bulunamadı:", orderId);
+      setError("Sipariş detayları bulunamadı.");
     }
   };
 
@@ -423,9 +365,10 @@ const SellerOrders = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-600">
-                      {order.items && order.items.length > 0
-                        ? order.items[0].tahmini_teslimat_tarihi
-                        : order.orderDate}
+                      {order.siparis_verilme_tarihi ||
+                        (order.items && order.items.length > 0
+                          ? order.items[0].tahmini_teslimat_tarihi
+                          : order.orderDate)}
                     </p>
                     <p className="text-lg font-bold text-green-600">
                       ₺
@@ -447,19 +390,20 @@ const SellerOrders = () => {
                     <div className="text-sm text-gray-600 space-y-1">
                       <p>
                         <strong>Ad:</strong>{" "}
-                        {order.customer?.name || "Bilinmiyor"}
+                        {order.musteri_bilgisi?.musteri_adi || "Bilinmiyor"}
                       </p>
                       <p>
                         <strong>E-posta:</strong>{" "}
-                        {order.customer?.email || "Bilinmiyor"}
+                        {order.musteri_bilgisi?.e_posta || "Bilinmiyor"}
                       </p>
                       <p>
                         <strong>Telefon:</strong>{" "}
-                        {order.customer?.mobile || "Bilinmiyor"}
+                        {order.musteri_bilgisi?.telefon || "Bilinmiyor"}
                       </p>
                       <p>
                         <strong>Adres:</strong>{" "}
-                        {order.customer?.address || "Bilinmiyor"}
+                        {order.teslimat_adresi_bilgisi?.adres_satiri_1 ||
+                          "Bilinmiyor"}
                       </p>
                     </div>
                   </div>
@@ -624,19 +568,27 @@ const SellerOrders = () => {
                     <div className="space-y-2 text-sm">
                       <p>
                         <strong>Sipariş ID:</strong>{" "}
-                        {orderDetails.order_id || selectedOrder}
+                        {orderDetails.siparis_id ||
+                          orderDetails.orderId ||
+                          selectedOrder}
                       </p>
                       <p>
                         <strong>Durum:</strong>{" "}
-                        {orderDetails.status || "Bilinmiyor"}
+                        {orderDetails.items && orderDetails.items.length > 0
+                          ? orderDetails.items[0].durum
+                          : orderDetails.status || "Bilinmiyor"}
                       </p>
                       <p>
                         <strong>Tarih:</strong>{" "}
-                        {orderDetails.created_at || "Bilinmiyor"}
+                        {orderDetails.siparis_verilme_tarihi ||
+                          orderDetails.created_at ||
+                          "Bilinmiyor"}
                       </p>
                       <p>
                         <strong>Toplam:</strong> ₺
-                        {orderDetails.total_amount || "0.00"}
+                        {orderDetails.items && orderDetails.items.length > 0
+                          ? orderDetails.items[0].fiyat
+                          : orderDetails.total_amount || "0.00"}
                       </p>
                     </div>
                   </div>
@@ -648,19 +600,53 @@ const SellerOrders = () => {
                     <div className="space-y-2 text-sm">
                       <p>
                         <strong>Ad:</strong>{" "}
-                        {orderDetails.customer_name || "Bilinmiyor"}
+                        {orderDetails.musteri_bilgisi?.musteri_adi ||
+                          "Bilinmiyor"}
                       </p>
                       <p>
                         <strong>E-posta:</strong>{" "}
-                        {orderDetails.customer_email || "Bilinmiyor"}
+                        {orderDetails.musteri_bilgisi?.e_posta || "Bilinmiyor"}
                       </p>
                       <p>
                         <strong>Telefon:</strong>{" "}
-                        {orderDetails.customer_phone || "Bilinmiyor"}
+                        {orderDetails.musteri_bilgisi?.telefon || "Bilinmiyor"}
                       </p>
                       <p>
-                        <strong>Adres:</strong>{" "}
-                        {orderDetails.delivery_address || "Bilinmiyor"}
+                        <strong>Adres Başlığı:</strong>{" "}
+                        {orderDetails.teslimat_adresi_bilgisi?.adres_baslik ||
+                          "Bilinmiyor"}
+                      </p>
+                      <p>
+                        <strong>Adres Satırı 1:</strong>{" "}
+                        {orderDetails.teslimat_adresi_bilgisi?.adres_satiri_1 ||
+                          "Bilinmiyor"}
+                      </p>
+                      <p>
+                        <strong>Adres Satırı 2:</strong>{" "}
+                        {orderDetails.teslimat_adresi_bilgisi?.adres_satiri_2 ||
+                          "Bilinmiyor"}
+                      </p>
+                      <p>
+                        <strong>İl/İlçe:</strong>{" "}
+                        {orderDetails.teslimat_adresi_bilgisi?.il &&
+                        orderDetails.teslimat_adresi_bilgisi?.ilce
+                          ? `${orderDetails.teslimat_adresi_bilgisi.il}/${orderDetails.teslimat_adresi_bilgisi.ilce}`
+                          : "Bilinmiyor"}
+                      </p>
+                      <p>
+                        <strong>Mahalle:</strong>{" "}
+                        {orderDetails.teslimat_adresi_bilgisi?.mahalle ||
+                          "Bilinmiyor"}
+                      </p>
+                      <p>
+                        <strong>Posta Kodu:</strong>{" "}
+                        {orderDetails.teslimat_adresi_bilgisi?.posta_kodu ||
+                          "Bilinmiyor"}
+                      </p>
+                      <p>
+                        <strong>Ülke:</strong>{" "}
+                        {orderDetails.teslimat_adresi_bilgisi?.ulke ||
+                          "Bilinmiyor"}
                       </p>
                     </div>
                   </div>
@@ -686,6 +672,14 @@ const SellerOrders = () => {
                             </p>
                             <p className="text-sm text-gray-600">
                               Durum: {item.durum || "Bilinmiyor"}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Ağırlık: {item.siparis_agirlik || "Belirtilmemiş"}{" "}
+                              kg
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Lojistik:{" "}
+                              {item.lojistik_secenegi ? "Evet" : "Hayır"}
                             </p>
                           </div>
                           <div className="text-right">

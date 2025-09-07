@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../styles/earlyAccess.css";
+import { API_BASE_URL } from "../config";
 
 const EarlyAccess = () => {
   const [email, setEmail] = useState("");
@@ -11,6 +12,11 @@ const EarlyAccess = () => {
   const [modalPhone, setModalPhone] = useState("");
   const [modalName, setModalName] = useState("");
   const [modalSubmitted, setModalSubmitted] = useState(false);
+  const [registrationCount, setRegistrationCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const features = [
     {
@@ -59,21 +65,81 @@ const EarlyAccess = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (email) {
-      setIsSubmitted(true);
-      // Burada email kayıt işlemi yapılabilir
-      console.log("Email kaydedildi:", email);
+  // Fetch registration count on component mount
+  useEffect(() => {
+    fetchRegistrationCount();
+  }, []);
+
+  const fetchRegistrationCount = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${API_BASE_URL}/users/count-early-access/`);
+      if (response.ok) {
+        const data = await response.json();
+        setRegistrationCount((data.toplam_kayit || 0) + 121);
+      } else {
+        console.error("Failed to fetch registration count");
+      }
+    } catch (error) {
+      console.error("Error fetching registration count:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleModalSubmit = (e) => {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (email) {
+      setModalEmail(email);
+      setShowModal(true);
+    }
+  };
+
+  const handleModalSubmit = async (e) => {
     e.preventDefault();
     if (modalEmail && modalPhone && modalName) {
-      setModalSubmitted(true);
-      // Burada satıcı kayıt işlemi yapılabilir
-      console.log("Satıcı kaydı:", { modalName, modalEmail, modalPhone });
+      setIsSubmitting(true);
+      setError("");
+
+      try {
+        // Split name into first and last name
+        const nameParts = modalName.trim().split(" ");
+        const ad = nameParts[0];
+        const soyad = nameParts.slice(1).join(" ") || "";
+
+        const response = await fetch(
+          `${API_BASE_URL}/users/add-early-access/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              ad: ad,
+              soyad: soyad,
+              eposta: modalEmail,
+              telno: modalPhone,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          setModalSubmitted(true);
+          setSuccessMessage(
+            "Kayıt başarılı! Size en kısa sürede dönüş yapacağız."
+          );
+          // Update the counter after successful registration
+          await fetchRegistrationCount();
+        } else {
+          const errorData = await response.json();
+          setError(errorData.message || "Kayıt sırasında bir hata oluştu.");
+        }
+      } catch (error) {
+        console.error("Registration error:", error);
+        setError("Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -83,6 +149,13 @@ const EarlyAccess = () => {
     setModalEmail("");
     setModalPhone("");
     setModalName("");
+    setError("");
+    setSuccessMessage("");
+  };
+
+  // Format number with leading zeros for display
+  const formatCounterNumber = (num) => {
+    return num.toString().padStart(3, "0");
   };
 
   return (
@@ -117,44 +190,38 @@ const EarlyAccess = () => {
           <div className="registration-counter">
             <div className="counter-content">
               <div className="counter-number">
-                <span className="counter-digit">0</span>
-                <span className="counter-digit">0</span>
-                <span className="counter-digit">0</span>
+                {isLoading ? (
+                  <span className="counter-loading">...</span>
+                ) : (
+                  formatCounterNumber(registrationCount)
+                    .split("")
+                    .map((digit, index) => (
+                      <span key={index} className="counter-digit">
+                        {digit}
+                      </span>
+                    ))
+                )}
               </div>
               <div className="counter-label">Satıcı Kayıt Oldu</div>
             </div>
           </div>
 
           <div className="cta-section">
-            {!isSubmitted ? (
-              <form onSubmit={handleSubmit} className="email-form">
-                <div className="input-group">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="E-posta adresinizi girin"
-                    className="email-input"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="submit-btn"
-                    onClick={() => {
-                      setModalEmail(email);
-                      setShowModal(true);
-                    }}
-                  >
-                    Satıcı Olarak Kayıt Ol
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="success-message">
-                <div className="success-icon">✓</div>
-                <p>Kayıt başarılı! Size en kısa sürede dönüş yapacağız.</p>
+            <form onSubmit={handleSubmit} className="email-form">
+              <div className="input-group">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="E-posta adresinizi girin"
+                  className="email-input"
+                  required
+                />
+                <button type="submit" className="submit-btn">
+                  Satıcı Olarak Kayıt Ol
+                </button>
               </div>
-            )}
+            </form>
           </div>
         </div>
       </section>
@@ -417,6 +484,13 @@ const EarlyAccess = () => {
             <div className="modal-body">
               {!modalSubmitted ? (
                 <form onSubmit={handleModalSubmit} className="modal-form">
+                  {error && (
+                    <div className="error-message">
+                      <span className="error-icon">⚠️</span>
+                      <p>{error}</p>
+                    </div>
+                  )}
+
                   <div className="form-group">
                     <label>Ad Soyad</label>
                     <input
@@ -426,6 +500,7 @@ const EarlyAccess = () => {
                       placeholder="Adınızı ve soyadınızı girin"
                       className="modal-input"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -438,6 +513,7 @@ const EarlyAccess = () => {
                       placeholder="E-posta adresinizi girin"
                       className="modal-input"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -450,20 +526,32 @@ const EarlyAccess = () => {
                       placeholder="Telefon numaranızı girin"
                       className="modal-input"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
 
-                  <button type="submit" className="modal-submit-btn">
-                    Kayıt Ol
+                  <button
+                    type="submit"
+                    className={`modal-submit-btn ${
+                      isSubmitting ? "loading" : ""
+                    }`}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="loading-spinner"></span>
+                        Kayıt Yapılıyor...
+                      </>
+                    ) : (
+                      "Kayıt Ol"
+                    )}
                   </button>
                 </form>
               ) : (
                 <div className="modal-success">
                   <div className="success-icon-large">✓</div>
                   <h3>Kayıt Başarılı!</h3>
-                  <p>
-                    Satıcı kaydınız alındı. Size en kısa sürede dönüş yapacağız.
-                  </p>
+                  <p>{successMessage}</p>
                   <button onClick={closeModal} className="modal-close-btn">
                     Tamam
                   </button>

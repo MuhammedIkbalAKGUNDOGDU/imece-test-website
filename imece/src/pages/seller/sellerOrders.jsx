@@ -13,6 +13,13 @@ const SellerOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [showShipmentForm, setShowShipmentForm] = useState(false);
+  const [shipmentForm, setShipmentForm] = useState({
+    packageSize: "XS",
+    packageCount: 1,
+    shippingNotes: "",
+  });
+  const [shipmentLoading, setShipmentLoading] = useState(false);
 
   // API Base URL
   const API_BASE_URL = "https://imecehub.com/api";
@@ -157,9 +164,78 @@ const SellerOrders = () => {
   };
 
   const handleCreateShipment = (orderId) => {
-    // Kargo oluşturma işlemi burada yapılacak
-    console.log("Kargo oluşturuluyor:", orderId);
-    alert(`${orderId} numaralı sipariş için kargo oluşturuluyor...`);
+    setSelectedOrder(orderId);
+    setShowShipmentForm(true);
+  };
+
+  const handleShipmentFormSubmit = async () => {
+    try {
+      setShipmentLoading(true);
+      setError(null);
+
+      // Form validasyonu
+      if (!shipmentForm.packageCount || shipmentForm.packageCount < 1) {
+        setError("Paket sayısı en az 1 olmalıdır.");
+        setShipmentLoading(false);
+        return;
+      }
+
+      const sellerId = getSellerId();
+      if (!sellerId) {
+        setError("Satıcı ID bulunamadı. Lütfen giriş yapın.");
+        setShipmentLoading(false);
+        return;
+      }
+
+      const response = await axios.post(
+        `${API_BASE_URL}/logistics/siparis-lojistik/create-seller-shipment/`,
+        {
+          order_id: selectedOrder,
+          satici_id: sellerId,
+          satici_onayladi: true,
+          shippingNotes: shipmentForm.shippingNotes,
+          packageSize: shipmentForm.packageSize,
+          packageCount: shipmentForm.packageCount,
+        },
+        {
+          headers: getHeaders(),
+        }
+      );
+
+      console.log("Kargo oluşturma yanıtı:", response.data);
+
+      // Başarılı olursa formu kapat ve siparişleri yenile
+      setShowShipmentForm(false);
+      setShipmentForm({
+        packageSize: "XS",
+        packageCount: 1,
+        shippingNotes: "",
+      });
+
+      // Siparişleri yenile
+      await fetchSellerOrders();
+
+      alert(
+        `${selectedOrder} numaralı sipariş için kargo başarıyla oluşturuldu!`
+      );
+    } catch (error) {
+      console.error("Kargo oluşturma hatası:", error);
+      setError(
+        "Kargo oluşturulurken bir hata oluştu: " +
+          (error.response?.data?.message || error.message)
+      );
+    } finally {
+      setShipmentLoading(false);
+    }
+  };
+
+  const handleCloseShipmentForm = () => {
+    setShowShipmentForm(false);
+    setShipmentForm({
+      packageSize: "XS",
+      packageCount: 1,
+      shippingNotes: "",
+    });
   };
 
   const handleViewDetails = (orderId) => {
@@ -750,6 +826,197 @@ const SellerOrders = () => {
                     </button>
                   ) : null;
                 })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Kargo Oluşturma Formu Modal */}
+      {showShipmentForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Kargo Oluştur - Sipariş #{selectedOrder}
+                </h2>
+                <button
+                  onClick={handleCloseShipmentForm}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Paket Boyutu */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Paket Boyutu
+                  </label>
+                  <select
+                    value={shipmentForm.packageSize}
+                    onChange={(e) =>
+                      setShipmentForm({
+                        ...shipmentForm,
+                        packageSize: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  >
+                    <option value="XS">XS - Çok Küçük (0-1 kg)</option>
+                    <option value="S">S - Küçük (1-3 kg)</option>
+                    <option value="M">M - Orta (3-5 kg)</option>
+                    <option value="L">L - Büyük (5-10 kg)</option>
+                    <option value="XL">XL - Çok Büyük (10+ kg)</option>
+                  </select>
+                </div>
+
+                {/* Paket Sayısı */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Paket Sayısı
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={shipmentForm.packageCount}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Boş string'e izin ver (silme işlemi için)
+                      if (value === "") {
+                        setShipmentForm({
+                          ...shipmentForm,
+                          packageCount: "",
+                        });
+                        return;
+                      }
+
+                      // Sadece pozitif tam sayılara izin ver
+                      const numValue = parseInt(value);
+                      if (
+                        !isNaN(numValue) &&
+                        numValue >= 1 &&
+                        numValue <= 100
+                      ) {
+                        setShipmentForm({
+                          ...shipmentForm,
+                          packageCount: numValue,
+                        });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Input'tan çıkıldığında boşsa 1 yap
+                      if (e.target.value === "" || e.target.value === "0") {
+                        setShipmentForm({
+                          ...shipmentForm,
+                          packageCount: 1,
+                        });
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Paket sayısını girin (1-100)"
+                  />
+                </div>
+
+                {/* Kargo Notları */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Kargo Notları
+                  </label>
+                  <textarea
+                    value={shipmentForm.shippingNotes}
+                    onChange={(e) =>
+                      setShipmentForm({
+                        ...shipmentForm,
+                        shippingNotes: e.target.value,
+                      })
+                    }
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Kargo için özel notlarınızı yazın (opsiyonel)"
+                  />
+                </div>
+
+                {/* Özet Bilgiler */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-gray-900 mb-3">
+                    Kargo Özeti
+                  </h3>
+                  <div className="space-y-2 text-sm">
+                    <p>
+                      <strong>Sipariş ID:</strong> {selectedOrder}
+                    </p>
+                    <p>
+                      <strong>Paket Boyutu:</strong> {shipmentForm.packageSize}
+                    </p>
+                    <p>
+                      <strong>Paket Sayısı:</strong> {shipmentForm.packageCount}
+                    </p>
+                    {shipmentForm.shippingNotes && (
+                      <p>
+                        <strong>Notlar:</strong> {shipmentForm.shippingNotes}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={handleCloseShipmentForm}
+                  disabled={shipmentLoading}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200 disabled:opacity-50"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleShipmentFormSubmit}
+                  disabled={shipmentLoading}
+                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 flex items-center space-x-2"
+                >
+                  {shipmentLoading && (
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                  )}
+                  <span>
+                    {shipmentLoading
+                      ? "Kargo Oluşturuluyor..."
+                      : "Kargo Oluştur"}
+                  </span>
+                </button>
               </div>
             </div>
           </div>

@@ -183,6 +183,12 @@
   animation-delay: 1s;
 }
 
+.counter-loading {
+  font-size: 2.5rem;
+  color: white;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
 .counter-label {
   color: rgba(255, 255, 255, 0.9);
   font-size: 1.1rem;
@@ -229,6 +235,12 @@
   color: white;
   font-size: 1rem;
   outline: none;
+}
+
+.email-input:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 
 .email-input::placeholder {
@@ -928,6 +940,59 @@
 .modal-submit-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.modal-submit-btn.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.modal-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-message {
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #e74c3c;
+  font-size: 0.9rem;
+}
+
+.error-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.modal-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f8f9fa;
 }
 
 .modal-success {

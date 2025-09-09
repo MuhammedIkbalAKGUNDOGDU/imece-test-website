@@ -12,7 +12,7 @@ import { useLocation, useNavigate } from "react-router-dom"; // useNavigate impo
 import ItemCard from "../components/GenerealUse/itemCard2";
 import axios from "axios";
 import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
-import Comments from "../components/GenerealUse/CommentsForProducts";
+import Comments from "../components/GenerealUse/Comments";
 const orderPage = () => {
   const navigate = useNavigate(); // Yönlendirme için useNavigate kullanıldı
   const [sellerInfo, setSellerInfo] = useState(null);
@@ -505,7 +505,13 @@ const orderPage = () => {
             <ItemCard />
           </div>
         </div>
-        <div className="order-page-other-products">
+
+        {/* Yorumlar Bölümü */}
+          <div className="mt-8">
+            <Comments yorumlar={productComments} />
+          </div>
+
+          {/* <div className="order-page-other-products">
           <p className="order-page-other-products-title">
             Diğer Satıcıların Ürünleri
           </p>

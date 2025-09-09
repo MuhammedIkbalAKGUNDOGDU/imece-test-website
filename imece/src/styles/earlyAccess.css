@@ -94,12 +94,14 @@
 .logo-section {
   margin-bottom: 2rem;
   animation: fadeInUp 1s ease-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .logo {
   height: 80px;
   width: auto;
-  filter: brightness(0) invert(1);
 }
 
 .hero-title {

@@ -104,7 +104,7 @@ const Register = () => {
       if (response.data.status === "success") {
         localStorage.setItem("accessToken", response.data.tokens.access);
         localStorage.setItem("refreshToken", response.data.tokens.refresh);
-        navigate("/");
+        navigate("/seller/landing");
       }
     } catch (error) {
       const errorMessage = formatErrorMessage(error);

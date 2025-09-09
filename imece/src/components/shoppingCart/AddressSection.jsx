@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { apiKey } from "../../config";
+import AddressModal from "../profileComponents/AddressModal";
+import { Plus, MapPin } from "lucide-react";
 
 export default function AddressSection({ onAddressSelect, selectedAddresses }) {
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [showAddAddressModal, setShowAddAddressModal] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingAddress, setEditingAddress] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const accessToken = localStorage.getItem("accessToken");
 
@@ -103,6 +108,45 @@ export default function AddressSection({ onAddressSelect, selectedAddresses }) {
     setShowAddressModal(true);
   };
 
+  const handleAddAddress = () => {
+    setEditingAddress(null);
+    setIsEditing(false);
+    setShowAddAddressModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowAddAddressModal(false);
+    setEditingAddress(null);
+    setIsEditing(false);
+  };
+
+  const handleSaveAddress = async (formData) => {
+    try {
+      const response = await axios.post(
+        "https://imecehub.com/users/add-address/",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        // Adres başarıyla eklendi, listeyi yenile
+        await fetchAddresses();
+        setShowAddAddressModal(false);
+        setEditingAddress(null);
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error("Adres ekleme hatası:", error);
+      alert("Adres eklenirken bir hata oluştu. Lütfen tekrar deneyin.");
+    }
+  };
+
   const getSelectedAddress = (type) => {
     if (!selectedAddresses || !selectedAddresses[type]) {
       return addresses[0]; // İlk adresi varsayılan olarak döndür
@@ -154,12 +198,30 @@ export default function AddressSection({ onAddressSelect, selectedAddresses }) {
 
   if (addresses.length === 0) {
     return (
-      <div className="bg-white shadow-lg p-3 sm:p-4 md:p-6 rounded-lg">
-        <div className="text-center text-gray-500">
-          <p className="mb-2">Henüz adres eklenmemiş</p>
-          <p className="text-sm">Profil sayfasından adres ekleyebilirsiniz</p>
+      <>
+        <div className="bg-white shadow-lg p-3 sm:p-4 md:p-6 rounded-lg">
+          <div className="text-center text-gray-500">
+            <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="mb-6">Henüz adres eklenmemiş</p>
+            <button
+              onClick={handleAddAddress}
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 mx-auto"
+            >
+              <Plus className="w-5 h-5" />
+              Yeni Adres Ekle
+            </button>
+          </div>
         </div>
-      </div>
+
+        {/* Adres Ekleme Modal */}
+        <AddressModal
+          isOpen={showAddAddressModal}
+          onClose={handleCloseModal}
+          onSave={handleSaveAddress}
+          address={editingAddress}
+          isEditing={isEditing}
+        />
+      </>
     );
   }
 
@@ -347,6 +409,15 @@ export default function AddressSection({ onAddressSelect, selectedAddresses }) {
           </div>
         </div>
       )}
+
+      {/* Adres Ekleme Modal */}
+      <AddressModal
+        isOpen={showAddAddressModal}
+        onClose={handleCloseModal}
+        onSave={handleSaveAddress}
+        address={editingAddress}
+        isEditing={isEditing}
+      />
     </>
   );
 }

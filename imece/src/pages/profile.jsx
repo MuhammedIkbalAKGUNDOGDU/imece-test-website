@@ -1016,7 +1016,14 @@ const AddressesContent = () => {
       {safeAddresses.length === 0 ? (
         <div className="text-center py-12 empty-state">
           <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4 empty-state-icon" />
-          <p className="text-gray-500">Henüz adres eklenmemiş</p>
+          <p className="text-gray-500 mb-6">Henüz adres eklenmemiş</p>
+          <button
+            onClick={handleAddAddress}
+            className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 mx-auto"
+          >
+            <Plus className="w-5 h-5" />
+            Yeni Adres Ekle
+          </button>
         </div>
       ) : (
         <div className="grid gap-4">

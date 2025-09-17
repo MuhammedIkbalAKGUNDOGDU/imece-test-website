@@ -4,6 +4,7 @@ import Header from "../components/GenerealUse/Header";
 import { apiKey } from "../config";
 import "../styles/profile.css";
 import AddressModal from "../components/profileComponents/AddressModal";
+import OrderDetailModal from "../components/profileComponents/OrderDetailModal";
 import {
   User,
   Package,
@@ -346,15 +347,265 @@ const ProfileContent = ({ user }) => (
   </div>
 );
 
-const OrdersContent = () => (
-  <div>
-    <h1 className="text-2xl font-bold text-gray-800 mb-6">Siparişlerim</h1>
-    <div className="text-center py-12 empty-state">
-      <Package className="w-16 h-16 text-gray-400 mx-auto mb-4 empty-state-icon" />
-      <p className="text-gray-500">Henüz siparişiniz bulunmuyor</p>
+const OrdersContent = () => {
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const accessToken = localStorage.getItem("accessToken");
+
+  const getOrderStatusBadge = (status) => {
+    switch (status?.toLowerCase()) {
+      case "beklemede":
+        return (
+          <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
+            Beklemede
+          </span>
+        );
+      case "hazirlaniyor":
+        return (
+          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+            Hazırlanıyor
+          </span>
+        );
+      case "kargoda":
+        return (
+          <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+            Kargoda
+          </span>
+        );
+      case "teslim_edildi":
+      case "teslim edildi":
+        return (
+          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+            Teslim Edildi
+          </span>
+        );
+      case "iptal":
+        return (
+          <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+            İptal
+          </span>
+        );
+      default:
+        return (
+          <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+            {status || "Bilinmiyor"}
+          </span>
+        );
+    }
+  };
+
+  const fetchOrders = async () => {
+    if (!accessToken) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // 1. Kullanıcının tüm siparişlerini getir
+      const allOrdersResponse = await axios.get(
+        "https://imecehub.com/api/logistics/siparis/get-users-order/",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      // 2. Belirli bir sipariş detayını getir (mevcut siparişlerden birini kullan)
+      if (allOrdersResponse.data && allOrdersResponse.data.length > 0) {
+        const firstOrderId = allOrdersResponse.data[0].siparis_id;
+        try {
+          const specificOrderResponse = await axios.post(
+            "https://imecehub.com/api/logistics/siparis/get-order-by-id/",
+            {
+              siparis_id: firstOrderId,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "X-API-Key": apiKey,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        } catch (specificOrderError) {
+          // Belirli sipariş API'si test edildi
+        }
+      }
+
+      // Sipariş verilerini işle
+      let ordersData = allOrdersResponse.data;
+
+      // Eğer string ise JSON parse et
+      if (typeof allOrdersResponse.data === "string") {
+        try {
+          ordersData = JSON.parse(allOrdersResponse.data);
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          setError("Veri formatı hatalı");
+          return;
+        }
+      }
+
+      // Eğer object ise ve orders property'si varsa onu al
+      if (
+        ordersData &&
+        typeof ordersData === "object" &&
+        !Array.isArray(ordersData)
+      ) {
+        if (ordersData.siparisler) {
+          ordersData = ordersData.siparisler;
+        } else if (ordersData.orders) {
+          ordersData = ordersData.orders;
+        } else if (ordersData.results) {
+          ordersData = ordersData.results;
+        } else if (ordersData.data) {
+          ordersData = ordersData.data;
+        }
+      }
+
+      // Array değilse boş array yap
+      if (!Array.isArray(ordersData)) {
+        console.warn("Orders data is not an array:", ordersData);
+        ordersData = [];
+      }
+
+      setOrders(ordersData);
+    } catch (err) {
+      setError("Sipariş bilgileri alınamadı");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [accessToken]);
+
+  const handleOrderClick = (orderId) => {
+    setSelectedOrderId(orderId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedOrderId(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Siparişlerim</h1>
+        <div className="flex items-center justify-center py-12">
+          <div className="loading-spinner"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Siparişlerim</h1>
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Tekrar Dene
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Siparişlerim</h1>
+
+      {orders.length === 0 ? (
+        <div className="text-center py-12 empty-state">
+          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4 empty-state-icon" />
+          <p className="text-gray-500">Henüz siparişiniz bulunmuyor</p>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {orders.map((order, index) => (
+            <div
+              key={index}
+              onClick={() => handleOrderClick(order.siparis_id)}
+              className="p-6 border border-gray-200 rounded-lg group-card hover:shadow-md transition-shadow duration-200 cursor-pointer hover:border-blue-300"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Sipariş #{order.siparis_id}
+                    </h3>
+                    {getOrderStatusBadge(order.durum)}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-500 mb-1">Toplam Tutar</p>
+                      <p className="font-semibold text-green-600 text-lg">
+                        {order.toplam_fiyat}₺
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-gray-500 mb-1">Sipariş Tarihi</p>
+                      <p className="font-medium text-gray-800">
+                        {new Date(
+                          order.siparis_verilme_tarihi
+                        ).toLocaleDateString("tr-TR")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {order.alici_ad_soyad && order.alici_ad_soyad.trim() && (
+                    <div className="mt-3">
+                      <p className="text-gray-500 text-sm mb-1">Alıcı</p>
+                      <p className="font-medium text-gray-800">
+                        {order.alici_ad_soyad}
+                      </p>
+                    </div>
+                  )}
+
+                  {order.fatura_adresi_string && (
+                    <div className="mt-3">
+                      <p className="text-gray-500 text-sm mb-1">
+                        Fatura Adresi
+                      </p>
+                      <p className="text-gray-700 text-sm">
+                        {order.fatura_adresi_string}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Order Detail Modal */}
+      <OrderDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        orderId={selectedOrderId}
+      />
     </div>
-  </div>
-);
+  );
+};
 
 const GroupsContent = () => {
   const [groups, setGroups] = useState([]);

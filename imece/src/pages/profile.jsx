@@ -1389,17 +1389,230 @@ const AddressesContent = () => {
   );
 };
 
-const ReviewsContent = () => (
-  <div>
-    <h1 className="text-2xl font-bold text-gray-800 mb-6">
-      Değerlendirmelerim
-    </h1>
-    <div className="text-center py-12 empty-state">
-      <Star className="w-16 h-16 text-gray-400 mx-auto mb-4 empty-state-icon" />
-      <p className="text-gray-500">Henüz değerlendirmeniz bulunmuyor</p>
+const ReviewsContent = () => {
+  const [reviews, setReviews] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const accessToken = localStorage.getItem("accessToken");
+
+  const fetchReviews = async () => {
+    if (!accessToken) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Kullanıcı ID'sini al
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        setError("Kullanıcı ID bulunamadı");
+        setIsLoading(false);
+        return;
+      }
+
+      // İki API'yi paralel olarak çağır - POST ile kullanıcı ID'si gönder
+      const [productReviewsResponse, sellerReviewsResponse] = await Promise.all(
+        [
+          // Ürün değerlendirmeleri
+          axios
+            .post(
+              "https://imecehub.com/api/products/urunyorum/takeproductcommentsforuser/",
+              { kullanici_id: userId },
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "X-API-Key": apiKey,
+                  "Content-Type": "application/json",
+                },
+              }
+            )
+            .catch((err) => {
+              console.log(
+                "Ürün değerlendirmeleri POST hatası:",
+                err.response?.data || err.message
+              );
+              return { data: [] };
+            }),
+          // Satıcı değerlendirmeleri
+          axios
+            .post(
+              "https://imecehub.com/api/products/urunyorum/takesellercommentsforuser/",
+              { kullanici_id: userId },
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "X-API-Key": apiKey,
+                  "Content-Type": "application/json",
+                },
+              }
+            )
+            .catch((err) => {
+              console.log(
+                "Satıcı değerlendirmeleri POST hatası:",
+                err.response?.data || err.message
+              );
+              return { data: [] };
+            }),
+        ]
+      );
+
+      // İki API'den gelen verileri birleştir
+      const productReviews = productReviewsResponse.data || [];
+      const sellerReviews = sellerReviewsResponse.data || [];
+
+      // API yanıtlarını console'a yazdır
+      console.log("Ürün değerlendirmeleri yanıtı:", productReviews);
+      console.log("Satıcı değerlendirmeleri yanıtı:", sellerReviews);
+
+      // Her iki tür değerlendirmeyi birleştir ve tip bilgisi ekle
+      const allReviews = [
+        ...productReviews.map((review) => ({ ...review, type: "product" })),
+        ...sellerReviews.map((review) => ({ ...review, type: "seller" })),
+      ];
+
+      console.log("Birleştirilmiş değerlendirmeler:", allReviews);
+      setReviews(allReviews);
+    } catch (err) {
+      setError("Değerlendirmeler alınamadı");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, [accessToken]);
+
+  if (isLoading) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">
+          Değerlendirmelerim
+        </h1>
+        <div className="flex items-center justify-center py-12">
+          <div className="loading-spinner"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">
+          Değerlendirmelerim
+        </h1>
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Tekrar Dene
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+        Değerlendirmelerim
+      </h1>
+
+      {reviews.length === 0 ? (
+        <div className="text-center py-12 empty-state">
+          <Star className="w-16 h-16 text-gray-400 mx-auto mb-4 empty-state-icon" />
+          <p className="text-gray-500">Henüz değerlendirmeniz bulunmuyor</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {reviews.map((review, index) => (
+            <div
+              key={index}
+              className="p-6 border border-gray-200 rounded-lg group-card hover:shadow-md transition-shadow duration-200"
+            >
+              <div className="flex items-start gap-4">
+                {/* Ürün Fotoğrafı */}
+                {review.urun_kapak_gorseli && (
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                    <img
+                      src={review.urun_kapak_gorseli}
+                      alt={review.urun_adi || "Ürün"}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {review.urun_adi || "Ürün"}
+                      </h3>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          review.type === "product"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        {review.type === "product" ? "Ürün" : "Satıcı"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < (review.puan || 0)
+                              ? "text-yellow-400 fill-current"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                      <span className="ml-2 text-sm text-gray-600">
+                        {review.puan || 0}/5
+                      </span>
+                    </div>
+                  </div>
+
+                  {review.yorum && (
+                    <p className="text-gray-700 mb-3">{review.yorum}</p>
+                  )}
+
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center gap-4">
+                      {review.satici_adi && (
+                        <span>Satıcı: {review.satici_adi}</span>
+                      )}
+                      {review.tarih && (
+                        <span>
+                          {new Date(review.tarih).toLocaleDateString("tr-TR")}
+                        </span>
+                      )}
+                    </div>
+                    {review.siparis_id && (
+                      <span className="text-blue-600">
+                        Sipariş #{review.siparis_id}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const SettingsContent = () => (
   <div>

@@ -538,62 +538,64 @@ const OrdersContent = () => {
         </div>
       ) : (
         <div className="grid gap-4">
-          {orders.map((order, index) => (
-            <div
-              key={index}
-              onClick={() => handleOrderClick(order.siparis_id)}
-              className="p-6 border border-gray-200 rounded-lg group-card hover:shadow-md transition-shadow duration-200 cursor-pointer hover:border-blue-300"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      Sipariş #{order.siparis_id}
-                    </h3>
-                    {getOrderStatusBadge(order.durum)}
+          {orders
+            .sort((a, b) => (b.siparis_id || 0) - (a.siparis_id || 0))
+            .map((order, index) => (
+              <div
+                key={index}
+                onClick={() => handleOrderClick(order.siparis_id)}
+                className="p-6 border border-gray-200 rounded-lg group-card hover:shadow-md transition-shadow duration-200 cursor-pointer hover:border-blue-300"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        Sipariş #{order.siparis_id}
+                      </h3>
+                      {getOrderStatusBadge(order.durum)}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-500 mb-1">Toplam Tutar</p>
+                        <p className="font-semibold text-green-600 text-lg">
+                          {order.toplam_fiyat}₺
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-gray-500 mb-1">Sipariş Tarihi</p>
+                        <p className="font-medium text-gray-800">
+                          {new Date(
+                            order.siparis_verilme_tarihi
+                          ).toLocaleDateString("tr-TR")}
+                        </p>
+                      </div>
+                    </div>
+
+                    {order.alici_ad_soyad && order.alici_ad_soyad.trim() && (
+                      <div className="mt-3">
+                        <p className="text-gray-500 text-sm mb-1">Alıcı</p>
+                        <p className="font-medium text-gray-800">
+                          {order.alici_ad_soyad}
+                        </p>
+                      </div>
+                    )}
+
+                    {order.fatura_adresi_string && (
+                      <div className="mt-3">
+                        <p className="text-gray-500 text-sm mb-1">
+                          Fatura Adresi
+                        </p>
+                        <p className="text-gray-700 text-sm">
+                          {order.fatura_adresi_string}
+                        </p>
+                      </div>
+                    )}
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-500 mb-1">Toplam Tutar</p>
-                      <p className="font-semibold text-green-600 text-lg">
-                        {order.toplam_fiyat}₺
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-gray-500 mb-1">Sipariş Tarihi</p>
-                      <p className="font-medium text-gray-800">
-                        {new Date(
-                          order.siparis_verilme_tarihi
-                        ).toLocaleDateString("tr-TR")}
-                      </p>
-                    </div>
-                  </div>
-
-                  {order.alici_ad_soyad && order.alici_ad_soyad.trim() && (
-                    <div className="mt-3">
-                      <p className="text-gray-500 text-sm mb-1">Alıcı</p>
-                      <p className="font-medium text-gray-800">
-                        {order.alici_ad_soyad}
-                      </p>
-                    </div>
-                  )}
-
-                  {order.fatura_adresi_string && (
-                    <div className="mt-3">
-                      <p className="text-gray-500 text-sm mb-1">
-                        Fatura Adresi
-                      </p>
-                      <p className="text-gray-700 text-sm">
-                        {order.fatura_adresi_string}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
 

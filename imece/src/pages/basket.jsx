@@ -319,7 +319,7 @@ export default function CartPage() {
         }
       );
 
-      console.log("Sipariş Onaylama Yanıtı:", response.data);
+      console.log("Ödeme API Yanıtı:", response.data);
 
       // ResultCode'a göre yanıtı işleme
       if (response.data.ResultCode === "Success") {
@@ -336,6 +336,14 @@ export default function CartPage() {
         "PaymentDealer.CheckCardInfo.InvalidCardInfo"
       ) {
         showCustomModal("Hatalı kart bilgisi.", "error");
+      } else if (
+        response.data.ResultCode ===
+        "PaymentDealer.CheckPaymentDealerAuthentication.InvalidAccount"
+      ) {
+        showCustomModal(
+          "Ödeme sistemi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin veya farklı bir ödeme yöntemi kullanın.",
+          "error"
+        );
       } else if (response.data.durum === "STOK_YETERSIZ") {
         // 'durum' alanı hala kullanılıyorsa
         showCustomModal(
@@ -368,6 +376,12 @@ export default function CartPage() {
         "PaymentDealer.CheckCardInfo.InvalidCardInfo"
       ) {
         errorMessage = "Hatalı kart bilgisi.";
+      } else if (
+        err.response?.data?.ResultCode ===
+        "PaymentDealer.CheckPaymentDealerAuthentication.InvalidAccount"
+      ) {
+        errorMessage =
+          "Ödeme sistemi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin veya farklı bir ödeme yöntemi kullanın.";
       } else if (err.response?.data?.mesaj) {
         errorMessage = err.response.data.mesaj;
       } else if (err.message) {

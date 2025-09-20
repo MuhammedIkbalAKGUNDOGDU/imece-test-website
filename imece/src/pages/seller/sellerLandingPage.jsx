@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Plus, Upload, X } from "lucide-react";
 import Header from "../../components/GenerealUse/Header";
 import { apiKey } from "../../config";
+import { storiesService } from "../../services/campaignsAndStoriesService";
 
 const SellerLandingPage = () => {
   const navigate = useNavigate();
@@ -15,6 +17,16 @@ const SellerLandingPage = () => {
     totalSales: 0,
     monthlyRevenue: 0,
   });
+
+  // Story modal states
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [storyFormData, setStoryFormData] = useState({
+    type: "story",
+    description: "",
+    photo: null,
+  });
+  const [photoPreview, setPhotoPreview] = useState(null);
 
   useEffect(() => {
     const fetchSellerData = async () => {
@@ -134,6 +146,92 @@ const SellerLandingPage = () => {
     setShowProfileModal(false);
     const userId = localStorage.getItem("userId");
     navigate(`/profile/satici-profili/${userId}`);
+  };
+
+  // Story form handlers
+  const handleStoryInputChange = (e) => {
+    const { name, value } = e.target;
+    setStoryFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleStoryFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setStoryFormData((prev) => ({
+        ...prev,
+        photo: file,
+      }));
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleStorySubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      console.log("🎯 SellerLandingPage: Story submit başlıyor...");
+      console.log("🎯 SellerLandingPage: Story Form Data:", storyFormData);
+
+      await storiesService.createStory(storyFormData);
+      alert("Hikaye başarıyla oluşturuldu!");
+
+      // Reset form and close modal
+      resetStoryForm();
+      setIsStoryModalOpen(false);
+
+      // Refresh stories component
+      window.location.reload();
+    } catch (err) {
+      console.error("❌ SellerLandingPage: Story oluşturulurken hata:", err);
+      console.error(
+        "❌ SellerLandingPage: Error response:",
+        err.response?.data
+      );
+      console.error(
+        "❌ SellerLandingPage: Error status:",
+        err.response?.status
+      );
+      alert("Hikaye oluşturulurken bir hata oluştu!");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetStoryForm = () => {
+    setStoryFormData({
+      type: "story",
+      description: "",
+      photo: null,
+    });
+    setPhotoPreview(null);
+  };
+
+  const openStoryModal = (type = "story") => {
+    setStoryFormData((prev) => ({ ...prev, type }));
+    setIsStoryModalOpen(true);
+  };
+
+  const closeStoryModal = () => {
+    setIsStoryModalOpen(false);
+    resetStoryForm();
+  };
+
+  const removePhoto = () => {
+    setStoryFormData((prev) => ({
+      ...prev,
+      photo: null,
+    }));
+    setPhotoPreview(null);
   };
 
   const handleEditProfile = () => {
@@ -380,6 +478,27 @@ const SellerLandingPage = () => {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Story Add Buttons */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Hikayeler</h2>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={() => openStoryModal("story")}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
+            >
+              <Plus size={20} />
+              Hikaye Ekle
+            </button>
+            <button
+              onClick={() => openStoryModal("campaign")}
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200"
+            >
+              <Plus size={20} />
+              Kampanya Hikayesi Ekle
+            </button>
           </div>
         </div>
 
@@ -701,6 +820,126 @@ const SellerLandingPage = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Story Modal */}
+      {isStoryModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {storyFormData.type === "story"
+                  ? "Yeni Hikaye Oluştur"
+                  : "Yeni Kampanya Hikayesi Oluştur"}
+              </h2>
+              <button
+                onClick={closeStoryModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition duration-200"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleStorySubmit} className="p-6">
+              <div className="space-y-6">
+                {/* Story Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Hikaye Tipi
+                  </label>
+                  <select
+                    name="type"
+                    value={storyFormData.type}
+                    onChange={handleStoryInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="story">Hikaye</option>
+                    <option value="campaign">Kampanya Hikayesi</option>
+                  </select>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Açıklama
+                  </label>
+                  <textarea
+                    name="description"
+                    value={storyFormData.description}
+                    onChange={handleStoryInputChange}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Hikaye açıklamasını girin"
+                  />
+                </div>
+
+                {/* Photo Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Fotoğraf *
+                  </label>
+
+                  {photoPreview ? (
+                    <div className="relative">
+                      <img
+                        src={photoPreview}
+                        alt="Photo preview"
+                        className="w-full h-48 object-cover rounded-lg border border-gray-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={removePhoto}
+                        className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition duration-200"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-2">Fotoğraf yükleyin</p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleStoryFileChange}
+                        className="hidden"
+                        id="story-photo-upload"
+                        required
+                      />
+                      <label
+                        htmlFor="story-photo-upload"
+                        className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 cursor-pointer"
+                      >
+                        Fotoğraf Seç
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={closeStoryModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !storyFormData.photo}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? "Oluşturuluyor..." : "Oluştur"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -297,8 +297,8 @@ export default function Profile() {
           </div>
 
           {/* Sağ İçerik */}
-          <div className="flex-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 profile-content fade-in">
+          <div className="flex-1 min-w-0">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 profile-content fade-in w-full">
               {renderContent()}
             </div>
           </div>
@@ -1480,7 +1480,7 @@ const ReviewsContent = () => {
                 "Ürün değerlendirmeleri POST hatası:",
                 err.response?.data || err.message
               );
-              return { data: [] };
+              return { data: { durum: "HATA", yorumlar: [] } };
             }),
           // Satıcı değerlendirmeleri
           axios
@@ -1500,18 +1500,23 @@ const ReviewsContent = () => {
                 "Satıcı değerlendirmeleri POST hatası:",
                 err.response?.data || err.message
               );
-              return { data: [] };
+              return { data: { durum: "HATA", yorumlar: [] } };
             }),
         ]
       );
 
       // İki API'den gelen verileri birleştir
-      const productReviews = productReviewsResponse.data || [];
-      const sellerReviews = sellerReviewsResponse.data || [];
+      // API yanıtı {durum: 'BASARILI', yorumlar: []} formatında geliyor
+      const productReviewsData = productReviewsResponse.data || {};
+      const sellerReviewsData = sellerReviewsResponse.data || {};
+
+      // yorumlar array'ini al, yoksa boş array
+      const productReviews = productReviewsData.yorumlar || [];
+      const sellerReviews = sellerReviewsData.yorumlar || [];
 
       // API yanıtlarını console'a yazdır
-      console.log("Ürün değerlendirmeleri yanıtı:", productReviews);
-      console.log("Satıcı değerlendirmeleri yanıtı:", sellerReviews);
+      console.log("Ürün değerlendirmeleri yanıtı:", productReviewsData);
+      console.log("Satıcı değerlendirmeleri yanıtı:", sellerReviewsData);
 
       // Her iki tür değerlendirmeyi birleştir ve tip bilgisi ekle
       const allReviews = [
@@ -1521,7 +1526,9 @@ const ReviewsContent = () => {
 
       console.log("Birleştirilmiş değerlendirmeler:", allReviews);
       setReviews(allReviews);
+      setError(null); // Başarılı yanıt için hata yok
     } catch (err) {
+      console.error("Değerlendirmeler alınırken hata:", err);
       setError("Değerlendirmeler alınamadı");
     } finally {
       setIsLoading(false);
@@ -1573,7 +1580,7 @@ const ReviewsContent = () => {
       {reviews.length === 0 ? (
         <div className="text-center py-12 empty-state">
           <Star className="w-16 h-16 text-gray-400 mx-auto mb-4 empty-state-icon" />
-          <p className="text-gray-500">Henüz değerlendirmeniz bulunmuyor</p>
+          <p className="text-gray-500">Değerlendirme yok</p>
         </div>
       ) : (
         <div className="space-y-4">

@@ -9,6 +9,7 @@ import { storiesService } from "../../services/campaignsAndStoriesService";
 const SellerLandingPage = () => {
   const navigate = useNavigate();
   const [sellerInfo, setSellerInfo] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
   const [sellerProducts, setSellerProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -52,6 +53,7 @@ const SellerLandingPage = () => {
         console.log("Kullanıcı bilgileri:", userResponse.data);
 
         localStorage.setItem("userId", userId);
+        setUserInfo(userResponse.data); // Kullanıcı bilgilerini state'e kaydet
 
         // Satıcı bilgilerini al
         const sellerResponse = await axios({
@@ -137,6 +139,18 @@ const SellerLandingPage = () => {
   };
 
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [editProfileForm, setEditProfileForm] = useState({
+    first_name: "",
+    last_name: "",
+    magaza_adi: "",
+    profil_tanitim_yazisi: "",
+    profession: "",
+    telno: "",
+    satici_iban: "",
+    satici_vergi_numarasi: "",
+  });
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   const handleProfileSettings = () => {
     setShowProfileModal(true);
@@ -236,8 +250,100 @@ const SellerLandingPage = () => {
 
   const handleEditProfile = () => {
     setShowProfileModal(false);
-    // İleride profil düzenleme sayfasına yönlendirilecek
-    console.log("Profil düzenleme sayfasına yönlendirilecek");
+    // Mevcut bilgileri form'a yükle - hem user hem seller bilgilerinden
+    setEditProfileForm({
+      first_name: sellerInfo?.first_name || userInfo?.first_name || "",
+      last_name: sellerInfo?.last_name || userInfo?.last_name || "",
+      magaza_adi: sellerInfo?.magaza_adi || "",
+      profil_tanitim_yazisi: sellerInfo?.profil_tanitim_yazisi || "",
+      profession: sellerInfo?.profession || "",
+      telno: sellerInfo?.telno || userInfo?.telno || "",
+      satici_iban: sellerInfo?.satici_iban || "",
+      satici_vergi_numarasi: sellerInfo?.satici_vergi_numarasi || "",
+    });
+    setShowEditProfileModal(true);
+  };
+
+  const handleEditProfileInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditProfileForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setIsUpdatingProfile(true);
+
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const headers = {
+        "X-API-Key": apiKey,
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      };
+
+      // Sadece doldurulmuş alanları gönder
+      const updateData = {};
+      Object.keys(editProfileForm).forEach((key) => {
+        if (editProfileForm[key] && editProfileForm[key].trim() !== "") {
+          updateData[key] = editProfileForm[key];
+        }
+      });
+
+      const response = await axios.put(
+        "https://imecehub.com/users/update-satici/",
+        updateData,
+        { headers }
+      );
+
+      console.log("Profil güncelleme yanıtı:", response.data);
+      
+      if (response.data.detail) {
+        alert(response.data.detail || "Profil başarıyla güncellendi.");
+        // Satıcı ve kullanıcı bilgilerini yeniden yükle
+        const userId = localStorage.getItem("userId");
+        const accessToken = localStorage.getItem("accessToken");
+        
+        const [userResponse, sellerResponse] = await Promise.all([
+          axios.get("https://imecehub.com/api/users/kullanicilar/me/", {
+            headers: {
+              "X-API-Key": apiKey,
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }),
+          axios({
+            method: "post",
+            url: "https://imecehub.com/users/seller-info-full/",
+            data: { kullanici_id: userId },
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-Key": apiKey,
+            },
+          }),
+        ]);
+        
+        setUserInfo(userResponse.data);
+        setSellerInfo(sellerResponse.data);
+        setShowEditProfileModal(false);
+      }
+    } catch (error) {
+      console.error("Profil güncelleme hatası:", error);
+      console.error("Hata detayı:", error.response?.data);
+      alert(
+        error.response?.data?.detail ||
+          error.response?.data?.message ||
+          "Profil güncellenirken bir hata oluştu."
+      );
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const closeEditProfileModal = () => {
+    setShowEditProfileModal(false);
   };
 
   const closeModal = () => {
@@ -820,6 +926,169 @@ const SellerLandingPage = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {showEditProfileModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Profil Bilgilerini Düzenle
+              </h2>
+              <button
+                onClick={closeEditProfileModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition duration-200"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleUpdateProfile} className="p-6">
+              <div className="space-y-4">
+                {/* İsim Soyisim */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ad
+                    </label>
+                    <input
+                      type="text"
+                      name="first_name"
+                      value={editProfileForm.first_name}
+                      onChange={handleEditProfileInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="Adınızı girin"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Soyad
+                    </label>
+                    <input
+                      type="text"
+                      name="last_name"
+                      value={editProfileForm.last_name}
+                      onChange={handleEditProfileInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="Soyadınızı girin"
+                    />
+                  </div>
+                </div>
+
+                {/* Mağaza Adı */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Mağaza Adı
+                  </label>
+                  <input
+                    type="text"
+                    name="magaza_adi"
+                    value={editProfileForm.magaza_adi}
+                    onChange={handleEditProfileInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Mağaza adınızı girin"
+                  />
+                </div>
+
+                {/* Profil Tanıtım Yazısı */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Profil Tanıtım Yazısı
+                  </label>
+                  <textarea
+                    name="profil_tanitim_yazisi"
+                    value={editProfileForm.profil_tanitim_yazisi}
+                    onChange={handleEditProfileInputChange}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Mağazanız hakkında kısa bilgi"
+                  />
+                </div>
+
+                {/* Meslek */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Meslek
+                  </label>
+                  <input
+                    type="text"
+                    name="profession"
+                    value={editProfileForm.profession}
+                    onChange={handleEditProfileInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Mesleğinizi girin (örn: El sanatları)"
+                  />
+                </div>
+
+                {/* Telefon */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Telefon Numarası
+                  </label>
+                  <input
+                    type="text"
+                    name="telno"
+                    value={editProfileForm.telno}
+                    onChange={handleEditProfileInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="05331231212"
+                  />
+                </div>
+
+                {/* IBAN */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    IBAN
+                  </label>
+                  <input
+                    type="text"
+                    name="satici_iban"
+                    value={editProfileForm.satici_iban}
+                    onChange={handleEditProfileInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="IBAN numaranızı girin"
+                  />
+                </div>
+
+                {/* Vergi Numarası */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vergi Numarası
+                  </label>
+                  <input
+                    type="text"
+                    name="satici_vergi_numarasi"
+                    value={editProfileForm.satici_vergi_numarasi}
+                    onChange={handleEditProfileInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Vergi numaranızı girin"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={closeEditProfileModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingProfile}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUpdatingProfile ? "Güncelleniyor..." : "Güncelle"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

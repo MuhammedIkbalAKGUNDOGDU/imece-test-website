@@ -40,6 +40,22 @@ const LandingPage = () => {
         localStorage.setItem("userId", response.data.id);
       } catch (error) {
         console.error("Kullanıcı bilgisi alınırken hata:", error.message);
+
+        // 401 Unauthorized hatası kontrolü
+        if (error.response?.status === 401) {
+          // Token'ları temizle
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("userId");
+          // Kullanıcıyı giriş sayfasına yönlendir
+          if (
+            window.confirm(
+              "Oturum süreniz dolmuş. Giriş sayfasına yönlendirileceksiniz."
+            )
+          ) {
+            window.location.href = "/login";
+          }
+        }
       }
     };
 
@@ -125,8 +141,10 @@ const LandingPage = () => {
       <div className="landingPage">
         <Header />
         {/* Campaign Slider */}
-        <CampaignSlider />
-
+        <div className="mt-10 mb-10">
+          {" "}
+          <CampaignSlider />
+        </div>
         {/* Stories Component */}
         <StoriesComponent />
 

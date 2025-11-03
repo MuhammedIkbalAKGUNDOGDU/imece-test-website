@@ -218,103 +218,270 @@
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Story Modal */
-.story-modal-overlay {
+/* Fullscreen Story Modal */
+.fullscreen-story-modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: #2c2c2c;
+  z-index: 1000;
   display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.fullscreen-story-content {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
+  cursor: pointer;
+  user-select: none;
+  padding: 2rem;
 }
 
-.story-modal {
-  position: relative;
-  width: 100%;
-  max-width: 400px;
-  height: 600px;
-  background: black;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-}
-
-/* Modal Progress Bars */
-.progress-container {
+/* Fullscreen Progress Bars */
+.fullscreen-progress-container {
   position: absolute;
   top: 1rem;
-  left: 1rem;
-  right: 1rem;
+  left: 2rem;
+  right: 2rem;
   z-index: 10;
   display: flex;
   gap: 0.5rem;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
-.progress-bar-container {
+.fullscreen-progress-bar {
   flex: 1;
-  height: 3px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.3);
   border-radius: 2px;
   overflow: hidden;
 }
 
-.progress-bar {
+.fullscreen-progress-fill {
   height: 100%;
   background: white;
   border-radius: 2px;
   transition: width 0.1s ease;
 }
 
-.progress-bar.active {
+.fullscreen-progress-fill.active {
   background: linear-gradient(90deg, #007bff, #0056b3);
 }
 
-/* Modal Header */
-.story-modal-header {
+/* Fullscreen Story Image */
+.fullscreen-story-image {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Pause Overlay */
+.pause-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 15;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.pause-icon {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pause-text {
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 0;
+}
+
+/* Play Indicator */
+.play-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  opacity: 0;
+  animation: fadeInOut 3s ease-in-out;
+  pointer-events: none;
+}
+
+.play-text {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  margin: 0;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Fullscreen Story Info */
+.fullscreen-story-info {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  right: 2rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  z-index: 5;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.fullscreen-story-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.fullscreen-profile-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid white;
+}
+
+.fullscreen-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fullscreen-username {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.fullscreen-story-type {
+  background: rgba(0, 123, 255, 0.8);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.fullscreen-description {
+  font-size: 1rem;
+  margin: 0;
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  line-height: 1.4;
+}
+
+/* Fullscreen Navigation */
+.fullscreen-navigation {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
+  padding: 0 1rem;
+  z-index: 10;
+  pointer-events: none;
 }
 
-.story-user-info {
+.fullscreen-nav-button {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
 }
 
-.story-user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid white;
+.fullscreen-nav-button:hover {
+  background: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.story-user-name {
-  color: white;
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+.fullscreen-nav-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.story-close-button {
+/* Fullscreen Close Button */
+.fullscreen-close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
   background: rgba(255, 255, 255, 0.2);
   border: none;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -323,10 +490,36 @@
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  z-index: 15;
 }
 
-.story-close-button:hover {
+.fullscreen-close-button:hover {
   background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Fullscreen Play/Pause Button */
+.fullscreen-play-pause-button {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: rgba(0, 123, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  backdrop-filter: blur(10px);
+  z-index: 15;
+}
+
+.fullscreen-play-pause-button:hover {
+  background: #007bff;
   transform: scale(1.1);
 }
 
@@ -490,22 +683,50 @@
     max-width: 50px;
   }
 
-  .story-modal {
-    max-width: 350px;
-    height: 500px;
+  /* Fullscreen Modal Mobile */
+  .fullscreen-story-content {
+    padding: 1rem;
   }
 
-  .story-modal-title {
+  .fullscreen-story-info {
+    padding: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .fullscreen-progress-container {
+    left: 1rem;
+    right: 1rem;
+  }
+
+  .fullscreen-profile-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .fullscreen-username {
     font-size: 1.1rem;
   }
 
-  .story-modal-description {
-    font-size: 0.8rem;
+  .fullscreen-description {
+    font-size: 0.9rem;
   }
 
-  .control-button {
-    width: 36px;
-    height: 36px;
+  .fullscreen-nav-button {
+    width: 45px;
+    height: 45px;
+  }
+
+  .fullscreen-close-button {
+    width: 35px;
+    height: 35px;
+    font-size: 1.2rem;
+  }
+
+  .fullscreen-play-pause-button {
+    width: 45px;
+    height: 45px;
   }
 }
 
@@ -530,39 +751,50 @@
     max-width: 45px;
   }
 
-  .story-modal {
-    max-width: 300px;
-    height: 450px;
-  }
-
-  .story-modal-header {
+  /* Fullscreen Modal Small Mobile */
+  .fullscreen-story-content {
     padding: 0.75rem;
   }
 
-  .story-user-avatar {
-    width: 28px;
-    height: 28px;
+  .fullscreen-story-info {
+    padding: 0.75rem;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
   }
 
-  .story-user-name {
-    font-size: 0.8rem;
+  .fullscreen-progress-container {
+    left: 0.75rem;
+    right: 0.75rem;
   }
 
-  .story-modal-info {
-    padding: 1.5rem 1rem 1rem;
+  .fullscreen-profile-image {
+    width: 36px;
+    height: 36px;
   }
 
-  .story-modal-title {
+  .fullscreen-username {
     font-size: 1rem;
   }
 
-  .story-modal-description {
-    font-size: 0.75rem;
+  .fullscreen-description {
+    font-size: 0.8rem;
   }
 
-  .control-button {
+  .fullscreen-nav-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .fullscreen-close-button {
     width: 32px;
     height: 32px;
+    font-size: 1rem;
+  }
+
+  .fullscreen-play-pause-button {
+    width: 40px;
+    height: 40px;
   }
 }
 

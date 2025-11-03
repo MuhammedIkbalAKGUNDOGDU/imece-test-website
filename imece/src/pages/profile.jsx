@@ -80,9 +80,19 @@ export default function Profile() {
           },
         });
         setUserData(response.data);
+        setError(null);
       } catch (err) {
         console.error("Veri çekme hatası:", err);
-        setError("Kullanıcı bilgileri alınamadı");
+
+        // 401 Unauthorized hatası kontrolü
+        if (err.response?.status === 401) {
+          setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+          // Token'ları temizle
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+        } else {
+          setError("Kullanıcı bilgileri alınamadı");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -95,6 +105,13 @@ export default function Profile() {
   }, [accessToken, userData]);
 
   const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userId");
+    window.location.href = "/login";
+  };
+
+  const handleGoToLogin = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("userId");
@@ -174,14 +191,42 @@ export default function Profile() {
           <Header />
         </div>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <p className="text-red-600 mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Tekrar Dene
-            </button>
+          <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+            <div className="mb-6">
+              <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                Oturum Süresi Doldu
+              </h2>
+              <p className="text-red-600 mb-6">{error}</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleGoToLogin}
+                className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 font-medium"
+              >
+                Giriş Yap
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200"
+              >
+                Tekrar Dene
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -194,10 +239,10 @@ export default function Profile() {
         <Header />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="max-w-[1400px] mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Sol Sidebar */}
-          <div className="lg:w-80">
+          <div className="lg:w-64">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 profile-sidebar">
               {/* Kullanıcı Bilgileri */}
               <div className="text-center mb-6">

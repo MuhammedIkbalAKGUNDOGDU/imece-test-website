@@ -389,6 +389,39 @@ const StoriesComponent = () => {
     setProgress(0);
   };
 
+  // Handle click on screen to pause/resume
+  const handleScreenClick = (e) => {
+    // Only toggle play/pause if clicking on the main content area, not on buttons
+    if (
+      e.target.classList.contains("fullscreen-story-content") ||
+      e.target.classList.contains("fullscreen-story-image") ||
+      e.target.classList.contains("pause-overlay") ||
+      e.target.classList.contains("pause-icon") ||
+      e.target.classList.contains("pause-text")
+    ) {
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  // Handle keyboard events
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (currentStoryIndex !== null) {
+        if (e.key === "Escape") {
+          setCurrentStoryIndex(null);
+        } else if (e.key === " ") {
+          e.preventDefault(); // Prevent page scroll
+          setIsPlaying(!isPlaying);
+        }
+      }
+    };
+
+    if (currentStoryIndex !== null) {
+      document.addEventListener("keydown", handleKeyPress);
+      return () => document.removeEventListener("keydown", handleKeyPress);
+    }
+  }, [currentStoryIndex, isPlaying]);
+
   if (isLoading) {
     return (
       <div className="stories-container">
@@ -487,16 +520,16 @@ const StoriesComponent = () => {
         )}
       </div>
 
-      {/* Story Modal */}
+      {/* Fullscreen Story Modal */}
       {currentStoryIndex !== null && currentStories[currentStoryIndex] && (
-        <div className="story-modal">
-          <div className="story-modal-content">
+        <div className="fullscreen-story-modal">
+          <div className="fullscreen-story-content" onClick={handleScreenClick}>
             {/* Progress Bar */}
-            <div className="story-progress-container">
+            <div className="fullscreen-progress-container">
               {currentStories.map((_, index) => (
-                <div key={index} className="story-progress-bar">
+                <div key={index} className="fullscreen-progress-bar">
                   <div
-                    className={`story-progress-fill ${
+                    className={`fullscreen-progress-fill ${
                       index === currentStoryIndex ? "active" : ""
                     }`}
                     style={{
@@ -512,67 +545,76 @@ const StoriesComponent = () => {
               ))}
             </div>
 
-            {/* Story Content */}
-            <div className="story-content">
-              <img
-                src={currentStories[currentStoryIndex].image}
-                alt={currentStories[currentStoryIndex].title}
-              />
+            {/* Main Image */}
+            <img
+              src={currentStories[currentStoryIndex].image}
+              alt={currentStories[currentStoryIndex].title}
+              className="fullscreen-story-image"
+            />
 
-              {/* Story Info */}
-              <div className="story-info">
-                <div className="story-header">
-                  <img
-                    src={currentStories[currentStoryIndex].profileImage}
-                    alt={currentStories[currentStoryIndex].username}
-                    className="story-profile-image"
-                  />
-                  <div className="story-details">
-                    <h3>{currentStories[currentStoryIndex].username}</h3>
-                    <p>{currentStories[currentStoryIndex].title}</p>
-                    <div className="story-meta">
-                      <span className="story-type">
-                        {currentSection === "campaigns" ? "Kampanya" : "Hikaye"}
-                      </span>
-                    </div>
-                  </div>
+            {/* Pause Overlay */}
+            {!isPlaying && (
+              <div className="pause-overlay">
+                <div className="pause-icon">
+                  <Play size={48} />
                 </div>
+                <p className="pause-text">Devam etmek için tıklayın</p>
+              </div>
+            )}
 
-                {currentStories[currentStoryIndex].description && (
-                  <p className="story-description">
-                    {currentStories[currentStoryIndex].description}
-                  </p>
-                )}
+            {/* Play Indicator (subtle hint when playing) */}
+            {isPlaying && (
+              <div className="play-indicator">
+                <p className="play-text">Durdurmak için tıklayın</p>
+              </div>
+            )}
 
-                {/* Debug Info */}
-                <div className="story-debug">
-                  <small className="text-gray-400">
-                    Debug: {currentSection} - {currentStoryIndex + 1}/
-                    {currentStories.length}
-                  </small>
+            {/* Story Info */}
+            <div className="fullscreen-story-info">
+              <div className="fullscreen-story-header">
+                <img
+                  src={currentStories[currentStoryIndex].profileImage}
+                  alt={currentStories[currentStoryIndex].username}
+                  className="fullscreen-profile-image"
+                />
+                <div className="fullscreen-user-info">
+                  <h3 className="fullscreen-username">
+                    {currentStories[currentStoryIndex].username}
+                  </h3>
+                  <span className="fullscreen-story-type">
+                    {currentSection === "campaigns" ? "Kampanya" : "Hikaye"}
+                  </span>
                 </div>
               </div>
+
+              {currentStories[currentStoryIndex].description && (
+                <p className="fullscreen-description">
+                  {currentStories[currentStoryIndex].description}
+                </p>
+              )}
             </div>
 
             {/* Navigation Controls */}
-            <div className="story-controls">
+            <div className="fullscreen-navigation">
               <button
-                className="story-nav-button story-nav-left"
+                className="fullscreen-nav-button prev"
                 onClick={handlePrevious}
+                disabled={currentStoryIndex === 0}
               >
-                <ChevronLeft size={24} />
+                <ChevronLeft size={32} />
               </button>
               <button
-                className="story-nav-button story-nav-right"
+                className="fullscreen-nav-button next"
                 onClick={handleNext}
+                disabled={currentStoryIndex === currentStories.length - 1}
               >
-                <ChevronRight size={24} />
+                <ChevronRight size={32} />
               </button>
             </div>
 
             {/* Play/Pause Button */}
             <button
-              className="story-play-button"
+              className="fullscreen-play-pause-button"
               onClick={() => setIsPlaying(!isPlaying)}
             >
               {isPlaying ? <Pause size={24} /> : <Play size={24} />}
@@ -580,7 +622,7 @@ const StoriesComponent = () => {
 
             {/* Close Button */}
             <button
-              className="story-close-button"
+              className="fullscreen-close-button"
               onClick={() => setCurrentStoryIndex(null)}
             >
               ×

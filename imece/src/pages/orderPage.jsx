@@ -239,7 +239,7 @@ const orderPage = () => {
         {
           group_id: groupInfo?.group_id, // veya sabit örnek: 3
           amount: 1, // sabit
-          address_id: 1, // sabit
+          address_id: 2, // sabit
         },
         {
           headers: {

@@ -18,6 +18,8 @@ import {
   ChevronRight,
   Edit,
   Plus,
+  X,
+  Upload,
 } from "lucide-react";
 
 export default function Profile() {
@@ -25,6 +27,17 @@ export default function Profile() {
   const [currentMenu, setCurrentMenu] = useState("profile");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [editProfileForm, setEditProfileForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    telno: "",
+  });
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [photoError, setPhotoError] = useState(false);
   const accessToken = localStorage.getItem("accessToken");
   const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
 
@@ -80,6 +93,7 @@ export default function Profile() {
           },
         });
         setUserData(response.data);
+        setPhotoError(false); // Fotoğraf hatasını sıfırla
         setError(null);
       } catch (err) {
         console.error("Veri çekme hatası:", err);
@@ -118,10 +132,163 @@ export default function Profile() {
     window.location.href = "/login";
   };
 
+  const handleEditProfile = () => {
+    // Mevcut bilgileri form'a yükle
+    setEditProfileForm({
+      first_name: userData?.first_name || "",
+      last_name: userData?.last_name || "",
+      email: userData?.email || "",
+      telno: userData?.telno || "",
+    });
+    setPhotoPreview(userData?.profil_fotograf || null);
+    setProfilePhoto(null);
+    setShowEditProfileModal(true);
+  };
+
+  const handleEditProfileInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditProfileForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePhoto(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = async () => {
+    // Kullanıcıya onay sor
+    if (
+      !window.confirm("Profil fotoğrafını silmek istediğinizden emin misiniz?")
+    ) {
+      return;
+    }
+
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const formData = new FormData();
+      // Fotoğrafı silmek için boş değer veya null gönderebiliriz
+      // API'nin silme endpoint'ini kontrol etmek gerekebilir
+      formData.append("profil_fotograf", "");
+
+      const response = await axios.patch(
+        "https://imecehub.com/api/users/kullanicilar/update_me/",
+        formData,
+        {
+          headers: {
+            "X-API-Key": apiKey,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (response.data) {
+        // State'leri temizle
+        setProfilePhoto(null);
+        setPhotoPreview(null);
+
+        // Kullanıcı bilgilerini yeniden yükle
+        const userResponse = await axios.get(apiUrl, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+          },
+        });
+        setUserData(userResponse.data);
+        setPhotoError(false); // Fotoğraf hatasını sıfırla
+        alert("Profil fotoğrafı başarıyla silindi.");
+      }
+    } catch (error) {
+      console.error("Profil fotoğrafı silme hatası:", error);
+      alert("Profil fotoğrafı silinirken bir hata oluştu.");
+    }
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setIsUpdatingProfile(true);
+
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const headers = {
+        "X-API-Key": apiKey,
+        Authorization: `Bearer ${accessToken}`,
+        // Content-Type header'ı FormData kullanıldığında otomatik ayarlanır
+      };
+
+      // FormData oluştur (multipart/form-data için)
+      const formData = new FormData();
+
+      // Basit alanları ekle
+      if (editProfileForm.first_name)
+        formData.append("first_name", editProfileForm.first_name);
+      if (editProfileForm.last_name)
+        formData.append("last_name", editProfileForm.last_name);
+      if (editProfileForm.email)
+        formData.append("email", editProfileForm.email);
+      if (editProfileForm.telno)
+        formData.append("telno", editProfileForm.telno);
+
+      // Profil fotoğrafı varsa ekle
+      if (profilePhoto) {
+        formData.append("profil_fotograf", profilePhoto);
+      }
+
+      const response = await axios.patch(
+        "https://imecehub.com/api/users/kullanicilar/update_me/",
+        formData,
+        { headers }
+      );
+
+      console.log("Profil güncelleme yanıtı:", response.data);
+
+      if (response.data) {
+        alert("Profil başarıyla güncellendi.");
+        // Kullanıcı bilgilerini yeniden yükle
+        const userResponse = await axios.get(apiUrl, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+          },
+        });
+        setUserData(userResponse.data);
+        setPhotoError(false); // Fotoğraf hatasını sıfırla
+        setShowEditProfileModal(false);
+      }
+    } catch (error) {
+      console.error("Profil güncelleme hatası:", error);
+      console.error("Hata detayı:", error.response?.data);
+      alert(
+        error.response?.data?.detail ||
+          error.response?.data?.message ||
+          "Profil güncellenirken bir hata oluştu."
+      );
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const closeEditProfileModal = () => {
+    setShowEditProfileModal(false);
+    setProfilePhoto(null);
+    setPhotoPreview(null);
+  };
+
   const renderContent = () => {
     switch (currentMenu) {
       case "profile":
-        return <ProfileContent user={userData} />;
+        return <ProfileContent user={userData} onEdit={handleEditProfile} />;
       case "orders":
         return <OrdersContent />;
       case "groups":
@@ -246,8 +413,17 @@ export default function Profile() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 profile-sidebar">
               {/* Kullanıcı Bilgileri */}
               <div className="text-center mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-4 flex items-center justify-center user-avatar">
-                  <User className="w-10 h-10 text-white" />
+                <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full mx-auto mb-4 flex items-center justify-center user-avatar overflow-hidden relative">
+                  {userData?.profil_fotograf && !photoError ? (
+                    <img
+                      src={userData.profil_fotograf}
+                      alt="Profil fotoğrafı"
+                      className="w-full h-full object-cover"
+                      onError={() => setPhotoError(true)}
+                    />
+                  ) : (
+                    <User className="w-10 h-10 text-white" />
+                  )}
                 </div>
                 <h2 className="text-xl font-semibold text-gray-800">
                   {userData?.first_name || "Kullanıcı"}{" "}
@@ -304,14 +480,200 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditProfileModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Profil Bilgilerini Düzenle
+              </h2>
+              <button
+                onClick={closeEditProfileModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition duration-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleUpdateProfile} className="p-6">
+              <div className="space-y-4">
+                {/* Profil Fotoğrafı */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Profil Fotoğrafı
+                  </label>
+                  {photoPreview ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={photoPreview}
+                        alt="Profil fotoğrafı"
+                        className="w-32 h-32 rounded-full object-cover border-4 border-green-100"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black bg-opacity-0 hover:bg-opacity-50 rounded-full transition-all duration-200 group">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            removePhoto();
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition duration-200"
+                          title="Fotoğrafı Sil"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        <label
+                          htmlFor="profile-photo-change"
+                          className="opacity-0 group-hover:opacity-100 p-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition duration-200 cursor-pointer"
+                          title="Fotoğrafı Değiştir"
+                        >
+                          <Upload className="w-4 h-4" />
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoChange}
+                          className="hidden"
+                          id="profile-photo-change"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-2">
+                        Profil fotoğrafı yükleyin
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                        id="profile-photo-upload"
+                      />
+                      <label
+                        htmlFor="profile-photo-upload"
+                        className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 cursor-pointer"
+                      >
+                        Fotoğraf Seç
+                      </label>
+                    </div>
+                  )}
+                  {profilePhoto && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Yeni fotoğraf: {profilePhoto.name}
+                    </p>
+                  )}
+                  {photoPreview && !profilePhoto && (
+                    <p className="text-xs text-gray-400 mt-2">
+                      Fotoğrafın üzerine gelerek değiştirebilir veya
+                      silebilirsiniz
+                    </p>
+                  )}
+                </div>
+
+                {/* İsim Soyisim */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ad
+                    </label>
+                    <input
+                      type="text"
+                      name="first_name"
+                      value={editProfileForm.first_name}
+                      onChange={handleEditProfileInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="Adınızı girin"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Soyad
+                    </label>
+                    <input
+                      type="text"
+                      name="last_name"
+                      value={editProfileForm.last_name}
+                      onChange={handleEditProfileInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="Soyadınızı girin"
+                    />
+                  </div>
+                </div>
+
+                {/* E-posta */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    E-posta
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={editProfileForm.email}
+                    onChange={handleEditProfileInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="E-posta adresinizi girin"
+                  />
+                </div>
+
+                {/* Telefon */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Telefon Numarası
+                  </label>
+                  <input
+                    type="text"
+                    name="telno"
+                    value={editProfileForm.telno}
+                    onChange={handleEditProfileInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="05331231212"
+                  />
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={closeEditProfileModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingProfile}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUpdatingProfile ? "Güncelleniyor..." : "Güncelle"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // Alt bileşenler
-const ProfileContent = ({ user }) => (
+const ProfileContent = ({ user, onEdit }) => (
   <div>
-    <h1 className="text-2xl font-bold text-gray-800 mb-6">Profil Bilgilerim</h1>
+    <div className="mb-6 flex items-center justify-between">
+      <h1 className="text-2xl font-bold text-gray-800">Profil Bilgilerim</h1>
+      <button
+        onClick={onEdit}
+        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200"
+      >
+        <Edit className="w-4 h-4" />
+        Profili Düzenle
+      </button>
+    </div>
     <div className="space-y-6">
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg profile-card">
         <div>
@@ -320,9 +682,6 @@ const ProfileContent = ({ user }) => (
             {user?.first_name || "Belirtilmemiş"} {user?.last_name || ""}
           </p>
         </div>
-        <button className="p-2 text-gray-400 hover:text-gray-600 edit-button">
-          <Edit className="w-4 h-4" />
-        </button>
       </div>
 
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg profile-card">
@@ -330,9 +689,6 @@ const ProfileContent = ({ user }) => (
           <p className="text-sm text-gray-500">E-posta</p>
           <p className="font-medium">{user?.email || "Belirtilmemiş"}</p>
         </div>
-        <button className="p-2 text-gray-400 hover:text-gray-600 edit-button">
-          <Edit className="w-4 h-4" />
-        </button>
       </div>
 
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg profile-card">
@@ -340,9 +696,6 @@ const ProfileContent = ({ user }) => (
           <p className="text-sm text-gray-500">Telefon</p>
           <p className="font-medium">{user?.telno || "Belirtilmemiş"}</p>
         </div>
-        <button className="p-2 text-gray-400 hover:text-gray-600 edit-button">
-          <Edit className="w-4 h-4" />
-        </button>
       </div>
 
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg profile-card">
@@ -356,9 +709,6 @@ const ProfileContent = ({ user }) => (
               : "Belirtilmemiş"}
           </p>
         </div>
-        <button className="p-2 text-gray-400 hover:text-gray-600 edit-button">
-          <Edit className="w-4 h-4" />
-        </button>
       </div>
 
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg profile-card">
@@ -368,10 +718,16 @@ const ProfileContent = ({ user }) => (
             {user?.bakiye ? `${user.bakiye}₺` : "0₺"}
           </p>
         </div>
-        <button className="p-2 text-gray-400 hover:text-gray-600 edit-button">
-          <Edit className="w-4 h-4" />
-        </button>
       </div>
+
+      {user?.alici_profili?.adres && (
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg profile-card">
+          <div>
+            <p className="text-sm text-gray-500">Adres (Alıcı Profili)</p>
+            <p className="font-medium">{user.alici_profili.adres}</p>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg profile-card">
         <div>
@@ -384,9 +740,6 @@ const ProfileContent = ({ user }) => (
             )}
           </p>
         </div>
-        <button className="p-2 text-gray-400 hover:text-gray-600 edit-button">
-          <Edit className="w-4 h-4" />
-        </button>
       </div>
     </div>
   </div>

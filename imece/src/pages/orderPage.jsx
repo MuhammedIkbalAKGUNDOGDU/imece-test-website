@@ -24,6 +24,10 @@ const orderPage = () => {
   const [selectedRating, setSelectedRating] = useState(0);
   const [comment, setComment] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]); // Yeni eklendi
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
 
   const id = parseInt(localStorage.getItem("userId"), 10);
 
@@ -139,6 +143,78 @@ const orderPage = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Adresleri çek
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!token) return;
+
+      try {
+        setIsLoadingAddresses(true);
+        const response = await axios.get(
+          "https://imecehub.com/users/list-addresses/",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "X-API-Key": apiKey,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        let addressesData = response.data;
+
+        // Eğer string ise JSON parse et
+        if (typeof response.data === "string") {
+          try {
+            addressesData = JSON.parse(response.data);
+          } catch (parseError) {
+            console.error("JSON parse error:", parseError);
+            return;
+          }
+        }
+
+        // Eğer object ise ve addresses property'si varsa onu al
+        if (
+          addressesData &&
+          typeof addressesData === "object" &&
+          !Array.isArray(addressesData)
+        ) {
+          if (addressesData.adresler) {
+            addressesData = addressesData.adresler;
+          } else if (addressesData.addresses) {
+            addressesData = addressesData.addresses;
+          } else if (addressesData.results) {
+            addressesData = addressesData.results;
+          } else if (addressesData.data) {
+            addressesData = addressesData.data;
+          }
+        }
+
+        // Array değilse boş array yap
+        if (!Array.isArray(addressesData)) {
+          console.warn("Addresses data is not an array:", addressesData);
+          addressesData = [];
+        }
+
+        setAddresses(addressesData);
+
+        // Varsayılan adresi seç
+        if (addressesData.length > 0 && !selectedAddressId) {
+          const defaultAddress =
+            addressesData.find((addr) => addr.varsayilan_adres) ||
+            addressesData[0];
+          setSelectedAddressId(defaultAddress.id);
+        }
+      } catch (err) {
+        console.error("Adres verileri alınırken hata:", err);
+      } finally {
+        setIsLoadingAddresses(false);
+      }
+    };
+
+    fetchAddresses();
+  }, [token]);
+
   const renderStars = (rating) => {
     let stars = [];
     const fullStars = Math.floor(rating);
@@ -195,13 +271,29 @@ const orderPage = () => {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          alert("Yorum gönderilirken bir hata oluştu. Lütfen tekrar deneyin.");
+          return;
+        }
+        
         console.error("Hata:", errorData);
-        alert(
-          errorData?.detail ||
-            errorData?.message ||
-            "Yorum gönderilirken bir hata oluştu."
-        );
+        
+        // Özel hata mesajı kontrolü
+        if (errorData?.durum === "HATA" && errorData?.mesaj) {
+          alert(errorData.mesaj);
+        } else if (errorData?.mesaj) {
+          alert(errorData.mesaj);
+        } else if (errorData?.detail) {
+          alert(errorData.detail);
+        } else if (errorData?.message) {
+          alert(errorData.message);
+        } else {
+          alert("Yorum gönderilirken bir hata oluştu. Lütfen tekrar deneyin.");
+        }
         return;
       }
 
@@ -233,13 +325,24 @@ const orderPage = () => {
   }, [isRatingOpen]);
 
   const handleJoinGroup = async () => {
+    // Eğer adres yoksa uyarı göster
+    if (addresses.length === 0) {
+      alert("Gruba katılmak için önce bir adres eklemeniz gerekiyor.");
+      return;
+    }
+
+    // Her zaman adres seçim modalını aç
+    setShowAddressModal(true);
+  };
+
+  const joinGroupWithAddress = async (addressId) => {
     try {
       const response = await axios.post(
         "https://imecehub.com/products/groups/join/",
         {
-          group_id: groupInfo?.group_id, // veya sabit örnek: 3
-          amount: 1, // sabit
-          address_id: 2, // sabit
+          group_id: groupInfo?.group_id,
+          amount: 1,
+          address_id: addressId,
         },
         {
           headers: {
@@ -252,10 +355,58 @@ const orderPage = () => {
 
       console.log("Gruba Katılım Başarılı:", response.data);
       alert("Gruba başarıyla katıldınız!");
+      setShowAddressModal(false);
     } catch (error) {
       console.error("Gruba katılım başarısız:", error.response?.data || error);
-      alert("Gruba katılırken bir hata oluştu.");
+      
+      // Hata mesajını kontrol et ve kullanıcıya göster
+      const errorData = error.response?.data;
+      let errorMessage = "Gruba katılırken bir hata oluştu.";
+      
+      if (errorData) {
+        // error alanı varsa onu kullan
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } 
+        // mesaj alanı varsa onu kullan
+        else if (errorData.mesaj) {
+          errorMessage = errorData.mesaj;
+        }
+        // detail alanı varsa onu kullan
+        else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+        // message alanı varsa onu kullan
+        else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      }
+      
+      alert(errorMessage);
     }
+  };
+
+  const handleAddressSelect = (addressId) => {
+    setSelectedAddressId(addressId);
+    setShowAddressModal(false);
+    // Adres seçildikten sonra otomatik katıl
+    joinGroupWithAddress(addressId);
+  };
+
+  // Adres formatını oluştur
+  const formatAddress = (address) => {
+    if (!address) return "Adres bulunamadı";
+
+    const parts = [];
+    if (address.adres_satiri_1) parts.push(address.adres_satiri_1);
+    if (address.adres_satiri_2) parts.push(address.adres_satiri_2);
+    if (address.mahalle) parts.push(address.mahalle);
+    if (address.ilce) parts.push(address.ilce);
+    if (address.il) parts.push(address.il);
+    if (address.posta_kodu) parts.push(address.posta_kodu);
+    if (address.ulke) parts.push(address.ulke);
+
+    return parts.join(", ");
   };
 
   const handleAddToCart = async () => {
@@ -483,6 +634,88 @@ const orderPage = () => {
             )}
           </div>
         </div>
+
+        {/* Adres Seçim Modalı */}
+        {showAddressModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto mx-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">Teslimat Adresi Seçin</h3>
+                <button
+                  onClick={() => setShowAddressModal(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  &times;
+                </button>
+              </div>
+
+              {isLoadingAddresses ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Adresler yükleniyor...</p>
+                </div>
+              ) : addresses.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 mb-4">
+                    Henüz adres eklenmemiş. Lütfen önce bir adres ekleyin.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowAddressModal(false);
+                      navigate("/profile");
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                  >
+                    Profil Sayfasına Git
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {addresses.map((address) => (
+                    <div
+                      key={address.id}
+                      className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                        selectedAddressId === address.id
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-300 hover:border-gray-400"
+                      }`}
+                      onClick={() => handleAddressSelect(address.id)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-semibold text-lg">
+                          {address.baslik || "Adres"}
+                        </h5>
+                        {address.varsayilan_adres && (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            Varsayılan
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mb-1">
+                        {formatAddress(address)}
+                      </p>
+                      <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                        {address.adres_tipi === "ev"
+                          ? "Ev"
+                          : address.adres_tipi === "is"
+                          ? "İş"
+                          : "Diğer"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setShowAddressModal(false)}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition"
+                >
+                  İptal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {/* <div className="order-page-other-pictures">
           <p className="order-page-other-pictures-title">
             Yusuf Yılmazın Paylaştığı Bazı Görseller

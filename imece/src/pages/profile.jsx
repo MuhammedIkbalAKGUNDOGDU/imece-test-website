@@ -20,6 +20,7 @@ import {
   Plus,
   X,
   Upload,
+  Wallet,
 } from "lucide-react";
 
 export default function Profile() {
@@ -67,6 +68,12 @@ export default function Profile() {
       label: "Değerlendirmelerim",
       icon: Star,
       color: "text-yellow-600",
+    },
+    {
+      id: "balance",
+      label: "Bakiye Yükle",
+      icon: Wallet,
+      color: "text-indigo-600",
     },
     {
       id: "settings",
@@ -297,6 +304,8 @@ export default function Profile() {
         return <AddressesContent />;
       case "reviews":
         return <ReviewsContent />;
+      case "balance":
+        return <BalanceContent />;
       case "settings":
         return <SettingsContent />;
       default:
@@ -2017,6 +2026,149 @@ const ReviewsContent = () => {
           ))}
         </div>
       )}
+    </div>
+  );
+};
+
+const BalanceContent = () => {
+  const [selectedAmount, setSelectedAmount] = useState(null);
+  const [customAmount, setCustomAmount] = useState("");
+  const [currentBalance, setCurrentBalance] = useState(0); // Göstermelik bakiye
+
+  const presetAmounts = [50, 100, 250, 500, 1000];
+
+  const handleAmountSelect = (amount) => {
+    setSelectedAmount(amount);
+    setCustomAmount("");
+  };
+
+  const handleCustomAmountChange = (e) => {
+    const value = e.target.value;
+    if (value === "" || (!isNaN(value) && parseFloat(value) > 0)) {
+      setCustomAmount(value);
+      setSelectedAmount(null);
+    }
+  };
+
+  const handleLoadBalance = () => {
+    const amount = customAmount ? parseFloat(customAmount) : selectedAmount;
+    if (amount && amount > 0) {
+      alert(`Bakiye yükleme işlemi başlatıldı: ${amount} TL\n\n(Bu şimdilik sadece göstermelik bir sayfadır)`);
+    } else {
+      alert("Lütfen bir tutar seçin veya girin.");
+    }
+  };
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Bakiye Yükle</h1>
+
+      {/* Mevcut Bakiye Kartı */}
+      <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-6 mb-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-indigo-100 text-sm mb-1">Mevcut Bakiyeniz</p>
+            <p className="text-3xl font-bold">{currentBalance.toFixed(2)} TL</p>
+          </div>
+          <Wallet className="w-12 h-12 text-indigo-200" />
+        </div>
+      </div>
+
+      {/* Tutar Seçimi */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          Yüklenecek Tutarı Seçin
+        </h2>
+
+        {/* Önceden Belirlenmiş Tutarlar */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+          {presetAmounts.map((amount) => (
+            <button
+              key={amount}
+              onClick={() => handleAmountSelect(amount)}
+              className={`p-4 rounded-lg border-2 transition-all ${
+                selectedAmount === amount
+                  ? "border-indigo-500 bg-indigo-50 text-indigo-700 font-semibold"
+                  : "border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
+              }`}
+            >
+              {amount} TL
+            </button>
+          ))}
+        </div>
+
+        {/* Özel Tutar Girişi */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Veya Özel Tutar Girin
+          </label>
+          <div className="relative">
+            <input
+              type="number"
+              value={customAmount}
+              onChange={handleCustomAmountChange}
+              placeholder="Tutar girin (örn: 150)"
+              min="1"
+              step="0.01"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+            <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">
+              TL
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Ödeme Yöntemi (Göstermelik) */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          Ödeme Yöntemi
+        </h2>
+        <div className="space-y-3">
+          <div className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-indigo-300 cursor-pointer">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+              <span className="text-blue-600 font-bold text-sm">KART</span>
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-gray-800">Kredi/Banka Kartı</p>
+              <p className="text-sm text-gray-500">Visa, Mastercard, Troy</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </div>
+
+          <div className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-indigo-300 cursor-pointer">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+              <span className="text-green-600 font-bold text-sm">QR</span>
+            </div>
+            <div className="flex-1">
+              <p className="font-medium text-gray-800">QR Kod ile Ödeme</p>
+              <p className="text-sm text-gray-500">Mobil ödeme uygulamaları</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </div>
+        </div>
+      </div>
+
+      {/* Yükle Butonu */}
+      <button
+        onClick={handleLoadBalance}
+        disabled={!selectedAmount && !customAmount}
+        className={`w-full py-4 rounded-lg font-semibold text-white transition-all ${
+          selectedAmount || customAmount
+            ? "bg-indigo-600 hover:bg-indigo-700 shadow-lg"
+            : "bg-gray-300 cursor-not-allowed"
+        }`}
+      >
+        Bakiye Yükle
+      </button>
+
+      {/* Bilgilendirme */}
+      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm text-blue-800">
+          <strong>Not:</strong> Bu sayfa şimdilik sadece göstermeliktir. Gerçek
+          ödeme işlemleri yakında eklenecektir.
+        </p>
+      </div>
     </div>
   );
 };

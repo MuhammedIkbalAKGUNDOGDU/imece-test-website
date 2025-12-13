@@ -30,8 +30,10 @@ import SellerFinancialDashboard from "./pages/seller/financialDashboard";
 import ProductManagement from "./pages/admin/ProductManagement";
 import EarlyAccessAdmin from "./pages/admin/EarlyAccessAdmin";
 import AdminCampaigns from "./pages/AdminCampaigns";
+import SupportTicketsAdmin from "./pages/admin/SupportTicketsAdmin";
 import Favoriler from "./pages/favoriler";
 import EarlyAccess from "./pages/earlyAccess";
+import Support from "./pages/support";
 import { UrunProvider } from "./context/UrunContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -86,7 +88,14 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
         <Route path="/admin/campaigns" element={<AdminCampaigns />} />
 
+        <Route
+          path="/admin/support-tickets"
+          element={<SupportTicketsAdmin />}
+        />
+
         <Route path="/early-access" element={<EarlyAccess />}></Route>
+
+        <Route path="/support" element={<Support />}></Route>
 
         <Route path="/*" element={<NotFound404 />}></Route>
       </Routes>

@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/GenerealUse/Header";
 import { apiKey } from "../config";
 import "../styles/profile.css";
@@ -21,9 +22,11 @@ import {
   X,
   Upload,
   Wallet,
+  Headphones,
 } from "lucide-react";
 
 export default function Profile() {
+  const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [currentMenu, setCurrentMenu] = useState("profile");
   const [isLoading, setIsLoading] = useState(true);
@@ -74,6 +77,12 @@ export default function Profile() {
       label: "Bakiye Yükle",
       icon: Wallet,
       color: "text-indigo-600",
+    },
+    {
+      id: "support",
+      label: "Müşteri Hizmetleri",
+      icon: Headphones,
+      color: "text-pink-600",
     },
     {
       id: "settings",
@@ -450,6 +459,28 @@ export default function Profile() {
               <nav className="space-y-2">
                 {menuItems.map((item) => {
                   const Icon = item.icon;
+                  
+                  // Müşteri Hizmetleri için özel yönlendirme
+                  if (item.id === "support") {
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => navigate("/support")}
+                        className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-gray-50 ${
+                          currentMenu === item.id
+                            ? "bg-gray-100"
+                            : ""
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className={`w-5 h-5 ${item.color}`} />
+                          <span className="text-gray-700">{item.label}</span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                      </button>
+                    );
+                  }
+                  
                   return (
                     <button
                       key={item.id}

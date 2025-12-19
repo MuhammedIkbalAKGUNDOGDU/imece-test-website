@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios"; // Axios'u import et
 import "../styles/auth_Styles/login.css";
 import banner from "../assets/images/auth_banner.jpg";
@@ -6,6 +6,7 @@ import logo from "../assets/images/logo.png";
 import googleIcon from "../assets/vectors/google.svg";
 import { useNavigate } from "react-router-dom"; // Yönlendirme için hook'u import et
 import { apiKey } from "../config";  // veya "../constants" dosya ismine göre
+import { Check, X, Eye, EyeOff } from "lucide-react";
 
 const Register = () => {
   const navigate = useNavigate(); // useNavigate hook'unu çağır
@@ -18,15 +19,57 @@ const Register = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Şifre validasyon kuralları
+  const [passwordRules, setPasswordRules] = useState({
+    minLength: false,
+    hasUpperCase: false,
+    hasNumber: false,
+  });
+  
+  // Şifre eşleşme kontrolü
+  const [passwordsMatch, setPasswordsMatch] = useState(false);
 
   const isFormValid =
     email.trim() !== "" &&
     password.trim() !== "" &&
+    confirmPassword.trim() !== "" &&
     username.trim() !== "" &&
-    termsAccepted;
+    termsAccepted &&
+    passwordsMatch;
+
+  // Şifre değiştiğinde kuralları kontrol et
+  useEffect(() => {
+    if (password) {
+      setPasswordRules({
+        minLength: password.length >= 8,
+        hasUpperCase: /[A-Z]/.test(password),
+        hasNumber: /\d/.test(password),
+      });
+    } else {
+      setPasswordRules({
+        minLength: false,
+        hasUpperCase: false,
+        hasNumber: false,
+      });
+    }
+  }, [password]);
+
+  // Şifre eşleşme kontrolü
+  useEffect(() => {
+    if (confirmPassword) {
+      setPasswordsMatch(password === confirmPassword && password !== "");
+    } else {
+      setPasswordsMatch(false);
+    }
+  }, [password, confirmPassword]);
 
   const validatePassword = (password) => {
     const hasMinLength = password.length >= 8;
@@ -84,6 +127,13 @@ const Register = () => {
       return;
     }
 
+    if (password !== confirmPassword) {
+      setError("Şifreler eşleşmiyor. Lütfen tekrar kontrol edin.");
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
       const response = await axios.post(
         apiUrl,
@@ -109,6 +159,8 @@ const Register = () => {
     } catch (error) {
       const errorMessage = formatErrorMessage(error);
       setError(Array.isArray(errorMessage) ? errorMessage : [errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -152,15 +204,144 @@ const Register = () => {
           <label className="green underlined login-label" htmlFor="password">
             Şifre
           </label>
-          <input
-            className="login-input"
-            type="password"
-            id="password"
-            value={password}
-            placeholder="Şifreni gir"
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div style={{ position: "relative", width: "100%" }}>
+            <input
+              className="login-input"
+              type={showPassword ? "text" : "password"}
+              id="password"
+              value={password}
+              placeholder="Şifreni gir"
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{ paddingRight: "40px", width: "100%", boxSizing: "border-box" }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: "8px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#6b7280",
+                outline: "none"
+              }}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+          
+          {/* Şifre Validasyon Kuralları */}
+          {password && (
+            <div className="password-rules" style={{ marginTop: "8px", fontSize: "12px" }}>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "6px",
+                color: passwordRules.minLength ? "#10b981" : "#6b7280",
+                marginBottom: "4px"
+              }}>
+                {passwordRules.minLength ? (
+                  <Check size={14} />
+                ) : (
+                  <X size={14} />
+                )}
+                <span>En az 8 karakter</span>
+              </div>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "6px",
+                color: passwordRules.hasUpperCase ? "#10b981" : "#6b7280",
+                marginBottom: "4px"
+              }}>
+                {passwordRules.hasUpperCase ? (
+                  <Check size={14} />
+                ) : (
+                  <X size={14} />
+                )}
+                <span>En az bir büyük harf</span>
+              </div>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "6px",
+                color: passwordRules.hasNumber ? "#10b981" : "#6b7280"
+              }}>
+                {passwordRules.hasNumber ? (
+                  <Check size={14} />
+                ) : (
+                  <X size={14} />
+                )}
+                <span>En az bir rakam</span>
+              </div>
+            </div>
+          )}
+
+          <label className="green underlined login-label" htmlFor="confirmPassword" style={{ marginTop: "16px" }}>
+            Şifre Tekrar
+          </label>
+          <div style={{ position: "relative", width: "100%" }}>
+            <input
+              className="login-input"
+              type={showConfirmPassword ? "text" : "password"}
+              id="confirmPassword"
+              value={confirmPassword}
+              placeholder="Şifreni tekrar gir"
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              style={{ paddingRight: "40px", width: "100%", boxSizing: "border-box" }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              style={{
+                position: "absolute",
+                right: "8px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#6b7280",
+                outline: "none"
+              }}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+          
+          {/* Şifre Eşleşme Kontrolü */}
+          {confirmPassword && (
+            <div style={{ marginTop: "8px", fontSize: "12px" }}>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "6px",
+                color: passwordsMatch ? "#10b981" : "#ef4444"
+              }}>
+                {passwordsMatch ? (
+                  <Check size={14} />
+                ) : (
+                  <X size={14} />
+                )}
+                <span>Şifreler eşleşiyor</span>
+              </div>
+            </div>
+          )}
 
           <div className="terms">
             <input
@@ -195,11 +376,33 @@ const Register = () => {
           <button
             type="submit"
             className={`login-submit-button ${
-              isFormValid ? "login-submit-button-active " : ""
+              isFormValid && !isLoading ? "login-submit-button-active " : ""
             }`}
-            disabled={!isFormValid}
+            disabled={!isFormValid || isLoading}
+            style={{ position: "relative" }}
           >
-            İlerle
+            {isLoading ? (
+              <>
+                <span style={{ marginRight: "8px" }}>Yükleniyor...</span>
+                <div style={{
+                  display: "inline-block",
+                  width: "14px",
+                  height: "14px",
+                  border: "2px solid #ffffff",
+                  borderTop: "2px solid transparent",
+                  borderRadius: "50%",
+                  animation: "spin 0.8s linear infinite"
+                }}></div>
+                <style>{`
+                  @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                  }
+                `}</style>
+              </>
+            ) : (
+              "İlerle"
+            )}
           </button>
 
           <div className="or-divider">Yada</div>

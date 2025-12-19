@@ -14,10 +14,13 @@ import {
   FileText,
   X,
   RefreshCw,
+  Store,
 } from "lucide-react";
 
 const SupportTicketsAdmin = () => {
   const [tickets, setTickets] = useState([]);
+  const [sellerTickets, setSellerTickets] = useState([]);
+  const [activeTab, setActiveTab] = useState("normal"); // "normal" veya "seller"
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({});
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -53,20 +56,28 @@ const SupportTicketsAdmin = () => {
   ];
 
   useEffect(() => {
-    fetchTickets();
+    if (activeTab === "normal") {
+      fetchTickets();
+    } else {
+      fetchSellerTickets();
+    }
     fetchUsers(); // Kullanıcı listesini çek (personel atama için)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, subjectFilter]);
+  }, [statusFilter, subjectFilter, activeTab]);
 
   // Arama için debounce
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchTickets();
+      if (activeTab === "normal") {
+        fetchTickets();
+      } else {
+        fetchSellerTickets();
+      }
     }, 500);
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm]);
+  }, [searchTerm, activeTab]);
 
   const fetchUsers = async () => {
     try {
@@ -103,16 +114,17 @@ const SupportTicketsAdmin = () => {
       const token = localStorage.getItem("accessToken");
       if (!token) return null;
       
-      const response = await axios.get(
-        `https://imecehub.com/api/support/tickets/${ticketId}/`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "X-API-Key": apiKey,
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const endpoint = activeTab === "normal" 
+        ? `https://imecehub.com/api/support/tickets/${ticketId}/`
+        : `https://imecehub.com/api/support/seller-tickets/${ticketId}/`;
+      
+      const response = await axios.get(endpoint, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": apiKey,
+          Authorization: `Bearer ${token}`,
+        },
+      });
       
       return response.data;
     } catch (error) {
@@ -136,16 +148,16 @@ const SupportTicketsAdmin = () => {
       const formData = new FormData();
       formData.append("notes", notes);
 
-      await axios.patch(
-        `https://imecehub.com/api/support/tickets/${ticketId}/`,
-        formData,
-        {
-          headers: {
-            "X-API-Key": apiKey,
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const endpoint = activeTab === "normal"
+        ? `https://imecehub.com/api/support/tickets/${ticketId}/`
+        : `https://imecehub.com/api/support/seller-tickets/${ticketId}/`;
+
+      await axios.patch(endpoint, formData, {
+        headers: {
+          "X-API-Key": apiKey,
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setMessage({
         type: "success",
@@ -157,7 +169,11 @@ const SupportTicketsAdmin = () => {
         setSelectedTicket({ ...selectedTicket, notes: notes });
       }
       
-      fetchTickets();
+      if (activeTab === "normal") {
+        fetchTickets();
+      } else {
+        fetchSellerTickets();
+      }
     } catch (error) {
       console.error("Notlar kaydedilemedi:", error);
       
@@ -249,6 +265,80 @@ const SupportTicketsAdmin = () => {
     }
   };
 
+  const fetchSellerTickets = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("accessToken");
+      
+      if (!token) {
+        setMessage({
+          type: "error",
+          text: "Giriş yapmanız gerekiyor",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Query parametreleri oluştur
+      const params = new URLSearchParams();
+      if (statusFilter !== "all") {
+        params.append("status", statusFilter);
+      }
+      if (subjectFilter !== "all") {
+        params.append("subject", subjectFilter);
+      }
+      if (searchTerm) {
+        params.append("search", searchTerm);
+      }
+
+      const url = `https://imecehub.com/api/support/seller-tickets/${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
+
+      const response = await axios.get(url, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": apiKey,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // API'den gelen veriyi kontrol et
+      if (Array.isArray(response.data)) {
+        setSellerTickets(response.data);
+      } else if (response.data.results) {
+        setSellerTickets(response.data.results);
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        setSellerTickets(response.data.data);
+      } else {
+        setSellerTickets([]);
+      }
+      setMessage({ type: "", text: "" });
+    } catch (error) {
+      console.error("Seller ticket'lar alınamadı:", error);
+      
+      let errorMessage = "Seller ticketlar yüklenirken hata oluştu";
+      
+      if (error.response?.status === 401) {
+        errorMessage = "Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.";
+      } else if (error.response?.status === 403) {
+        errorMessage = "Bu sayfaya erişim yetkiniz yok.";
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      setMessage({
+        type: "error",
+        text: errorMessage,
+      });
+      setSellerTickets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleStatusUpdate = async (ticketId, newStatus) => {
     try {
       setActionLoading((prev) => ({ ...prev, [ticketId]: true }));
@@ -258,23 +348,27 @@ const SupportTicketsAdmin = () => {
       const formData = new FormData();
       formData.append("status", newStatus);
 
-      await axios.patch(
-        `https://imecehub.com/api/support/tickets/${ticketId}/update_status/`,
-        formData,
-        {
-          headers: {
-            "X-API-Key": apiKey,
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const endpoint = activeTab === "normal"
+        ? `https://imecehub.com/api/support/tickets/${ticketId}/update_status/`
+        : `https://imecehub.com/api/support/seller-tickets/${ticketId}/`;
+
+      await axios.patch(endpoint, formData, {
+        headers: {
+          "X-API-Key": apiKey,
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setMessage({
         type: "success",
         text: "Ticket durumu güncellendi",
       });
 
-      fetchTickets();
+      if (activeTab === "normal") {
+        fetchTickets();
+      } else {
+        fetchSellerTickets();
+      }
       
       // Modal açıksa ticket'ı güncelle
       if (selectedTicket && selectedTicket.id === ticketId) {
@@ -370,33 +464,35 @@ const SupportTicketsAdmin = () => {
 
     try {
       const token = localStorage.getItem("accessToken");
+      const baseEndpoint = activeTab === "normal"
+        ? `https://imecehub.com/api/support/tickets/`
+        : `https://imecehub.com/api/support/seller-tickets/`;
+      
       const promises = selectedTickets.map((ticketId) => {
         if (action === "resolve") {
           const formData = new FormData();
           formData.append("status", "resolved");
-          return axios.patch(
-            `https://imecehub.com/api/support/tickets/${ticketId}/update_status/`,
-            formData,
-            {
-              headers: {
-                "X-API-Key": apiKey,
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          const endpoint = activeTab === "normal"
+            ? `${baseEndpoint}${ticketId}/update_status/`
+            : `${baseEndpoint}${ticketId}/`;
+          return axios.patch(endpoint, formData, {
+            headers: {
+              "X-API-Key": apiKey,
+              Authorization: `Bearer ${token}`,
+            },
+          });
         } else if (action === "close") {
           const formData = new FormData();
           formData.append("status", "closed");
-          return axios.patch(
-            `https://imecehub.com/api/support/tickets/${ticketId}/update_status/`,
-            formData,
-            {
-              headers: {
-                "X-API-Key": apiKey,
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          const endpoint = activeTab === "normal"
+            ? `${baseEndpoint}${ticketId}/update_status/`
+            : `${baseEndpoint}${ticketId}/`;
+          return axios.patch(endpoint, formData, {
+            headers: {
+              "X-API-Key": apiKey,
+              Authorization: `Bearer ${token}`,
+            },
+          });
         }
       });
 
@@ -408,7 +504,11 @@ const SupportTicketsAdmin = () => {
       });
 
       setSelectedTickets([]);
-      fetchTickets();
+      if (activeTab === "normal") {
+        fetchTickets();
+      } else {
+        fetchSellerTickets();
+      }
     } catch (error) {
       console.error("Toplu işlem hatası:", error);
       setMessage({
@@ -449,7 +549,9 @@ const SupportTicketsAdmin = () => {
   };
 
   // Filtreleme ve arama - Artık backend'de yapılıyor, burada sadece client-side arama için
-  const filteredTickets = tickets.filter((ticket) => {
+  const currentTickets = activeTab === "normal" ? tickets : sellerTickets;
+  
+  const filteredTickets = currentTickets.filter((ticket) => {
     // Eğer backend'de arama yapılmıyorsa client-side arama
     if (searchTerm) {
       const matchesSearch =
@@ -457,7 +559,8 @@ const SupportTicketsAdmin = () => {
         ticket.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket.message?.toLowerCase().includes(searchTerm.toLowerCase());
+        ticket.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.seller_username?.toLowerCase().includes(searchTerm.toLowerCase());
       
       if (!matchesSearch) return false;
     }
@@ -520,11 +623,53 @@ const SupportTicketsAdmin = () => {
             </p>
           </div>
           <button
-            onClick={fetchTickets}
+            onClick={() => {
+              if (activeTab === "normal") {
+                fetchTickets();
+              } else {
+                fetchSellerTickets();
+              }
+            }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
           >
             <RefreshCw className="w-5 h-5" />
             Yenile
+          </button>
+        </div>
+
+        {/* Tab Seçimi */}
+        <div className="mb-6 flex gap-2 border-b border-gray-200">
+          <button
+            onClick={() => {
+              setActiveTab("normal");
+              setSelectedTickets([]);
+            }}
+            className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+              activeTab === "normal"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Normal Ticket'lar
+            </div>
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("seller");
+              setSelectedTickets([]);
+            }}
+            className={`px-6 py-3 font-medium transition-colors border-b-2 ${
+              activeTab === "seller"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Store className="w-5 h-5" />
+              Satıcı Ticket'ları
+            </div>
           </button>
         </div>
 
@@ -629,8 +774,10 @@ const SupportTicketsAdmin = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
             <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500 text-lg">
-              {tickets.length === 0
-                ? "Henüz destek talebi bulunmuyor"
+              {currentTickets.length === 0
+                ? activeTab === "normal"
+                  ? "Henüz destek talebi bulunmuyor"
+                  : "Henüz satıcı destek talebi bulunmuyor"
                 : "Filtre kriterlerine uygun ticket bulunamadı"}
             </p>
           </div>
@@ -654,12 +801,21 @@ const SupportTicketsAdmin = () => {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Ticket No
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      İsim
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      E-posta
-                    </th>
+                    {activeTab === "normal" && (
+                      <>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          İsim
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          E-posta
+                        </th>
+                      </>
+                    )}
+                    {activeTab === "seller" && (
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Satıcı
+                      </th>
+                    )}
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Konu
                     </th>
@@ -693,22 +849,36 @@ const SupportTicketsAdmin = () => {
                           {ticket.ticket_number || `#${ticket.id}`}
                         </span>
                       </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-800">
-                            {ticket.name}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600">
-                            {ticket.email}
-                          </span>
-                        </div>
-                      </td>
+                      {activeTab === "normal" && (
+                        <>
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm font-medium text-gray-800">
+                                {ticket.name}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm text-gray-600">
+                                {ticket.email}
+                              </span>
+                            </div>
+                          </td>
+                        </>
+                      )}
+                      {activeTab === "seller" && (
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-2">
+                            <Store className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-800">
+                              {ticket.seller_username || `ID: ${ticket.seller}`}
+                            </span>
+                          </div>
+                        </td>
+                      )}
                       <td className="px-4 py-4">
                         <span className="text-sm text-gray-700">
                           {ticket.subject}
@@ -784,7 +954,7 @@ const SupportTicketsAdmin = () => {
               <div>
                 <p className="text-sm text-gray-500">Toplam</p>
                 <p className="text-2xl font-bold text-gray-800">
-                  {tickets.length}
+                  {currentTickets.length}
                 </p>
               </div>
               <FileText className="w-8 h-8 text-gray-400" />
@@ -795,7 +965,7 @@ const SupportTicketsAdmin = () => {
               <div>
                 <p className="text-sm text-gray-500">Beklemede</p>
                 <p className="text-2xl font-bold text-orange-600">
-                  {tickets.filter((t) => t.status === "pending").length}
+                  {currentTickets.filter((t) => t.status === "pending").length}
                 </p>
               </div>
               <Clock className="w-8 h-8 text-orange-400" />
@@ -806,7 +976,7 @@ const SupportTicketsAdmin = () => {
               <div>
                 <p className="text-sm text-gray-500">İşlemde</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {tickets.filter((t) => t.status === "in_progress").length}
+                  {currentTickets.filter((t) => t.status === "in_progress").length}
                 </p>
               </div>
               <RefreshCw className="w-8 h-8 text-blue-400" />
@@ -817,7 +987,7 @@ const SupportTicketsAdmin = () => {
               <div>
                 <p className="text-sm text-gray-500">Çözüldü</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {tickets.filter((t) => t.status === "resolved").length}
+                  {currentTickets.filter((t) => t.status === "resolved").length}
                 </p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-400" />
@@ -850,28 +1020,42 @@ const SupportTicketsAdmin = () => {
             <div className="p-6 space-y-6">
               {/* Temel Bilgiler */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Ad Soyad
-                  </label>
-                  <p className="mt-1 text-gray-800 font-medium">
-                    {selectedTicket.name}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    E-posta
-                  </label>
-                  <p className="mt-1 text-gray-800">{selectedTicket.email}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Telefon
-                  </label>
-                  <p className="mt-1 text-gray-800">
-                    {selectedTicket.phone || "-"}
-                  </p>
-                </div>
+                {activeTab === "normal" && (
+                  <>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Ad Soyad
+                      </label>
+                      <p className="mt-1 text-gray-800 font-medium">
+                        {selectedTicket.name}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        E-posta
+                      </label>
+                      <p className="mt-1 text-gray-800">{selectedTicket.email}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Telefon
+                      </label>
+                      <p className="mt-1 text-gray-800">
+                        {selectedTicket.phone || "-"}
+                      </p>
+                    </div>
+                  </>
+                )}
+                {activeTab === "seller" && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Satıcı
+                    </label>
+                    <p className="mt-1 text-gray-800 font-medium">
+                      {selectedTicket.seller_username || `ID: ${selectedTicket.seller}`}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <label className="text-sm font-medium text-gray-500">
                     Durum
@@ -932,42 +1116,44 @@ const SupportTicketsAdmin = () => {
                 </div>
               )}
 
-              {/* Personel Atama */}
-              <div>
-                <label className="text-sm font-medium text-gray-500 mb-2 block">
-                  Atanan Personel
-                </label>
-                <div className="flex items-center gap-3">
-                  <select
-                    value={selectedUserId || ""}
-                    onChange={(e) => setSelectedUserId(e.target.value ? parseInt(e.target.value) : null)}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Personel Seçin</option>
-                    {users.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.first_name} {user.last_name} ({user.email})
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => {
-                      if (selectedTicket) {
-                        handleAssign(selectedTicket.id, selectedUserId);
-                      }
-                    }}
-                    disabled={actionLoading[`assign-${selectedTicket?.id}`]}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                  >
-                    {actionLoading[`assign-${selectedTicket?.id}`] ? "Atanıyor..." : "Ata"}
-                  </button>
+              {/* Personel Atama - Sadece normal ticket'lar için */}
+              {activeTab === "normal" && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500 mb-2 block">
+                    Atanan Personel
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={selectedUserId || ""}
+                      onChange={(e) => setSelectedUserId(e.target.value ? parseInt(e.target.value) : null)}
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Personel Seçin</option>
+                      {users.map((user) => (
+                        <option key={user.id} value={user.id}>
+                          {user.first_name} {user.last_name} ({user.email})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => {
+                        if (selectedTicket) {
+                          handleAssign(selectedTicket.id, selectedUserId);
+                        }
+                      }}
+                      disabled={actionLoading[`assign-${selectedTicket?.id}`]}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                    >
+                      {actionLoading[`assign-${selectedTicket?.id}`] ? "Atanıyor..." : "Ata"}
+                    </button>
+                  </div>
+                  {selectedTicket?.assigned_to && (
+                    <p className="mt-2 text-sm text-gray-600">
+                      Şu anda atanan: {selectedTicket.assigned_to_email || selectedTicket.assigned_to?.email || "Bilinmiyor"}
+                    </p>
+                  )}
                 </div>
-                {selectedTicket?.assigned_to && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    Şu anda atanan: {selectedTicket.assigned_to_email || selectedTicket.assigned_to?.email || "Bilinmiyor"}
-                  </p>
-                )}
-              </div>
+              )}
 
               {/* İç Notlar */}
               <div>

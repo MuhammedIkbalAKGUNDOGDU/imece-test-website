@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+#.MD DOSYALARI AÇIKLAMALAR İÇİN
+SUPPORT_APIS.md
+BACKEND_API_PROMPT.md

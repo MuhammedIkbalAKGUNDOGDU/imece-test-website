@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Plus, Upload, X } from "lucide-react";
+import { Plus, Upload, X, Headphones } from "lucide-react";
 import Header from "../../components/GenerealUse/Header";
 import { apiKey } from "../../config";
 import { storiesService } from "../../services/campaignsAndStoriesService";
@@ -49,8 +49,18 @@ const SellerLandingPage = () => {
 
         const userResponse = await axios.get(userApiUrl, { headers });
         const userId = userResponse.data.id;
+        const userRole = userResponse.data.rol;
+        
         console.log("Kullanıcı ID:", userId);
         console.log("Kullanıcı bilgileri:", userResponse.data);
+        console.log("Kullanıcı rolü:", userRole);
+
+        // Satıcı kontrolü - Eğer satıcı değilse ana sayfaya yönlendir
+        if (userRole !== "satici") {
+          console.warn("Bu sayfa sadece satıcılar için. Kullanıcı rolü:", userRole);
+          navigate("/");
+          return;
+        }
 
         localStorage.setItem("userId", userId);
         setUserInfo(userResponse.data); // Kullanıcı bilgilerini state'e kaydet
@@ -136,6 +146,10 @@ const SellerLandingPage = () => {
 
   const handleViewFinancialDashboard = () => {
     navigate("/seller/financial-dashboard");
+  };
+
+  const handleViewSupport = () => {
+    navigate("/seller-support");
   };
 
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -730,6 +744,25 @@ const SellerLandingPage = () => {
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                   />
                 </svg>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+            onClick={handleViewSupport}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Destek Talebi
+                </h3>
+                <p className="text-gray-600">
+                  Sorularınız için destek talebi oluşturun ve yardım alın
+                </p>
+              </div>
+              <div className="p-3 rounded-full bg-pink-100 text-pink-600">
+                <Headphones className="w-6 h-6" />
               </div>
             </div>
           </div>

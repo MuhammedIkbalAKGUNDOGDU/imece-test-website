@@ -76,9 +76,39 @@ const login = () => {
       );
 
       if (response.data.status === "success") {
-        localStorage.setItem("accessToken", response.data.tokens.access);
-        localStorage.setItem("refreshToken", response.data.tokens.refresh);
-        navigate("/");
+        const accessToken = response.data.tokens.access;
+        const refreshToken = response.data.tokens.refresh;
+        
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        
+        // Kullanıcı bilgilerini çek ve rol kontrolü yap
+        try {
+          const userResponse = await axios.get(
+            "https://imecehub.com/api/users/kullanicilar/me/",
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "X-API-Key": apiKey,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          
+          const userRole = userResponse.data?.rol;
+          
+          // Eğer kullanıcı satıcı ise seller landing sayfasına yönlendir
+          if (userRole === "satici") {
+            navigate("/seller/landing");
+          } else {
+            // Normal kullanıcı ise ana sayfaya yönlendir
+            navigate("/");
+          }
+        } catch (userError) {
+          console.error("Kullanıcı bilgileri alınamadı:", userError);
+          // Kullanıcı bilgileri alınamazsa yine de ana sayfaya yönlendir
+          navigate("/");
+        }
       }
     } catch (error) {
       const errorMessage = formatErrorMessage(error);

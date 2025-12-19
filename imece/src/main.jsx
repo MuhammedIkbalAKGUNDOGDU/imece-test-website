@@ -34,6 +34,7 @@ import SupportTicketsAdmin from "./pages/admin/SupportTicketsAdmin";
 import Favoriler from "./pages/favoriler";
 import EarlyAccess from "./pages/earlyAccess";
 import Support from "./pages/support";
+import SellerSupport from "./pages/sellerSupport";
 import { UrunProvider } from "./context/UrunContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -96,6 +97,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/early-access" element={<EarlyAccess />}></Route>
 
         <Route path="/support" element={<Support />}></Route>
+
+        <Route path="/seller-support" element={<SellerSupport />}></Route>
 
         <Route path="/*" element={<NotFound404 />}></Route>
       </Routes>

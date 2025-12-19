@@ -1,7 +1,8 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Header from "../components/GenerealUse/Header";
 import { apiKey } from "../config";
+import { useNavigate } from "react-router-dom";
 import {
   Phone,
   Mail,
@@ -11,19 +12,20 @@ import {
   Send,
   FileText,
   X,
+  Store,
 } from "lucide-react";
 
-const Support = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
+const SellerSupport = () => {
+  const navigate = useNavigate();
+  const [sellerFormData, setSellerFormData] = useState({
     subject: "",
     message: "",
     attachment: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
   // İletişim bilgileri
   const contactInfo = {
@@ -43,16 +45,53 @@ const Support = () => {
     "Diğer",
   ];
 
+  // Kullanıcı bilgilerini çek ve satıcı kontrolü yap
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        navigate("/satici-login");
+        return;
+      }
 
-  const handleInputChange = (e) => {
+      try {
+        const response = await axios.get(
+          "https://imecehub.com/api/users/kullanicilar/me/",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "X-API-Key": apiKey,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        setUserData(response.data);
+        
+        // Eğer satıcı değilse ana sayfaya yönlendir
+        if (response.data?.rol !== "satici") {
+          navigate("/");
+          return;
+        }
+      } catch (error) {
+        console.error("Kullanıcı bilgileri alınamadı:", error);
+        navigate("/satici-login");
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+
+    fetchUserData();
+  }, [navigate]);
+
+  const handleSellerInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setSellerFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleFileChange = (e) => {
+  const handleSellerFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       // Dosya boyutu kontrolü (max 5MB)
@@ -60,38 +99,32 @@ const Support = () => {
         alert("Dosya boyutu 5MB'dan büyük olamaz.");
         return;
       }
-      setFormData((prev) => ({
+      setSellerFormData((prev) => ({
         ...prev,
         attachment: file,
       }));
     }
   };
 
-
-  const handleSubmit = async (e) => {
+  const handleSellerSubmit = async (e) => {
     e.preventDefault();
 
     // Form validasyonu
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.subject ||
-      !formData.message
-    ) {
+    if (!sellerFormData.subject || !sellerFormData.message) {
       alert("Lütfen tüm zorunlu alanları doldurun.");
       return;
     }
 
-    // Email validasyonu
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      alert("Lütfen geçerli bir email adresi girin.");
+    // Mesaj uzunluk kontrolü
+    if (sellerFormData.message.trim().length < 10) {
+      alert("Mesaj en az 10 karakter olmalıdır.");
       return;
     }
 
-    // Mesaj uzunluk kontrolü
-    if (formData.message.trim().length < 10) {
-      alert("Mesaj en az 10 karakter olmalıdır.");
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      alert("Giriş yapmanız gerekiyor.");
+      navigate("/satici-login");
       return;
     }
 
@@ -100,37 +133,30 @@ const Support = () => {
     try {
       // FormData oluştur (dosya desteği için)
       const submitFormData = new FormData();
-      submitFormData.append("name", formData.name.trim());
-      submitFormData.append("email", formData.email.trim().toLowerCase());
-      if (formData.phone) {
-        submitFormData.append("phone", formData.phone.trim());
-      }
-      submitFormData.append("subject", formData.subject);
-      submitFormData.append("message", formData.message.trim());
+      submitFormData.append("subject", sellerFormData.subject);
+      submitFormData.append("message", sellerFormData.message.trim());
       
-      if (formData.attachment) {
-        submitFormData.append("attachment", formData.attachment);
+      if (sellerFormData.attachment) {
+        submitFormData.append("attachment", sellerFormData.attachment);
       }
 
-      // API çağrısı
+      // API çağrısı - Seller ticket endpoint
       const response = await axios.post(
-        "https://imecehub.com/api/support/tickets/",
+        "https://imecehub.com/api/support/seller-tickets/",
         submitFormData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
             "X-API-Key": apiKey,
+            Authorization: `Bearer ${accessToken}`,
           },
         }
       );
 
       // Başarılı yanıt
-      if (response.data.status === "success") {
+      if (response.data.status === "success" || response.data.ticket_number) {
         setSubmitSuccess(true);
-        setFormData({
-          name: "",
-          email: "",
-          phone: "",
+        setSellerFormData({
           subject: "",
           message: "",
           attachment: null,
@@ -153,10 +179,8 @@ const Support = () => {
         const errorData = error.response.data;
         
         // Validasyon hatalarını göster
-        if (errorData.name) {
-          errorMessage = errorData.name[0] || errorMessage;
-        } else if (errorData.email) {
-          errorMessage = errorData.email[0] || errorMessage;
+        if (errorData.subject) {
+          errorMessage = errorData.subject[0] || errorMessage;
         } else if (errorData.message) {
           errorMessage = errorData.message[0] || errorMessage;
         } else if (errorData.detail) {
@@ -172,6 +196,13 @@ const Support = () => {
     }
   };
 
+  if (isLoadingUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -180,7 +211,7 @@ const Support = () => {
       </div>
 
       <div className="max-w-[1400px] mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Müşteri Hizmetleri</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Satıcı Destek Talebi</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Sol Taraf - İletişim Bilgileri */}
@@ -253,31 +284,31 @@ const Support = () => {
               </h2>
               <div className="space-y-3">
                 <button className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
-                  Siparişimi nasıl iptal edebilirim?
+                  Siparişimi nasıl yönetebilirim?
                 </button>
                 <button className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
-                  İade işlemi nasıl yapılır?
+                  Ödeme işlemleri nasıl yapılır?
                 </button>
                 <button className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition text-sm">
-                  Ödeme yöntemleri nelerdir?
+                  Ürün ekleme süreci nedir?
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Sağ Taraf - Destek Formu */}
+          {/* Sağ Taraf - Satıcı Destek Formu */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
-                  <MessageSquare className="w-6 h-6 text-pink-600" />
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Store className="w-6 h-6 text-blue-600" />
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-800">
-                    Bize Ulaşın
+                    Satıcı Destek Talebi
                   </h2>
                   <p className="text-sm text-gray-500">
-                    Sorularınız için formu doldurun, size en kısa sürede dönüş
+                    Satıcı olarak destek talebinizi oluşturun, size en kısa sürede dönüş
                     yapacağız.
                   </p>
                 </div>
@@ -292,87 +323,40 @@ const Support = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* İsim ve Email */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Ad Soyad <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                      placeholder="Adınız ve soyadınız"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      E-posta <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                      placeholder="ornek@email.com"
-                    />
-                  </div>
+              <form onSubmit={handleSellerSubmit} className="space-y-5">
+                {/* Konu */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Konu <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="subject"
+                    value={sellerFormData.subject}
+                    onChange={handleSellerInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Konu seçin</option>
+                    {subjectOptions.map((subject) => (
+                      <option key={subject} value={subject}>
+                        {subject}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Telefon ve Konu */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Telefon Numarası
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                      placeholder="+90 555 123 45 67"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Konu <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                    >
-                      <option value="">Konu seçin</option>
-                      {subjectOptions.map((subject) => (
-                        <option key={subject} value={subject}>
-                          {subject}
-                        </option>
-                      ))}
-                    </select>
-                </div>
-              </div>
-
-              {/* Mesaj */}
+                {/* Mesaj */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Mesajınız <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     name="message"
-                    value={formData.message}
-                    onChange={handleInputChange}
+                    value={sellerFormData.message}
+                    onChange={handleSellerInputChange}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                     placeholder="Sorunuzu veya mesajınızı detaylı bir şekilde yazın..."
                   />
                   <p className="text-xs text-gray-500 mt-1">
@@ -389,24 +373,24 @@ const Support = () => {
                     <label className="flex-1 cursor-pointer">
                       <input
                         type="file"
-                        onChange={handleFileChange}
+                        onChange={handleSellerFileChange}
                         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                         className="hidden"
                       />
                       <div className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center gap-2">
                         <FileText className="w-5 h-5 text-gray-400" />
                         <span className="text-gray-600">
-                          {formData.attachment
-                            ? formData.attachment.name
+                          {sellerFormData.attachment
+                            ? sellerFormData.attachment.name
                             : "Dosya seçin (PDF, DOC, JPG, PNG - Max 5MB)"}
                         </span>
                       </div>
                     </label>
-                    {formData.attachment && (
+                    {sellerFormData.attachment && (
                       <button
                         type="button"
                         onClick={() =>
-                          setFormData((prev) => ({
+                          setSellerFormData((prev) => ({
                             ...prev,
                             attachment: null,
                           }))
@@ -434,7 +418,7 @@ const Support = () => {
                     className={`px-6 py-3 rounded-lg font-semibold text-white transition-all flex items-center gap-2 ${
                       isSubmitting
                         ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-pink-600 hover:bg-pink-700 shadow-lg hover:shadow-xl"
+                        : "bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl"
                     }`}
                   >
                     {isSubmitting ? (
@@ -459,5 +443,5 @@ const Support = () => {
   );
 };
 
-export default Support;
+export default SellerSupport;
 

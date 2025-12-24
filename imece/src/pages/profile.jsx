@@ -28,6 +28,8 @@ import {
 export default function Profile() {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
+  const [sellerData, setSellerData] = useState(null);
+  const [buyerData, setBuyerData] = useState(null);
   const [currentMenu, setCurrentMenu] = useState("profile");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,9 +39,20 @@ export default function Profile() {
     last_name: "",
     email: "",
     telno: "",
+    // Seller fields
+    magaza_adi: "",
+    satici_vergi_numarasi: "",
+    satici_iban: "",
+    profession: "",
+    profil_tanitim_yazisi: "",
+    // Buyer fields
+    cinsiyet: "",
+    adres: "",
   });
   const [profilePhoto, setProfilePhoto] = useState(null);
+  const [bannerPhoto, setBannerPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [photoError, setPhotoError] = useState(false);
   const accessToken = localStorage.getItem("accessToken");
@@ -101,15 +114,59 @@ export default function Profile() {
 
       try {
         setIsLoading(true);
-        const response = await axios.get(apiUrl, {
+        
+        // Kullanıcı bilgilerini çek
+        const userResponse = await axios.get(apiUrl, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
             "X-API-Key": apiKey,
             "Content-Type": "application/json",
           },
         });
-        setUserData(response.data);
-        setPhotoError(false); // Fotoğraf hatasını sıfırla
+        setUserData(userResponse.data);
+        
+        // Rol kontrolü yap ve ilgili profil bilgilerini çek
+        const userRole = userResponse.data?.rol;
+        
+        if (userRole === "satici") {
+          // Satıcı profil bilgilerini çek
+          try {
+            const sellerResponse = await axios.get(
+              "https://imecehub.com/api/users/kullanicilar/satici_profili/",
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "X-API-Key": apiKey,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            setSellerData(sellerResponse.data);
+          } catch (sellerErr) {
+            console.error("Satıcı profil bilgileri alınamadı:", sellerErr);
+            // Satıcı profil bilgileri alınamazsa devam et
+          }
+        } else if (userRole === "alici") {
+          // Alıcı profil bilgilerini çek
+          try {
+            const buyerResponse = await axios.get(
+              "https://imecehub.com/api/users/kullanicilar/alici_profili/",
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "X-API-Key": apiKey,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            setBuyerData(buyerResponse.data);
+          } catch (buyerErr) {
+            console.error("Alıcı profil bilgileri alınamadı:", buyerErr);
+            // Alıcı profil bilgileri alınamazsa devam et
+          }
+        }
+        
+        setPhotoError(false);
         setError(null);
       } catch (err) {
         console.error("Veri çekme hatası:", err);
@@ -150,14 +207,28 @@ export default function Profile() {
 
   const handleEditProfile = () => {
     // Mevcut bilgileri form'a yükle
+    const isSeller = userData?.rol === "satici";
+    const isBuyer = userData?.rol === "alici";
+    
     setEditProfileForm({
       first_name: userData?.first_name || "",
       last_name: userData?.last_name || "",
       email: userData?.email || "",
       telno: userData?.telno || "",
+      // Seller fields
+      magaza_adi: isSeller ? (sellerData?.magaza_adi || "") : "",
+      satici_vergi_numarasi: isSeller ? (sellerData?.satici_vergi_numarasi || "") : "",
+      satici_iban: isSeller ? (sellerData?.satici_iban || "") : "",
+      profession: isSeller ? (sellerData?.profession || "") : "",
+      profil_tanitim_yazisi: isSeller ? (sellerData?.profil_tanitim_yazisi || "") : "",
+      // Buyer fields
+      cinsiyet: isBuyer ? (buyerData?.cinsiyet || "") : "",
+      adres: isBuyer ? (buyerData?.adres || "") : "",
     });
     setPhotoPreview(userData?.profil_fotograf || null);
+    setBannerPreview(isSeller ? (sellerData?.profil_banner || null) : null);
     setProfilePhoto(null);
+    setBannerPhoto(null);
     setShowEditProfileModal(true);
   };
 
@@ -181,6 +252,18 @@ export default function Profile() {
     }
   };
 
+  const handleBannerChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBannerPhoto(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBannerPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const removePhoto = async () => {
     // Kullanıcıya onay sor
     if (
@@ -191,37 +274,88 @@ export default function Profile() {
 
     try {
       const accessToken = localStorage.getItem("accessToken");
+      const userRole = userData?.rol;
+      
+      if (!userRole) {
+        alert("Rol bilgisi bulunamadı.");
+        return;
+      }
+
       const formData = new FormData();
-      // Fotoğrafı silmek için boş değer veya null gönderebiliriz
-      // API'nin silme endpoint'ini kontrol etmek gerekebilir
       formData.append("profil_fotograf", "");
 
-      const response = await axios.patch(
-        "https://imecehub.com/api/users/kullanicilar/update_me/",
-        formData,
-        {
-          headers: {
-            "X-API-Key": apiKey,
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      // Rol bazlı endpoint seçimi
+      let endpoint;
+      if (userRole === "satici") {
+        endpoint = "https://imecehub.com/api/users/kullanicilar/update_satici_profili/";
+      } else if (userRole === "alici") {
+        endpoint = "https://imecehub.com/api/users/kullanicilar/update_alici_profili/";
+      } else {
+        alert("Geçersiz rol.");
+        return;
+      }
+
+      const response = await axios.patch(endpoint, formData, {
+        headers: {
+          "X-API-Key": apiKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
       if (response.data) {
         // State'leri temizle
         setProfilePhoto(null);
         setPhotoPreview(null);
 
-        // Kullanıcı bilgilerini yeniden yükle
-        const userResponse = await axios.get(apiUrl, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "X-API-Key": apiKey,
-            "Content-Type": "application/json",
-          },
-        });
-        setUserData(userResponse.data);
-        setPhotoError(false); // Fotoğraf hatasını sıfırla
+        // Yeni response formatına göre verileri güncelle
+        if (response.data.data) {
+          if (response.data.data.kullanici) {
+            setUserData(response.data.data.kullanici);
+          }
+          if (userRole === "satici" && response.data.data.satici) {
+            setSellerData(response.data.data.satici);
+          } else if (userRole === "alici" && response.data.data.alici) {
+            setBuyerData(response.data.data.alici);
+          }
+        } else {
+          // Fallback: API'den tekrar çek
+          const userResponse = await axios.get(apiUrl, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "X-API-Key": apiKey,
+              "Content-Type": "application/json",
+            },
+          });
+          setUserData(userResponse.data);
+          
+          if (userRole === "satici") {
+            const sellerResponse = await axios.get(
+              "https://imecehub.com/api/users/kullanicilar/satici_profili/",
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "X-API-Key": apiKey,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            setSellerData(sellerResponse.data);
+          } else if (userRole === "alici") {
+            const buyerResponse = await axios.get(
+              "https://imecehub.com/api/users/kullanicilar/alici_profili/",
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "X-API-Key": apiKey,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            setBuyerData(buyerResponse.data);
+          }
+        }
+        
+        setPhotoError(false);
         alert("Profil fotoğrafı başarıyla silindi.");
       }
     } catch (error) {
@@ -236,6 +370,14 @@ export default function Profile() {
 
     try {
       const accessToken = localStorage.getItem("accessToken");
+      const userRole = userData?.rol;
+      
+      if (!userRole) {
+        alert("Rol bilgisi bulunamadı.");
+        setIsUpdatingProfile(false);
+        return;
+      }
+
       const headers = {
         "X-API-Key": apiKey,
         Authorization: `Bearer ${accessToken}`,
@@ -245,13 +387,11 @@ export default function Profile() {
       // FormData oluştur (multipart/form-data için)
       const formData = new FormData();
 
-      // Basit alanları ekle
+      // Kullanıcı bilgileri (ortak)
       if (editProfileForm.first_name)
         formData.append("first_name", editProfileForm.first_name);
       if (editProfileForm.last_name)
         formData.append("last_name", editProfileForm.last_name);
-      if (editProfileForm.email)
-        formData.append("email", editProfileForm.email);
       if (editProfileForm.telno)
         formData.append("telno", editProfileForm.telno);
 
@@ -260,36 +400,122 @@ export default function Profile() {
         formData.append("profil_fotograf", profilePhoto);
       }
 
-      const response = await axios.patch(
-        "https://imecehub.com/api/users/kullanicilar/update_me/",
-        formData,
-        { headers }
-      );
+      // Rol bazlı alanlar
+      if (userRole === "satici") {
+        // Seller fields
+        if (editProfileForm.magaza_adi)
+          formData.append("magaza_adi", editProfileForm.magaza_adi);
+        if (editProfileForm.satici_vergi_numarasi)
+          formData.append("satici_vergi_numarasi", editProfileForm.satici_vergi_numarasi);
+        if (editProfileForm.satici_iban)
+          formData.append("satici_iban", editProfileForm.satici_iban);
+        if (editProfileForm.profession)
+          formData.append("profession", editProfileForm.profession);
+        if (editProfileForm.profil_tanitim_yazisi)
+          formData.append("profil_tanitim_yazisi", editProfileForm.profil_tanitim_yazisi);
+        
+        // Banner fotoğrafı varsa ekle
+        if (bannerPhoto) {
+          formData.append("profil_banner", bannerPhoto);
+        }
+      } else if (userRole === "alici") {
+        // Buyer fields
+        if (editProfileForm.cinsiyet)
+          formData.append("cinsiyet", editProfileForm.cinsiyet);
+        if (editProfileForm.adres)
+          formData.append("adres", editProfileForm.adres);
+      }
+
+      // Rol bazlı endpoint seçimi
+      let endpoint;
+      if (userRole === "satici") {
+        endpoint = "https://imecehub.com/api/users/kullanicilar/update_satici_profili/";
+      } else if (userRole === "alici") {
+        endpoint = "https://imecehub.com/api/users/kullanicilar/update_alici_profili/";
+      } else {
+        alert("Geçersiz rol.");
+        setIsUpdatingProfile(false);
+        return;
+      }
+
+      const response = await axios.patch(endpoint, formData, { headers });
 
       console.log("Profil güncelleme yanıtı:", response.data);
 
       if (response.data) {
-        alert("Profil başarıyla güncellendi.");
-        // Kullanıcı bilgilerini yeniden yükle
-        const userResponse = await axios.get(apiUrl, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "X-API-Key": apiKey,
-            "Content-Type": "application/json",
-          },
-        });
-        setUserData(userResponse.data);
-        setPhotoError(false); // Fotoğraf hatasını sıfırla
+        const successMessage = response.data.message || "Profil başarıyla güncellendi.";
+        alert(successMessage);
+        
+        // Yeni response formatına göre verileri güncelle
+        if (response.data.data) {
+          if (response.data.data.kullanici) {
+            setUserData(response.data.data.kullanici);
+          }
+          if (userRole === "satici" && response.data.data.satici) {
+            setSellerData(response.data.data.satici);
+          } else if (userRole === "alici" && response.data.data.alici) {
+            setBuyerData(response.data.data.alici);
+          }
+        } else {
+          // Fallback: API'den tekrar çek
+          const userResponse = await axios.get(apiUrl, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "X-API-Key": apiKey,
+              "Content-Type": "application/json",
+            },
+          });
+          setUserData(userResponse.data);
+          
+          if (userRole === "satici") {
+            const sellerResponse = await axios.get(
+              "https://imecehub.com/api/users/kullanicilar/satici_profili/",
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "X-API-Key": apiKey,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            setSellerData(sellerResponse.data);
+          } else if (userRole === "alici") {
+            const buyerResponse = await axios.get(
+              "https://imecehub.com/api/users/kullanicilar/alici_profili/",
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "X-API-Key": apiKey,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            setBuyerData(buyerResponse.data);
+          }
+        }
+        
+        setPhotoError(false);
         setShowEditProfileModal(false);
       }
     } catch (error) {
       console.error("Profil güncelleme hatası:", error);
       console.error("Hata detayı:", error.response?.data);
-      alert(
-        error.response?.data?.detail ||
-          error.response?.data?.message ||
-          "Profil güncellenirken bir hata oluştu."
-      );
+      
+      let errorMessage = "Profil güncellenirken bir hata oluştu.";
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        // Validation hatalarını göster
+        const errors = error.response.data.errors;
+        const errorList = Object.keys(errors).map(key => 
+          `${key}: ${errors[key].join(", ")}`
+        ).join("\n");
+        errorMessage = `Güncelleme hataları:\n${errorList}`;
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -645,17 +871,17 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {/* E-posta */}
+                {/* E-posta - Güncellenemez */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    E-posta
+                    E-posta <span className="text-gray-400 text-xs">(Değiştirilemez)</span>
                   </label>
                   <input
                     type="email"
                     name="email"
                     value={editProfileForm.email}
-                    onChange={handleEditProfileInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                     placeholder="E-posta adresinizi girin"
                   />
                 </div>
@@ -674,6 +900,189 @@ export default function Profile() {
                     placeholder="05331231212"
                   />
                 </div>
+
+                {/* Seller Fields */}
+                {userData?.rol === "satici" && (
+                  <>
+                    <div className="border-t border-gray-200 pt-4 mt-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Satıcı Bilgileri</h3>
+                    </div>
+
+                    {/* Mağaza Adı */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Mağaza Adı
+                      </label>
+                      <input
+                        type="text"
+                        name="magaza_adi"
+                        value={editProfileForm.magaza_adi}
+                        onChange={handleEditProfileInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Mağaza adınızı girin"
+                      />
+                    </div>
+
+                    {/* Vergi Numarası */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vergi Numarası
+                      </label>
+                      <input
+                        type="text"
+                        name="satici_vergi_numarasi"
+                        value={editProfileForm.satici_vergi_numarasi}
+                        onChange={handleEditProfileInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Vergi numaranızı girin"
+                      />
+                    </div>
+
+                    {/* IBAN */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        IBAN
+                      </label>
+                      <input
+                        type="text"
+                        name="satici_iban"
+                        value={editProfileForm.satici_iban}
+                        onChange={handleEditProfileInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="TR330006100519786457841326"
+                      />
+                    </div>
+
+                    {/* Profession */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Meslek
+                      </label>
+                      <input
+                        type="text"
+                        name="profession"
+                        value={editProfileForm.profession}
+                        onChange={handleEditProfileInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Mesleğinizi girin"
+                      />
+                    </div>
+
+                    {/* Profil Tanıtım Yazısı */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Profil Tanıtım Yazısı
+                      </label>
+                      <textarea
+                        name="profil_tanitim_yazisi"
+                        value={editProfileForm.profil_tanitim_yazisi}
+                        onChange={handleEditProfileInputChange}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                        placeholder="Kendinizi ve mağazanızı tanıtın..."
+                      />
+                    </div>
+
+                    {/* Banner Fotoğrafı */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Banner Fotoğrafı
+                      </label>
+                      {bannerPreview ? (
+                        <div className="relative inline-block">
+                          <img
+                            src={bannerPreview}
+                            alt="Banner fotoğrafı"
+                            className="w-full h-48 rounded-lg object-cover border-4 border-green-100"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black bg-opacity-0 hover:bg-opacity-50 rounded-lg transition-all duration-200 group">
+                            <label
+                              htmlFor="banner-photo-change"
+                              className="opacity-0 group-hover:opacity-100 p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 cursor-pointer"
+                              title="Banner'ı Değiştir"
+                            >
+                              <Upload className="w-4 h-4" />
+                            </label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleBannerChange}
+                              className="hidden"
+                              id="banner-photo-change"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                          <p className="text-gray-500 mb-2">
+                            Banner fotoğrafı yükleyin
+                          </p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleBannerChange}
+                            className="hidden"
+                            id="banner-photo-upload"
+                          />
+                          <label
+                            htmlFor="banner-photo-upload"
+                            className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 cursor-pointer"
+                          >
+                            Banner Seç
+                          </label>
+                        </div>
+                      )}
+                      {bannerPhoto && (
+                        <p className="text-sm text-gray-500 mt-2">
+                          Yeni banner: {bannerPhoto.name}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Buyer Fields */}
+                {userData?.rol === "alici" && (
+                  <>
+                    <div className="border-t border-gray-200 pt-4 mt-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Alıcı Bilgileri</h3>
+                    </div>
+
+                    {/* Cinsiyet */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Cinsiyet
+                      </label>
+                      <select
+                        name="cinsiyet"
+                        value={editProfileForm.cinsiyet}
+                        onChange={handleEditProfileInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      >
+                        <option value="">Seçiniz</option>
+                        <option value="erkek">Erkek</option>
+                        <option value="kadın">Kadın</option>
+                        <option value="diğer">Diğer</option>
+                      </select>
+                    </div>
+
+                    {/* Adres */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Adres
+                      </label>
+                      <textarea
+                        name="adres"
+                        value={editProfileForm.adres}
+                        onChange={handleEditProfileInputChange}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                        placeholder="Adresinizi girin"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Modal Footer */}

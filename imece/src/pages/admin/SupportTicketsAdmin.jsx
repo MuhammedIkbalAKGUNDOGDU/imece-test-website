@@ -1047,14 +1047,32 @@ const SupportTicketsAdmin = () => {
                   </>
                 )}
                 {activeTab === "seller" && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">
-                      Satıcı
-                    </label>
-                    <p className="mt-1 text-gray-800 font-medium">
-                      {selectedTicket.seller_username || `ID: ${selectedTicket.seller}`}
-                    </p>
-                  </div>
+                  <>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Satıcı Kullanıcı Adı
+                      </label>
+                      <p className="mt-1 text-gray-800 font-medium">
+                        {selectedTicket.seller_username || `ID: ${selectedTicket.seller}`}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        E-posta
+                      </label>
+                      <p className="mt-1 text-gray-800">
+                        {selectedTicket.seller_email || selectedTicket.email || "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        Telefon
+                      </label>
+                      <p className="mt-1 text-gray-800">
+                        {selectedTicket.seller_telno || selectedTicket.telno || "-"}
+                      </p>
+                    </div>
+                  </>
                 )}
                 <div>
                   <label className="text-sm font-medium text-gray-500">
@@ -1078,6 +1096,26 @@ const SupportTicketsAdmin = () => {
                     {formatDate(selectedTicket.created_at)}
                   </p>
                 </div>
+                {selectedTicket.updated_at && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Güncellenme Tarihi
+                    </label>
+                    <p className="mt-1 text-gray-800">
+                      {formatDate(selectedTicket.updated_at)}
+                    </p>
+                  </div>
+                )}
+                {selectedTicket.resolved_at && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Çözülme Tarihi
+                    </label>
+                    <p className="mt-1 text-gray-800">
+                      {formatDate(selectedTicket.resolved_at)}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Mesaj */}

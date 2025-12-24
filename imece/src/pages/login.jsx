@@ -22,6 +22,7 @@ const Login = () => {
     minLength: false,
     hasUpperCase: false,
     hasNumber: false,
+    hasSpecialChar: false,
   });
 
   const apiUrl = "https://imecehub.com/users/rq_login/";
@@ -58,12 +59,14 @@ const Login = () => {
         minLength: password.length >= 8,
         hasUpperCase: /[A-Z]/.test(password),
         hasNumber: /\d/.test(password),
+        hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
       });
     } else {
       setPasswordRules({
         minLength: false,
         hasUpperCase: false,
         hasNumber: false,
+        hasSpecialChar: false,
       });
     }
   }, [password]);
@@ -241,7 +244,8 @@ const Login = () => {
                 display: "flex", 
                 alignItems: "center", 
                 gap: "6px",
-                color: passwordRules.hasNumber ? "#10b981" : "#6b7280"
+                color: passwordRules.hasNumber ? "#10b981" : "#6b7280",
+                marginBottom: "4px"
               }}>
                 {passwordRules.hasNumber ? (
                   <Check size={14} />
@@ -249,6 +253,19 @@ const Login = () => {
                   <X size={14} />
                 )}
                 <span>En az bir rakam</span>
+              </div>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "6px",
+                color: passwordRules.hasSpecialChar ? "#10b981" : "#6b7280"
+              }}>
+                {passwordRules.hasSpecialChar ? (
+                  <Check size={14} />
+                ) : (
+                  <X size={14} />
+                )}
+                <span>En az bir özel karakter</span>
               </div>
             </div>
           )}

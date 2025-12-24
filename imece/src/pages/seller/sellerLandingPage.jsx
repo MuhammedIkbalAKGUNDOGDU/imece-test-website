@@ -65,18 +65,17 @@ const SellerLandingPage = () => {
         localStorage.setItem("userId", userId);
         setUserInfo(userResponse.data); // Kullanıcı bilgilerini state'e kaydet
 
-        // Satıcı bilgilerini al
-        const sellerResponse = await axios({
-          method: "post",
-          url: "https://imecehub.com/users/seller-info-full/",
-          data: {
-            kullanici_id: userId,
-          },
-          headers: {
-            "Content-Type": "application/json",
-            "X-API-Key": apiKey,
-          },
-        });
+        // Satıcı bilgilerini al - Yeni endpoint
+        const sellerResponse = await axios.get(
+          "https://imecehub.com/api/users/kullanicilar/satici_profili/",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "X-API-Key": apiKey,
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         console.log("Satıcı bilgileri:", sellerResponse.data);
 
@@ -164,6 +163,10 @@ const SellerLandingPage = () => {
     satici_iban: "",
     satici_vergi_numarasi: "",
   });
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [bannerPhoto, setBannerPhoto] = useState(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   const handleProfileSettings = () => {
@@ -265,16 +268,26 @@ const SellerLandingPage = () => {
   const handleEditProfile = () => {
     setShowProfileModal(false);
     // Mevcut bilgileri form'a yükle - hem user hem seller bilgilerinden
+    console.log("🔍 Seller Info:", sellerInfo);
+    console.log("🔍 User Info:", userInfo);
+    console.log("🔍 IBAN:", sellerInfo?.satici_iban);
+    console.log("🔍 Vergi No:", sellerInfo?.satici_vergi_numarasi);
+    
     setEditProfileForm({
-      first_name: sellerInfo?.first_name || userInfo?.first_name || "",
-      last_name: sellerInfo?.last_name || userInfo?.last_name || "",
+      first_name: userInfo?.first_name || sellerInfo?.first_name || "",
+      last_name: userInfo?.last_name || sellerInfo?.last_name || "",
       magaza_adi: sellerInfo?.magaza_adi || "",
       profil_tanitim_yazisi: sellerInfo?.profil_tanitim_yazisi || "",
       profession: sellerInfo?.profession || "",
-      telno: sellerInfo?.telno || userInfo?.telno || "",
+      telno: userInfo?.telno || sellerInfo?.telno || "",
       satici_iban: sellerInfo?.satici_iban || "",
       satici_vergi_numarasi: sellerInfo?.satici_vergi_numarasi || "",
     });
+    // Fotoğraf preview'ları ayarla
+    setProfilePhotoPreview(userInfo?.profil_fotograf || null);
+    setBannerPreview(sellerInfo?.profil_banner || null);
+    setProfilePhoto(null);
+    setBannerPhoto(null);
     setShowEditProfileModal(true);
   };
 
@@ -286,6 +299,30 @@ const SellerLandingPage = () => {
     }));
   };
 
+  const handleProfilePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePhoto(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfilePhotoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBannerPhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBannerPhoto(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBannerPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setIsUpdatingProfile(true);
@@ -295,62 +332,109 @@ const SellerLandingPage = () => {
       const headers = {
         "X-API-Key": apiKey,
         Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
+        // Content-Type header'ı FormData kullanıldığında otomatik ayarlanır
       };
 
-      // Sadece doldurulmuş alanları gönder
-      const updateData = {};
-      Object.keys(editProfileForm).forEach((key) => {
-        if (editProfileForm[key] && editProfileForm[key].trim() !== "") {
-          updateData[key] = editProfileForm[key];
-        }
-      });
+      // FormData oluştur (multipart/form-data için)
+      const formData = new FormData();
 
-      const response = await axios.put(
-        "https://imecehub.com/users/update-satici/",
-        updateData,
+      // Kullanıcı bilgileri
+      if (editProfileForm.first_name)
+        formData.append("first_name", editProfileForm.first_name);
+      if (editProfileForm.last_name)
+        formData.append("last_name", editProfileForm.last_name);
+      if (editProfileForm.telno)
+        formData.append("telno", editProfileForm.telno);
+
+      // Profil fotoğrafı varsa ekle
+      if (profilePhoto) {
+        formData.append("profil_fotograf", profilePhoto);
+      }
+
+      // Seller bilgileri
+      if (editProfileForm.magaza_adi)
+        formData.append("magaza_adi", editProfileForm.magaza_adi);
+      if (editProfileForm.profil_tanitim_yazisi)
+        formData.append("profil_tanitim_yazisi", editProfileForm.profil_tanitim_yazisi);
+      if (editProfileForm.profession)
+        formData.append("profession", editProfileForm.profession);
+      if (editProfileForm.satici_iban)
+        formData.append("satici_iban", editProfileForm.satici_iban);
+      if (editProfileForm.satici_vergi_numarasi)
+        formData.append("satici_vergi_numarasi", editProfileForm.satici_vergi_numarasi);
+
+      // Banner fotoğrafı varsa ekle
+      if (bannerPhoto) {
+        formData.append("profil_banner", bannerPhoto);
+      }
+
+      const response = await axios.patch(
+        "https://imecehub.com/api/users/kullanicilar/update_satici_profili/",
+        formData,
         { headers }
       );
 
       console.log("Profil güncelleme yanıtı:", response.data);
       
-      if (response.data.detail) {
-        alert(response.data.detail || "Profil başarıyla güncellendi.");
-        // Satıcı ve kullanıcı bilgilerini yeniden yükle
-        const userId = localStorage.getItem("userId");
-        const accessToken = localStorage.getItem("accessToken");
+      if (response.data) {
+        const successMessage = response.data.message || "Profil başarıyla güncellendi.";
+        alert(successMessage);
         
-        const [userResponse, sellerResponse] = await Promise.all([
-          axios.get("https://imecehub.com/api/users/kullanicilar/me/", {
-            headers: {
-              "X-API-Key": apiKey,
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-          }),
-          axios({
-            method: "post",
-            url: "https://imecehub.com/users/seller-info-full/",
-            data: { kullanici_id: userId },
-            headers: {
-              "Content-Type": "application/json",
-              "X-API-Key": apiKey,
-            },
-          }),
-        ]);
+        // Yeni response formatına göre verileri güncelle
+        if (response.data.data) {
+          if (response.data.data.kullanici) {
+            setUserInfo(response.data.data.kullanici);
+          }
+          if (response.data.data.satici) {
+            setSellerInfo(response.data.data.satici);
+          }
+        } else {
+          // Fallback: API'den tekrar çek
+          const [userResponse, sellerResponse] = await Promise.all([
+            axios.get("https://imecehub.com/api/users/kullanicilar/me/", {
+              headers: {
+                "X-API-Key": apiKey,
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+              },
+            }),
+            axios.get(
+              "https://imecehub.com/api/users/kullanicilar/satici_profili/",
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "X-API-Key": apiKey,
+                  "Content-Type": "application/json",
+                },
+              }
+            ),
+          ]);
+          
+          setUserInfo(userResponse.data);
+          setSellerInfo(sellerResponse.data);
+        }
         
-        setUserInfo(userResponse.data);
-        setSellerInfo(sellerResponse.data);
         setShowEditProfileModal(false);
       }
     } catch (error) {
       console.error("Profil güncelleme hatası:", error);
       console.error("Hata detayı:", error.response?.data);
-      alert(
-        error.response?.data?.detail ||
-          error.response?.data?.message ||
-          "Profil güncellenirken bir hata oluştu."
-      );
+      
+      let errorMessage = "Profil güncellenirken bir hata oluştu.";
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        // Validation hatalarını göster
+        const errors = error.response.data.errors;
+        const errorList = Object.keys(errors).map(key => 
+          `${key}: ${errors[key].join(", ")}`
+        ).join("\n");
+        errorMessage = `Güncelleme hataları:\n${errorList}`;
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -358,6 +442,10 @@ const SellerLandingPage = () => {
 
   const closeEditProfileModal = () => {
     setShowEditProfileModal(false);
+    setProfilePhoto(null);
+    setBannerPhoto(null);
+    setProfilePhotoPreview(null);
+    setBannerPreview(null);
   };
 
   const closeModal = () => {
@@ -1071,6 +1159,120 @@ const SellerLandingPage = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     placeholder="05331231212"
                   />
+                </div>
+
+                {/* Profil Fotoğrafı */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Profil Fotoğrafı
+                  </label>
+                  {profilePhotoPreview ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={profilePhotoPreview}
+                        alt="Profil fotoğrafı"
+                        className="w-32 h-32 rounded-full object-cover border-4 border-green-100"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black bg-opacity-0 hover:bg-opacity-50 rounded-full transition-all duration-200 group">
+                        <label
+                          htmlFor="profile-photo-change"
+                          className="opacity-0 group-hover:opacity-100 p-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition duration-200 cursor-pointer"
+                          title="Fotoğrafı Değiştir"
+                        >
+                          <Upload size={16} />
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfilePhotoChange}
+                          className="hidden"
+                          id="profile-photo-change"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-2">
+                        Profil fotoğrafı yükleyin
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfilePhotoChange}
+                        className="hidden"
+                        id="profile-photo-upload"
+                      />
+                      <label
+                        htmlFor="profile-photo-upload"
+                        className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 cursor-pointer"
+                      >
+                        Fotoğraf Seç
+                      </label>
+                    </div>
+                  )}
+                  {profilePhoto && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Yeni fotoğraf: {profilePhoto.name}
+                    </p>
+                  )}
+                </div>
+
+                {/* Banner Fotoğrafı */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Banner Fotoğrafı
+                  </label>
+                  {bannerPreview ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={bannerPreview}
+                        alt="Banner fotoğrafı"
+                        className="w-full h-48 rounded-lg object-cover border-4 border-green-100"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black bg-opacity-0 hover:bg-opacity-50 rounded-lg transition-all duration-200 group">
+                        <label
+                          htmlFor="banner-photo-change"
+                          className="opacity-0 group-hover:opacity-100 p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 cursor-pointer"
+                          title="Banner'ı Değiştir"
+                        >
+                          <Upload size={16} />
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleBannerPhotoChange}
+                          className="hidden"
+                          id="banner-photo-change"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-2">
+                        Banner fotoğrafı yükleyin
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBannerPhotoChange}
+                        className="hidden"
+                        id="banner-photo-upload"
+                      />
+                      <label
+                        htmlFor="banner-photo-upload"
+                        className="inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 cursor-pointer"
+                      >
+                        Banner Seç
+                      </label>
+                    </div>
+                  )}
+                  {bannerPhoto && (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Yeni banner: {bannerPhoto.name}
+                    </p>
+                  )}
                 </div>
 
                 {/* IBAN */}

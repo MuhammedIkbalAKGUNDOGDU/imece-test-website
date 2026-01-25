@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -540,7 +541,13 @@ export default function Profile() {
       case "reviews":
         return <ReviewsContent />;
       case "balance":
-        return <BalanceContent />;
+        return (
+          <BalanceContent
+            user={userData}
+            setUserData={setUserData}
+            accessToken={accessToken}
+          />
+        );
       case "settings":
         return <SettingsContent />;
       default:
@@ -1269,7 +1276,7 @@ const OrdersContent = () => {
       if (allOrdersResponse.data && allOrdersResponse.data.length > 0) {
         const firstOrderId = allOrdersResponse.data[0].siparis_id;
         try {
-          const specificOrderResponse = await axios.post(
+          await axios.post(
             "https://imecehub.com/api/logistics/siparis/get-order-by-id/",
             {
               siparis_id: firstOrderId,
@@ -2470,12 +2477,37 @@ const ReviewsContent = () => {
   );
 };
 
-const BalanceContent = () => {
+const BalanceContent = ({ user, setUserData, accessToken }) => {
   const [selectedAmount, setSelectedAmount] = useState(null);
   const [customAmount, setCustomAmount] = useState("");
-  const [currentBalance, setCurrentBalance] = useState(0); // Göstermelik bakiye
+
+  const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
+  const [isInitiating, setIsInitiating] = useState(false);
+  const [topupId, setTopupId] = useState(null);
+  const [topupStatus, setTopupStatus] = useState(null);
+  const [topupMessage, setTopupMessage] = useState(null);
+  const [topupError, setTopupError] = useState(null);
+  const [pollingTopupId, setPollingTopupId] = useState(null);
+
+  const [threeDSecureUrl, setThreeDSecureUrl] = useState(null);
+  const [threeDSecureHtml, setThreeDSecureHtml] = useState(null);
+  const [popupBlocked, setPopupBlocked] = useState(false);
+
+  const [cardInfo, setCardInfo] = useState({
+    card_holder_name: "",
+    card_number: "",
+    expire_month: "",
+    expire_year: "",
+    cvc_number: "",
+  });
 
   const presetAmounts = [50, 100, 250, 500, 1000];
+
+  const getSelectedAmount = () => {
+    const amount = customAmount ? parseFloat(customAmount) : selectedAmount;
+    if (!amount || Number.isNaN(amount) || amount <= 0) return null;
+    return amount;
+  };
 
   const handleAmountSelect = (amount) => {
     setSelectedAmount(amount);
@@ -2484,20 +2516,296 @@ const BalanceContent = () => {
 
   const handleCustomAmountChange = (e) => {
     const value = e.target.value;
-    if (value === "" || (!isNaN(value) && parseFloat(value) > 0)) {
+    if (value === "" || (!Number.isNaN(Number(value)) && parseFloat(value) > 0)) {
       setCustomAmount(value);
       setSelectedAmount(null);
     }
   };
 
-  const handleLoadBalance = () => {
-    const amount = customAmount ? parseFloat(customAmount) : selectedAmount;
-    if (amount && amount > 0) {
-      alert(`Bakiye yükleme işlemi başlatıldı: ${amount} TL\n\n(Bu şimdilik sadece göstermelik bir sayfadır)`);
-    } else {
-      alert("Lütfen bir tutar seçin veya girin.");
+  const resetTopupUi = () => {
+    setIsInitiating(false);
+    setTopupId(null);
+    setTopupStatus(null);
+    setTopupMessage(null);
+    setTopupError(null);
+    setThreeDSecureUrl(null);
+    setThreeDSecureHtml(null);
+    setPopupBlocked(false);
+  };
+
+  const closeTopupModal = () => {
+    // İşlem devam ediyorsa modal kapansa bile id localStorage'da kalır ve kullanıcı geri gelince devam edebilir.
+    setIsTopupModalOpen(false);
+    resetTopupUi();
+    setCardInfo({
+      card_holder_name: "",
+      card_number: "",
+      expire_month: "",
+      expire_year: "",
+      cvc_number: "",
+    });
+  };
+
+  // Daha önce başlatılmış bir topup varsa (sayfa yenileme vb.) devam et
+  useEffect(() => {
+    const saved = localStorage.getItem("pending_wallet_topup_id");
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      if (!Number.isNaN(parsed)) {
+        setTopupId(parsed);
+        setPollingTopupId(parsed);
+        setIsTopupModalOpen(true);
+        setTopupMessage("Bakiye yükleme işlemi devam ediyor. Durum kontrol ediliyor...");
+      }
+    }
+  }, []);
+
+  // Status polling
+  useEffect(() => {
+    if (!pollingTopupId || !accessToken) return;
+
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const response = await axios.get(
+          `https://imecehub.com/api/payment/wallet/topup/status/?topup_id=${pollingTopupId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "X-API-Key": apiKey,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (cancelled) return;
+
+        const status = response.data?.status || null;
+        setTopupStatus(status);
+
+        // Bakiye bilgisi geldiyse UI'ı güncelle
+        if (response.data?.bakiye != null) {
+          setUserData((prev) =>
+            prev ? { ...prev, bakiye: response.data.bakiye } : prev
+          );
+        }
+
+        if (status === "SUCCESS") {
+          localStorage.removeItem("pending_wallet_topup_id");
+          setPollingTopupId(null);
+          setTopupMessage("Bakiye başarıyla yüklendi.");
+          setTopupError(null);
+        } else if (status && ["FAILED", "CANCELLED", "ERROR"].includes(status)) {
+          localStorage.removeItem("pending_wallet_topup_id");
+          setPollingTopupId(null);
+          setTopupError("Bakiye yükleme işlemi başarısız oldu.");
+        } else {
+          // INITIATED / 3D_PENDING vb
+          if (!topupMessage) {
+            setTopupMessage("İşlem devam ediyor, lütfen bekleyin...");
+          }
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Topup status hatası:", err);
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 2000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [pollingTopupId, accessToken, setUserData, topupMessage]);
+
+  const handleCardInfoChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "card_number") {
+      const rawValue = value.replace(/\D/g, "");
+      const formattedValue = rawValue.replace(/(\d{4})(?=\d)/g, "$1 ");
+      setCardInfo((prev) => ({ ...prev, [name]: formattedValue.slice(0, 19) }));
+      return;
+    }
+
+    if (name === "expire_month" || name === "expire_year") {
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 2);
+      setCardInfo((prev) => ({ ...prev, [name]: digitsOnly }));
+      return;
+    }
+
+    if (name === "cvc_number") {
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 3);
+      setCardInfo((prev) => ({ ...prev, [name]: digitsOnly }));
+      return;
+    }
+
+    setCardInfo((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const validateCard = () => {
+    if (!cardInfo.card_holder_name?.trim()) return "Kart üzerindeki isim zorunludur.";
+    if (!cardInfo.card_number?.trim()) return "Kart numarası zorunludur.";
+
+    const cleanedCard = cardInfo.card_number.replace(/\s/g, "");
+    if (cleanedCard.length < 12) return "Kart numarası geçersiz görünüyor.";
+
+    if (!/^\d{2}$/.test(cardInfo.expire_month)) return "Ay 2 hane olmalıdır (MM).";
+    const monthNum = parseInt(cardInfo.expire_month, 10);
+    if (Number.isNaN(monthNum) || monthNum < 1 || monthNum > 12)
+      return "Ay 01-12 arasında olmalıdır (MM).";
+
+    if (!/^\d{2}$/.test(cardInfo.expire_year)) return "Yıl 2 hane olmalıdır (YY).";
+    if (!/^\d{3}$/.test(cardInfo.cvc_number)) return "CVC 3 hane olmalıdır.";
+
+    return null;
+  };
+
+  const toFourDigitYear = (yy) => {
+    // "25" -> "2025" (mevcut yüzyılı baz alır)
+    if (!yy) return yy;
+    if (yy.length === 4) return yy;
+    if (yy.length !== 2) return yy;
+    const currentYear = new Date().getFullYear();
+    const currentCentury = Math.floor(currentYear / 100) * 100;
+    return String(currentCentury + parseInt(yy, 10));
+  };
+
+  const handleOpenTopupModal = () => {
+    const amount = getSelectedAmount();
+    if (!amount) {
+      setTopupError("Lütfen bir tutar seçin veya girin.");
+      return;
+    }
+    setTopupError(null);
+    setTopupMessage(null);
+    setIsTopupModalOpen(true);
+  };
+
+  const handleInitiateTopup = async () => {
+    setTopupError(null);
+    setTopupMessage(null);
+
+    const amount = getSelectedAmount();
+    if (!amount) {
+      setTopupError("Lütfen bir tutar seçin veya girin.");
+      return;
+    }
+
+    const cardError = validateCard();
+    if (cardError) {
+      setTopupError(cardError);
+      return;
+    }
+
+    if (!accessToken) {
+      setTopupError("Oturum bulunamadı. Lütfen tekrar giriş yapın.");
+      return;
+    }
+
+    // Popup'ı kullanıcı aksiyonuyla (senkron) açmaya çalış — bloklanmayı azaltır
+    const topupWindow = window.open("", "_blank", "noopener,noreferrer");
+    setPopupBlocked(!topupWindow);
+
+    setIsInitiating(true);
+
+    try {
+      const cardNumber = cardInfo.card_number.replace(/\s/g, "");
+      const expMonth = cardInfo.expire_month.padStart(2, "0");
+      const expYear = toFourDigitYear(cardInfo.expire_year);
+
+      const payload = {
+        amount: amount.toFixed(2),
+        PaymentDealerRequest: {
+          CardHolderFullName: cardInfo.card_holder_name,
+          CardNumber: cardNumber,
+          ExpMonth: expMonth,
+          ExpYear: expYear,
+          CvcNumber: cardInfo.cvc_number,
+          Currency: "TL",
+          InstallmentNumber: "1",
+          BuyerInformation: {
+            BuyerFullName: `${user?.first_name || ""} ${user?.last_name || ""}`.trim(),
+            BuyerGsmNumber: user?.telno || "",
+            BuyerEmail: user?.email || "",
+            BuyerCountry: "TR",
+          },
+        },
+      };
+
+      const response = await axios.post(
+        "https://imecehub.com/api/payment/wallet/topup/initiate/",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data?.durum !== "BASARILI") {
+        setTopupError(response.data?.mesaj || "Bakiye yükleme başlatılamadı.");
+        if (topupWindow) topupWindow.close();
+        return;
+      }
+
+      const newTopupId = response.data?.topup_id;
+      setTopupId(newTopupId);
+
+      if (newTopupId != null) {
+        localStorage.setItem("pending_wallet_topup_id", String(newTopupId));
+        setPollingTopupId(newTopupId);
+      }
+
+      const url = response.data?.["3d_secure_url"] || null;
+      const html = response.data?.["3d_secure_html"] || null;
+
+      setThreeDSecureUrl(url);
+      setThreeDSecureHtml(html);
+
+      setTopupMessage(
+        response.data?.mesaj ||
+          "Bakiye yükleme başlatıldı (3D Secure). Lütfen 3D doğrulamayı tamamlayın."
+      );
+
+      if (url) {
+        if (topupWindow) {
+          topupWindow.location.href = url;
+        }
+      } else if (html) {
+        if (topupWindow) {
+          topupWindow.document.open();
+          topupWindow.document.write(html);
+          topupWindow.document.close();
+        }
+      } else {
+        // 3D gerekmiyorsa status polling sonucu belirleyecek
+      }
+    } catch (err) {
+      console.error("Wallet topup initiate hatası:", err.response?.data || err);
+      setTopupError(
+        err.response?.data?.mesaj ||
+          err.response?.data?.detail ||
+          "Bakiye yükleme başlatılırken bir hata oluştu."
+      );
+    } finally {
+      setIsInitiating(false);
     }
   };
+
+  const currentBalanceValue = (() => {
+    const val = user?.bakiye;
+    const asNumber = typeof val === "string" ? parseFloat(val) : Number(val);
+    if (Number.isNaN(asNumber) || asNumber == null) return 0;
+    return asNumber;
+  })();
+
+  const selectedAmountValue = getSelectedAmount();
 
   return (
     <div>
@@ -2508,7 +2816,7 @@ const BalanceContent = () => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-indigo-100 text-sm mb-1">Mevcut Bakiyeniz</p>
-            <p className="text-3xl font-bold">{currentBalance.toFixed(2)} TL</p>
+            <p className="text-3xl font-bold">{currentBalanceValue.toFixed(2)} TL</p>
           </div>
           <Wallet className="w-12 h-12 text-indigo-200" />
         </div>
@@ -2559,39 +2867,15 @@ const BalanceContent = () => {
         </div>
       </div>
 
-      {/* Ödeme Yöntemi (Göstermelik) */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          Ödeme Yöntemi
-        </h2>
-        <div className="space-y-3">
-          <div className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-indigo-300 cursor-pointer">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-bold text-sm">KART</span>
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-800">Kredi/Banka Kartı</p>
-              <p className="text-sm text-gray-500">Visa, Mastercard, Troy</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </div>
-
-          <div className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-indigo-300 cursor-pointer">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-              <span className="text-green-600 font-bold text-sm">QR</span>
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-800">QR Kod ile Ödeme</p>
-              <p className="text-sm text-gray-500">Mobil ödeme uygulamaları</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </div>
+      {topupError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+          {topupError}
         </div>
-      </div>
+      )}
 
       {/* Yükle Butonu */}
       <button
-        onClick={handleLoadBalance}
+        onClick={handleOpenTopupModal}
         disabled={!selectedAmount && !customAmount}
         className={`w-full py-4 rounded-lg font-semibold text-white transition-all ${
           selectedAmount || customAmount
@@ -2602,13 +2886,215 @@ const BalanceContent = () => {
         Bakiye Yükle
       </button>
 
-      {/* Bilgilendirme */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-blue-800">
-          <strong>Not:</strong> Bu sayfa şimdilik sadece göstermeliktir. Gerçek
-          ödeme işlemleri yakında eklenecektir.
-        </p>
-      </div>
+      {/* Modal */}
+      {isTopupModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white w-full max-w-2xl rounded-xl shadow-xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <div>
+                <p className="text-sm text-gray-500">Bakiye Yükleme</p>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  {selectedAmountValue ? `${selectedAmountValue.toFixed(2)} TL` : "-"}
+                </h3>
+              </div>
+              <button
+                onClick={closeTopupModal}
+                className="p-2 rounded hover:bg-gray-100"
+                aria-label="Kapat"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {topupId && (
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Topup ID:</span> {topupId}{" "}
+                  {topupStatus && (
+                    <>
+                      <span className="mx-2">•</span>
+                      <span className="font-medium">Durum:</span> {topupStatus}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {topupMessage && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                  {topupMessage}
+                </div>
+              )}
+
+              {popupBlocked && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                  Tarayıcı pop-up penceresini engellemiş olabilir. Eğer 3D ekranı
+                  açılmadıysa, pop-up izni verip tekrar deneyin.
+                </div>
+              )}
+
+              {/* Kart Formu */}
+              {!pollingTopupId && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Kart Üzerindeki İsim
+                    </label>
+                    <input
+                      type="text"
+                      name="card_holder_name"
+                      value={cardInfo.card_holder_name}
+                      onChange={handleCardInfoChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                      placeholder="Ad Soyad"
+                      autoComplete="cc-name"
+                      required
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Kart Numarası
+                    </label>
+                    <input
+                      type="text"
+                      name="card_number"
+                      value={cardInfo.card_number}
+                      onChange={handleCardInfoChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                      placeholder="XXXX XXXX XXXX XXXX"
+                      maxLength={19}
+                      autoComplete="cc-number"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Son Kullanma Ayı (MM)
+                    </label>
+                    <input
+                      type="text"
+                      name="expire_month"
+                      value={cardInfo.expire_month}
+                      onChange={handleCardInfoChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                      placeholder="MM"
+                      inputMode="numeric"
+                      pattern="\d*"
+                      maxLength={2}
+                      autoComplete="cc-exp-month"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Son Kullanma Yılı (YY)
+                    </label>
+                    <input
+                      type="text"
+                      name="expire_year"
+                      value={cardInfo.expire_year}
+                      onChange={handleCardInfoChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                      placeholder="YY"
+                      inputMode="numeric"
+                      pattern="\d*"
+                      maxLength={2}
+                      autoComplete="cc-exp-year"
+                      required
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      CVC
+                    </label>
+                    <input
+                      type="text"
+                      name="cvc_number"
+                      value={cardInfo.cvc_number}
+                      onChange={handleCardInfoChange}
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                      placeholder="XXX"
+                      inputMode="numeric"
+                      pattern="\d*"
+                      maxLength={3}
+                      autoComplete="cc-csc"
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* 3D Secure HTML fallback */}
+              {threeDSecureHtml && (
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="px-4 py-2 bg-gray-50 border-b text-sm text-gray-700">
+                    3D Secure doğrulaması (iframe)
+                  </div>
+                  <iframe
+                    title="3D Secure"
+                    className="w-full h-[60vh]"
+                    sandbox="allow-forms allow-scripts allow-same-origin allow-top-navigation-by-user-activation"
+                    srcDoc={threeDSecureHtml}
+                  />
+                </div>
+              )}
+
+              {threeDSecureUrl && (
+                <div className="text-sm text-gray-600">
+                  3D Secure penceresi açılmadıysa şu bağlantıyı kullanabilirsiniz:{" "}
+                  <a
+                    href={threeDSecureUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-indigo-600 hover:underline"
+                  >
+                    3D Secure doğrulamasını aç
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={closeTopupModal}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Kapat
+              </button>
+
+              <div className="flex items-center gap-3">
+                {pollingTopupId && (
+                  <button
+                    type="button"
+                    onClick={() => setPollingTopupId(topupId)}
+                    className="px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                  >
+                    Durumu Yenile
+                  </button>
+                )}
+                {!pollingTopupId && (
+                  <button
+                    type="button"
+                    onClick={handleInitiateTopup}
+                    disabled={isInitiating}
+                    className={`px-5 py-2.5 rounded-lg text-white font-semibold ${
+                      isInitiating
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-indigo-600 hover:bg-indigo-700"
+                    }`}
+                  >
+                    {isInitiating ? "Başlatılıyor..." : "Ödemeyi Başlat"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

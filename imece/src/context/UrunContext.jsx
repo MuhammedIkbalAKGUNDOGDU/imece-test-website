@@ -24,6 +24,8 @@ export const UrunProvider = ({ children }) => {
     urun_sertifika_pdf: null,
     urun_lab_sonuc_pdf: null,
     kapak_gorsel: null,
+    // Çoklu ürün fotoğrafı (max 10)
+    urun_images: [],
   });
 
   // Güncelleme fonksiyonu

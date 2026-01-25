@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import "../../styles/seller/add1.css";
 import { useNavigate } from "react-router-dom";
 import { useUrun } from "../../context/UrunContext";
@@ -19,12 +19,46 @@ const UrunEkle4 = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const extraImages = Array.isArray(urunBilgileri.urun_images)
+    ? urunBilgileri.urun_images
+    : [];
+
+  const extraImagePreviews = useMemo(() => {
+    try {
+      return extraImages.map((f) => URL.createObjectURL(f));
+    } catch {
+      return [];
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [extraImages.length]);
+
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       updateUrunBilgileri({ kapak_gorsel: file });
       setPreviewUrl(URL.createObjectURL(file));
     }
+  };
+
+  const handleExtraImagesChange = (event) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    const merged = [...extraImages, ...files];
+    const capped = merged.slice(0, 10);
+    updateUrunBilgileri({ urun_images: capped });
+
+    if (merged.length > 10) {
+      alert("En fazla 10 ürün fotoğrafı yükleyebilirsiniz.");
+    }
+
+    // Aynı dosyayı tekrar seçebilsin diye reset
+    event.target.value = "";
+  };
+
+  const removeExtraImage = (index) => {
+    const next = extraImages.filter((_, i) => i !== index);
+    updateUrunBilgileri({ urun_images: next });
   };
 
   const handleSubmit = async () => {
@@ -37,9 +71,20 @@ const UrunEkle4 = () => {
     try {
       const formData = new FormData();
       for (const key in urunBilgileri) {
-        if (urunBilgileri[key] !== null && urunBilgileri[key] !== undefined) {
-          formData.append(key, urunBilgileri[key]);
-        }
+        const value = urunBilgileri[key];
+        if (value === null || value === undefined) continue;
+        // Çoklu görselleri ayrı ekleyeceğiz
+        if (key === "urun_images") continue;
+        // Güvenlik: array alanları otomatik append etme
+        if (Array.isArray(value)) continue;
+        formData.append(key, value);
+      }
+
+      // Ek ürün görselleri (max 10): urun_images
+      if (Array.isArray(urunBilgileri.urun_images)) {
+        urunBilgileri.urun_images.slice(0, 10).forEach((file) => {
+          formData.append("urun_images", file);
+        });
       }
 
       const response = await fetch(
@@ -144,6 +189,73 @@ const UrunEkle4 = () => {
                 <div className="flex items-center">
                   <span className="text-lg">➕</span>
                   <span className="ml-2">JPG veya PNG formatı olmalı</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Ek ürün görselleri */}
+            <div className="mt-8">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Ek Ürün Fotoğrafları
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    En fazla 10 adet görsel yükleyebilirsiniz.
+                  </p>
+                </div>
+                <div className="text-sm text-gray-500">
+                  {extraImages.length}/10
+                </div>
+              </div>
+
+              <div className="mt-4 flex flex-col md:flex-row gap-4">
+                <div className="md:w-1/3">
+                  <label className="block w-full border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <div className="text-4xl text-gray-400">+</div>
+                    <div className="mt-2 text-sm text-gray-600">
+                      Fotoğraf Ekle (çoklu)
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/png, image/jpeg"
+                      multiple
+                      onChange={handleExtraImagesChange}
+                      disabled={extraImages.length >= 10}
+                    />
+                  </label>
+                </div>
+
+                <div className="md:w-2/3">
+                  {extraImages.length === 0 ? (
+                    <div className="h-full flex items-center justify-center border border-gray-200 rounded-lg p-6 text-sm text-gray-500">
+                      Henüz ek fotoğraf seçilmedi.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                      {extraImagePreviews.map((src, idx) => (
+                        <div
+                          key={idx}
+                          className="relative border border-gray-200 rounded-lg overflow-hidden group"
+                        >
+                          <img
+                            src={src}
+                            alt={`Ek görsel ${idx + 1}`}
+                            className="w-full h-24 object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeExtraImage(idx)}
+                            className="absolute top-1 right-1 bg-black bg-opacity-60 text-white rounded-full w-7 h-7 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                            title="Kaldır"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

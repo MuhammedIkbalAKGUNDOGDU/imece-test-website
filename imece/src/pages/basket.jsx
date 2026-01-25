@@ -29,7 +29,7 @@ export default function CartPage() {
   });
   const [show3DSecureModal, setShow3DSecureModal] = useState(false); // 3D Secure modal
   const [threeDSecureHtml, setThreeDSecureHtml] = useState(null); // 3D Secure HTML
-  const [threeDSecureUrl, setThreeDSecureUrl] = useState(null); // 3D Secure URL
+  const [, setThreeDSecureUrl] = useState(null); // 3D Secure URL (şu an UI'da kullanılmıyor)
   const [currentPaymentId, setCurrentPaymentId] = useState(null); // Mevcut ödeme ID
 
   const token = localStorage.getItem("accessToken");
@@ -250,7 +250,7 @@ export default function CartPage() {
   useEffect(() => {
     if (show3DSecureModal && threeDSecureHtml) {
       // Form submit edildiğinde callback'i dinle
-      const handleFormSubmit = (event) => {
+      const handleFormSubmit = () => {
         // Form submit edildiğinde, callback endpoint'ini çağır
         // Bu genellikle backend'den otomatik olarak yapılır,
         // ama frontend'de de kontrol edebiliriz
@@ -457,9 +457,9 @@ export default function CartPage() {
         CardNumber: cardNumber,
         ExpMonth: paymentInfo.expire_month.padStart(2, "0"),
         ExpYear: expYear,
-        CvvNumber: paymentInfo.cvc_number,
+        CvcNumber: paymentInfo.cvc_number,
         Amount: parseFloat(cartInfo.toplam_tutar).toFixed(2),
-        Currency: "949", // TRY
+        Currency: "TL",
         InstallmentNumber: "1",
         MerchantOrderId: `ORDER-${Date.now()}`, // Benzersiz sipariş ID
         Description: "Sepet Ödemesi",
@@ -653,10 +653,13 @@ export default function CartPage() {
     value: String(i + 1).padStart(2, "0"),
     label: `${String(i + 1).padStart(2, "0")} - ${monthNames[i]}`,
   }));
-  // Yıl seçeneklerini oluştur (2025'ten başlayarak)
-  const currentYear = new Date().getFullYear();
-  const startYear = 2025; // 2025'ten başlat
-  const years = Array.from({ length: 16 }, (_, i) => String(startYear + i)); // 2025'ten 2040'a kadar (16 yıl)
+  // Yıl seçeneklerini oluştur (2022'den başlayarak)
+  const startYear = 2022;
+  const endYear = 2040;
+  const years = Array.from(
+    { length: endYear - startYear + 1 },
+    (_, i) => String(startYear + i)
+  );
 
   return (
     <>

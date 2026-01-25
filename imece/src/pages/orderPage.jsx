@@ -34,6 +34,20 @@ const orderPage = () => {
   const token = localStorage.getItem("accessToken");
   const [productComments, setProductComments] = useState([]);
 
+  const formatSeconds = (seconds) => {
+    const s = Number(seconds);
+    if (!Number.isFinite(s) || s <= 0) return "0 sn";
+    const total = Math.floor(s);
+    const days = Math.floor(total / 86400);
+    const hours = Math.floor((total % 86400) / 3600);
+    const mins = Math.floor((total % 3600) / 60);
+    const parts = [];
+    if (days) parts.push(`${days} gün`);
+    if (hours || days) parts.push(`${hours} saat`);
+    parts.push(`${mins} dk`);
+    return parts.join(" ");
+  };
+
   useEffect(() => {
     const fetchProductComments = async () => {
       try {
@@ -610,6 +624,44 @@ const orderPage = () => {
                     ? `Anlık Fiyat : ${groupInfo.current_price} TL`
                     : `${product.urun_perakende_fiyati} TL`}
                 </p>
+                {product.satis_turu === 2 && groupInfo && (
+                  <div className="text-sm text-gray-600 mt-1 space-y-0.5">
+                    {groupInfo.starts_in_seconds != null &&
+                      Number(groupInfo.starts_in_seconds) > 0 && (
+                        <p>
+                          Grup başlamasına:{" "}
+                          <span className="font-medium">
+                            {formatSeconds(groupInfo.starts_in_seconds)}
+                          </span>
+                        </p>
+                      )}
+                    {groupInfo.starts_in_seconds != null &&
+                      Number(groupInfo.starts_in_seconds) <= 0 &&
+                      groupInfo.remaining_seconds != null && (
+                        <p>
+                          Grup kapanmasına:{" "}
+                          <span className="font-medium">
+                            {formatSeconds(groupInfo.remaining_seconds)}
+                          </span>
+                        </p>
+                      )}
+                    {!groupInfo.starts_in_seconds &&
+                      groupInfo.remaining_seconds != null && (
+                        <p>
+                          Grup kapanmasına:{" "}
+                          <span className="font-medium">
+                            {formatSeconds(groupInfo.remaining_seconds)}
+                          </span>
+                        </p>
+                      )}
+                    {groupInfo.group_start_time && (
+                      <p>Başlangıç: {groupInfo.group_start_time}</p>
+                    )}
+                    {groupInfo.group_end_time && (
+                      <p>Bitiş: {groupInfo.group_end_time}</p>
+                    )}
+                  </div>
+                )}
                 <p className="green">Ucuz fiyatlandırma</p>
               </div>
               <div className="order-page-price-2">

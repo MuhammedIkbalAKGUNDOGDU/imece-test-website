@@ -1470,6 +1470,21 @@ const GroupsContent = () => {
   const [hasFetched, setHasFetched] = useState(false);
   const accessToken = localStorage.getItem("accessToken");
 
+  const formatSeconds = (seconds) => {
+    const s = Number(seconds);
+    if (!Number.isFinite(s) || s <= 0) return "0 sn";
+    const total = Math.floor(s);
+    const days = Math.floor(total / 86400);
+    const hours = Math.floor((total % 86400) / 3600);
+    const mins = Math.floor((total % 3600) / 60);
+
+    const parts = [];
+    if (days) parts.push(`${days} gün`);
+    if (hours || days) parts.push(`${hours} saat`);
+    parts.push(`${mins} dk`);
+    return parts.join(" ");
+  };
+
   const fetchGroups = async () => {
     if (!accessToken) {
       setIsLoading(false);
@@ -1691,6 +1706,45 @@ const GroupsContent = () => {
                       ` • ${group.group_capacity_left} yer kaldı`}
                     {group.current_price && ` • ${group.current_price}₺`}
                   </p>
+                  {(group.starts_in_seconds != null ||
+                    group.remaining_seconds != null ||
+                    group.group_start_time ||
+                    group.group_end_time) && (
+                    <div className="mt-1 text-xs text-gray-500 space-y-0.5">
+                      {group.starts_in_seconds != null &&
+                        Number(group.starts_in_seconds) > 0 && (
+                          <p>
+                            Başlamasına:{" "}
+                            <span className="font-medium">
+                              {formatSeconds(group.starts_in_seconds)}
+                            </span>
+                          </p>
+                        )}
+                      {group.starts_in_seconds != null &&
+                        Number(group.starts_in_seconds) <= 0 &&
+                        group.remaining_seconds != null && (
+                          <p>
+                            Kapanmasına:{" "}
+                            <span className="font-medium">
+                              {formatSeconds(group.remaining_seconds)}
+                            </span>
+                          </p>
+                        )}
+                      {!group.starts_in_seconds &&
+                        group.remaining_seconds != null && (
+                          <p>
+                            Kapanmasına:{" "}
+                            <span className="font-medium">
+                              {formatSeconds(group.remaining_seconds)}
+                            </span>
+                          </p>
+                        )}
+                      {group.group_start_time && (
+                        <p>Başlangıç: {group.group_start_time}</p>
+                      )}
+                      {group.group_end_time && <p>Bitiş: {group.group_end_time}</p>}
+                    </div>
+                  )}
                   {group.group_visible === false && (
                     <p className="text-sm text-orange-600 mt-1">
                       ⚠️ Bu grup gizli

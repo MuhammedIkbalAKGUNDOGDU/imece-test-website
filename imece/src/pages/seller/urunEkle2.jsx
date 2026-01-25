@@ -6,7 +6,9 @@ const UrunEkle2 = () => {
   const [amountSelected, setAmountSelected] = useState(false);
   const [priceSelected, setPriceSelected] = useState(false);
   const [minPriceSelected, setMinPriceSelected] = useState(false);
-  const [satisTuru, setSatisTuru] = useState("1");
+  const [satisTuruSelected, setSatisTuruSelected] = useState(false);
+  const [groupStartSelected, setGroupStartSelected] = useState(false);
+  const [groupDurationSelected, setGroupDurationSelected] = useState(false);
 
   const navigate = useNavigate();
   const { urunBilgileri, updateUrunBilgileri } = useUrun();
@@ -22,13 +24,37 @@ const UrunEkle2 = () => {
       setMinPriceSelected(true);
     }
     if (urunBilgileri.satis_turu) {
-      setSatisTuru(true);
+      setSatisTuruSelected(true);
+    }
+    if (urunBilgileri.group_start_date) {
+      setGroupStartSelected(true);
+    }
+    if (urunBilgileri.group_duration_days) {
+      setGroupDurationSelected(true);
     }
   }, []);
 
+  const formatLocalDateYYYYMMDD = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
+  const addDays = (date, days) => {
+    const copy = new Date(date);
+    copy.setDate(copy.getDate() + days);
+    return copy;
+  };
+
+  const minGroupStartDate = formatLocalDateYYYYMMDD(addDays(new Date(), 1));
+  const maxGroupStartDate = formatLocalDateYYYYMMDD(addDays(new Date(), 14));
+
   const isFormValid = () => {
-    if (!amountSelected || !satisTuru || !priceSelected) return false;
+    if (!amountSelected || !satisTuruSelected || !priceSelected) return false;
     if (urunBilgileri.satis_turu === "2" && !minPriceSelected) return false;
+    if (urunBilgileri.satis_turu === "2" && !groupStartSelected) return false;
+    if (urunBilgileri.satis_turu === "2" && !groupDurationSelected) return false;
     return true;
   };
 
@@ -52,8 +78,31 @@ const UrunEkle2 = () => {
 
   const handleSatisTuruChange = (e) => {
     const value = e.target.value;
-    setSatisTuru(value);
+    setSatisTuruSelected(true);
     updateUrunBilgileri("satis_turu", value);
+
+    // Grup satış değilse grup alanlarını temizle
+    if (value !== "2") {
+      updateUrunBilgileri({
+        group_start_date: null,
+        group_duration_days: null,
+      });
+      setGroupStartSelected(false);
+      setGroupDurationSelected(false);
+    }
+  };
+
+  const handleGroupStartDateChange = (e) => {
+    const value = e.target.value; // YYYY-MM-DD
+    updateUrunBilgileri("group_start_date", value || null);
+    setGroupStartSelected(!!value);
+  };
+
+  const handleGroupDurationChange = (e) => {
+    const value = e.target.value;
+    const parsed = value ? parseInt(value, 10) : null;
+    updateUrunBilgileri("group_duration_days", parsed);
+    setGroupDurationSelected(!!parsed);
   };
 
   return (
@@ -170,6 +219,69 @@ const UrunEkle2 = () => {
                   : "border-gray-300 text-gray-400"
               }`}
             />
+          </div>
+        )}
+
+        {/* Grup satış ayarları */}
+        {urunBilgileri.satis_turu === "2" && (
+          <div className="max-w-[1000px] w-full">
+            <p className="font-bold text-xl mt-4 block">Grup Başlangıç ve Süre</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Grup, seçtiğiniz tarihte saat 00:00'da başlayacaktır. Başlangıç
+              tarihi bugünden ileri olmalı ve en fazla 14 gün sonrası seçilebilir.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+              <div>
+                <label
+                  htmlFor="group_start_date"
+                  className="font-semibold text-sm block mb-1"
+                >
+                  Başlangıç Tarihi
+                </label>
+                <input
+                  id="group_start_date"
+                  type="date"
+                  value={urunBilgileri.group_start_date || ""}
+                  min={minGroupStartDate}
+                  max={maxGroupStartDate}
+                  onChange={handleGroupStartDateChange}
+                  className={`w-full p-2 text-base rounded-lg border-2 transition-colors ${
+                    groupStartSelected
+                      ? "border-green-400 text-black"
+                      : "border-gray-300 text-gray-400"
+                  }`}
+                  required
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="group_duration_days"
+                  className="font-semibold text-sm block mb-1"
+                >
+                  Süre (Gün)
+                </label>
+                <select
+                  id="group_duration_days"
+                  value={urunBilgileri.group_duration_days || ""}
+                  onChange={handleGroupDurationChange}
+                  className={`w-full p-2 text-base rounded-lg border-2 transition-colors ${
+                    groupDurationSelected
+                      ? "border-green-400 text-black"
+                      : "border-gray-300 text-gray-400"
+                  }`}
+                  required
+                >
+                  <option value="">Süre seçin</option>
+                  {Array.from({ length: 14 }, (_, i) => i + 1).map((d) => (
+                    <option key={d} value={d}>
+                      {d} gün
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
         )}
 

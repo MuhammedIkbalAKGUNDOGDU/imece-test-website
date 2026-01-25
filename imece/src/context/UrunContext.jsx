@@ -16,6 +16,9 @@ export const UrunProvider = ({ children }) => {
     alt_kategori: "",
     stok_miktari: "",
     satis_turu: "",
+    // Grup satış (satis_turu: 2) alanları
+    group_start_date: null, // "YYYY-MM-DD"
+    group_duration_days: null, // 1-14
     urun_perakende_fiyati: "",
     urun_min_fiyati: "",
     urun_sertifika_pdf: null,

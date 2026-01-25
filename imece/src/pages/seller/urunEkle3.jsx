@@ -37,32 +37,27 @@ const UrunEkle3 = () => {
     }
   };
 
-  const getListingDates = () => {
-    const today = new Date();
-    const threeDaysLater = new Date();
-
-    // Bugün saat 23:59:00
-    today.setHours(23, 59, 0, 0);
-
-    // 3 gün sonrası saat 23:59:00
-    threeDaysLater.setDate(threeDaysLater.getDate() + 3);
-    threeDaysLater.setHours(23, 59, 0, 0);
-
-    const options = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    };
-
-    return {
-      todayEnd: today.toLocaleString("tr-TR", options),
-      threeDaysLaterEnd: threeDaysLater.toLocaleString("tr-TR", options),
-    };
+  const formatLocalDateYYYYMMDD = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   };
 
-  const { todayEnd, threeDaysLaterEnd } = getListingDates();
+  const addDays = (date, days) => {
+    const copy = new Date(date);
+    copy.setDate(copy.getDate() + days);
+    return copy;
+  };
+
+  const groupStartDate = urunBilgileri.group_start_date; // YYYY-MM-DD
+  const groupDurationDays = urunBilgileri.group_duration_days; // 1-14
+  const groupEndDate =
+    groupStartDate && groupDurationDays
+      ? formatLocalDateYYYYMMDD(
+          addDays(new Date(`${groupStartDate}T00:00:00`), groupDurationDays)
+        )
+      : null;
 
   return (
     <div className="urunEkle1Container">
@@ -154,16 +149,25 @@ const UrunEkle3 = () => {
           {isToptan && (
             <div className="mt-12">
               <InfoCard
-                title="Gurubun üye kabul başlangıç tarihi"
-                description="Bu tarih, grubun üye kabulünün başladığı gündür. Bugün saat 23:59'a kadar geçerlidir."
+                title="Grup başlangıç tarihi"
+                description="Grup, seçtiğiniz tarihte saat 00:00'da üye kabulüne başlar. O zamana kadar pasif kalır."
               />
-              <p>{todayEnd}</p>
+              <p className="font-medium">
+                {groupStartDate ? groupStartDate : "Seçilmedi"}
+              </p>
 
               <InfoCard
-                title="Gurubun üye kabul Bitiş tarihi"
-                description="Bu tarih, grubun üye kabulünün sona ereceği gündür. Üyelikler belirtilen tarihe kadar kabul edilir."
+                title="Grup bitiş tarihi"
+                description="Grup, seçtiğiniz süre sonunda saat 00:00'da kapanır."
               />
-              <p>{threeDaysLaterEnd}</p>
+              <p className="font-medium">
+                {groupEndDate ? groupEndDate : "—"}
+              </p>
+
+              <div className="mt-3 text-sm text-gray-600">
+                <span className="font-semibold">Süre:</span>{" "}
+                {groupDurationDays ? `${groupDurationDays} gün` : "Seçilmedi"}
+              </div>
             </div>
           )}
         </div>

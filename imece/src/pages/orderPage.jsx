@@ -20,6 +20,9 @@ const orderPage = () => {
   const location = useLocation();
   const product = location.state?.product;
   const [groupInfo, setGroupInfo] = useState(null);
+  const [productImages, setProductImages] = useState([]);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
+  const [isImagesLoading, setIsImagesLoading] = useState(false);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -33,6 +36,68 @@ const orderPage = () => {
 
   const token = localStorage.getItem("accessToken");
   const [productComments, setProductComments] = useState([]);
+
+  const getImageUrl = (item) => {
+    if (!item || typeof item !== "object") return null;
+    return (
+      item.image ||
+      item.image_url ||
+      item.resim ||
+      item.resim_url ||
+      item.url ||
+      item.file ||
+      item.fotograf ||
+      item.gorsel ||
+      item.urun_image ||
+      null
+    );
+  };
+
+  useEffect(() => {
+    const fetchProductImages = async () => {
+      if (!product?.urun_id) return;
+
+      setIsImagesLoading(true);
+      try {
+        const res = await axios.get("https://imecehub.com/api/products/urunimage/", {
+          params: { urun_id: product.urun_id },
+          headers: {
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+          },
+        });
+
+        let items = res.data;
+        if (items && typeof items === "object" && !Array.isArray(items)) {
+          items = items.results || items.data || items.images || items.urunler || items.urun_images || items;
+        }
+        if (!Array.isArray(items)) items = [];
+
+        const urls = items.map(getImageUrl).filter(Boolean);
+
+        // Kapak görseli her zaman ilk sırada olsun
+        const cover = product?.kapak_gorseli || product?.resim_url || null;
+        const merged = [
+          ...(cover ? [cover] : []),
+          ...urls.filter((u) => u !== cover),
+        ];
+
+        // uniq
+        const unique = Array.from(new Set(merged));
+        setProductImages(unique);
+        setSelectedImageUrl((prev) => prev || unique[0] || cover);
+      } catch (err) {
+        console.error("Ürün görselleri alınamadı:", err);
+        const cover = product?.kapak_gorseli || product?.resim_url || null;
+        setProductImages(cover ? [cover] : []);
+        setSelectedImageUrl(cover);
+      } finally {
+        setIsImagesLoading(false);
+      }
+    };
+
+    fetchProductImages();
+  }, [product?.urun_id]);
 
   const formatSeconds = (seconds) => {
     const s = Number(seconds);
@@ -466,7 +531,52 @@ const orderPage = () => {
         <div className="order-page-firstslide mb-20">
           <div className="order-page-grid1">
             <div className="order-page-photos">
-              <img src={product.kapak_gorseli} alt="" />
+              <div className="w-full">
+                <div className="w-full bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                  {isImagesLoading ? (
+                    <div className="w-full h-[320px] bg-gray-100 animate-pulse" />
+                  ) : (
+                    <img
+                      src={selectedImageUrl || product?.kapak_gorseli || productsimg}
+                      alt={product?.urun_adi || "Ürün"}
+                      className="w-full h-[320px] object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = productsimg;
+                      }}
+                    />
+                  )}
+                </div>
+
+                {productImages.length > 1 && (
+                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                    {productImages.map((url, idx) => {
+                      const isActive = url === selectedImageUrl;
+                      return (
+                        <button
+                          key={`${url}-${idx}`}
+                          type="button"
+                          onClick={() => setSelectedImageUrl(url)}
+                          className={`shrink-0 rounded-xl border overflow-hidden w-16 h-16 ${
+                            isActive
+                              ? "border-green-500 ring-2 ring-green-200"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                          title={`Görsel ${idx + 1}`}
+                        >
+                          <img
+                            src={url}
+                            alt={`Görsel ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="order-page-explanation">
               <div className="order-page-explanation-title">

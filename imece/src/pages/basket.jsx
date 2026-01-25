@@ -290,6 +290,20 @@ export default function CartPage() {
         ...prevInfo,
         [name]: formattedValue,
       }));
+    } else if (name === "expire_month" || name === "expire_year") {
+      // Sadece rakam + max 2 hane (MM / YY)
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 2);
+      setPaymentInfo((prevInfo) => ({
+        ...prevInfo,
+        [name]: digitsOnly,
+      }));
+    } else if (name === "cvc_number") {
+      // Sadece rakam + max 3 hane
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 3);
+      setPaymentInfo((prevInfo) => ({
+        ...prevInfo,
+        [name]: digitsOnly,
+      }));
     } else {
       setPaymentInfo((prevInfo) => ({
         ...prevInfo,
@@ -388,6 +402,26 @@ export default function CartPage() {
       !paymentInfo.cvc_number
     ) {
       showCustomModal("Lütfen tüm kart bilgilerini eksiksiz girin.", "error");
+      setLoading(false);
+      return;
+    }
+
+    // MM doğrulama (01-12)
+    const expMonthNum = parseInt(paymentInfo.expire_month, 10);
+    if (
+      Number.isNaN(expMonthNum) ||
+      paymentInfo.expire_month.length !== 2 ||
+      expMonthNum < 1 ||
+      expMonthNum > 12
+    ) {
+      showCustomModal("Son kullanma ayı 01-12 arasında olmalıdır (MM).", "error");
+      setLoading(false);
+      return;
+    }
+
+    // YY doğrulama (2 hane)
+    if (!/^\d{2}$/.test(paymentInfo.expire_year)) {
+      showCustomModal("Son kullanma yılı 2 hane olmalıdır (YY).", "error");
       setLoading(false);
       return;
     }
@@ -635,31 +669,7 @@ export default function CartPage() {
   }
 
   // Ay seçeneklerini oluştur (Türkçe ay isimleri ile)
-  const monthNames = [
-    "Ocak",
-    "Şubat",
-    "Mart",
-    "Nisan",
-    "Mayıs",
-    "Haziran",
-    "Temmuz",
-    "Ağustos",
-    "Eylül",
-    "Ekim",
-    "Kasım",
-    "Aralık",
-  ];
-  const months = Array.from({ length: 12 }, (_, i) => ({
-    value: String(i + 1).padStart(2, "0"),
-    label: `${String(i + 1).padStart(2, "0")} - ${monthNames[i]}`,
-  }));
-  // Yıl seçeneklerini oluştur (2022'den başlayarak)
-  const startYear = 2022;
-  const endYear = 2040;
-  const years = Array.from(
-    { length: endYear - startYear + 1 },
-    (_, i) => String(startYear + i)
-  );
+  // Son kullanma ay/yıl alanları artık manuel giriliyor (MM / YY)
 
   return (
     <>
@@ -770,22 +780,20 @@ export default function CartPage() {
                 >
                   Son Kullanma Ayı (MM)
                 </label>
-                <select
+                <input
+                  type="text"
                   id="expire_month"
                   name="expire_month"
                   value={paymentInfo.expire_month}
                   onChange={handlePaymentInfoChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="MM (örn: 12)"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={2}
                   autoComplete="cc-exp-month"
                   required
-                >
-                  <option value="">Ay Seçin</option>
-                  {months.map((month) => (
-                    <option key={month.value} value={month.value}>
-                      {month.label}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
                 <label
@@ -794,22 +802,20 @@ export default function CartPage() {
                 >
                   Son Kullanma Yılı (YY)
                 </label>
-                <select
+                <input
+                  type="text"
                   id="expire_year"
                   name="expire_year"
                   value={paymentInfo.expire_year}
                   onChange={handlePaymentInfoChange}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="YY (örn: 25)"
+                  inputMode="numeric"
+                  pattern="\d*"
+                  maxLength={2}
                   autoComplete="cc-exp-year"
                   required
-                >
-                  <option value="">Yıl Seçin</option>
-                  {years.map((year) => (
-                    <option key={year} value={year}>
-                      {year.slice(-2)} {/* Sadece son iki haneyi göster */}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
               <div className="col-span-1 md:col-span-2">
                 {" "}

@@ -1485,6 +1485,19 @@ const GroupsContent = () => {
     return parts.join(" ");
   };
 
+  const formatDateTimeTR = (isoString) => {
+    if (!isoString) return "-";
+    const dt = new Date(isoString);
+    if (Number.isNaN(dt.getTime())) return String(isoString);
+    return dt.toLocaleString("tr-TR", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const fetchGroups = async () => {
     if (!accessToken) {
       setIsLoading(false);
@@ -1710,39 +1723,61 @@ const GroupsContent = () => {
                     group.remaining_seconds != null ||
                     group.group_start_time ||
                     group.group_end_time) && (
-                    <div className="mt-1 text-xs text-gray-500 space-y-0.5">
-                      {group.starts_in_seconds != null &&
-                        Number(group.starts_in_seconds) > 0 && (
-                          <p>
-                            Başlamasına:{" "}
-                            <span className="font-medium">
-                              {formatSeconds(group.starts_in_seconds)}
-                            </span>
-                          </p>
+                    <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 p-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {group.starts_in_seconds != null &&
+                        Number(group.starts_in_seconds) > 0 ? (
+                          <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800">
+                            Yakında başlıyor
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-800">
+                            Aktif
+                          </span>
                         )}
-                      {group.starts_in_seconds != null &&
-                        Number(group.starts_in_seconds) <= 0 &&
-                        group.remaining_seconds != null && (
-                          <p>
-                            Kapanmasına:{" "}
-                            <span className="font-medium">
-                              {formatSeconds(group.remaining_seconds)}
+
+                        {group.starts_in_seconds != null &&
+                          Number(group.starts_in_seconds) > 0 && (
+                            <span className="text-xs text-gray-700">
+                              Başlamasına{" "}
+                              <span className="font-semibold text-blue-700">
+                                {formatSeconds(group.starts_in_seconds)}
+                              </span>
                             </span>
-                          </p>
-                        )}
-                      {!group.starts_in_seconds &&
-                        group.remaining_seconds != null && (
-                          <p>
-                            Kapanmasına:{" "}
-                            <span className="font-medium">
-                              {formatSeconds(group.remaining_seconds)}
+                          )}
+
+                        {!(group.starts_in_seconds != null &&
+                          Number(group.starts_in_seconds) > 0) &&
+                          group.remaining_seconds != null && (
+                            <span className="text-xs text-gray-700">
+                              Kapanmasına{" "}
+                              <span className="font-semibold text-orange-700">
+                                {formatSeconds(group.remaining_seconds)}
+                              </span>
                             </span>
-                          </p>
-                        )}
-                      {group.group_start_time && (
-                        <p>Başlangıç: {group.group_start_time}</p>
+                          )}
+                      </div>
+
+                      {(group.group_start_time || group.group_end_time) && (
+                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-600">
+                          {group.group_start_time && (
+                            <div className="flex items-center justify-between rounded-md bg-white border border-gray-200 px-2 py-1">
+                              <span>Başlangıç</span>
+                              <span className="font-medium text-gray-800">
+                                {formatDateTimeTR(group.group_start_time)}
+                              </span>
+                            </div>
+                          )}
+                          {group.group_end_time && (
+                            <div className="flex items-center justify-between rounded-md bg-white border border-gray-200 px-2 py-1">
+                              <span>Bitiş</span>
+                              <span className="font-medium text-gray-800">
+                                {formatDateTimeTR(group.group_end_time)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       )}
-                      {group.group_end_time && <p>Bitiş: {group.group_end_time}</p>}
                     </div>
                   )}
                   {group.group_visible === false && (

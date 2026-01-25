@@ -48,6 +48,19 @@ const orderPage = () => {
     return parts.join(" ");
   };
 
+  const formatDateTimeTR = (isoString) => {
+    if (!isoString) return "-";
+    const dt = new Date(isoString);
+    if (Number.isNaN(dt.getTime())) return String(isoString);
+    return dt.toLocaleString("tr-TR", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   useEffect(() => {
     const fetchProductComments = async () => {
       try {
@@ -593,6 +606,67 @@ const orderPage = () => {
                 </div>
               )}
             </div>
+
+            {/* Grup zaman bilgisi (fiyat bloğunun üstünde, ayrı bölüm) */}
+            {product.satis_turu === 2 && groupInfo && (
+              <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    {groupInfo.starts_in_seconds != null &&
+                    Number(groupInfo.starts_in_seconds) > 0 ? (
+                      <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+                        Grup yakında başlıyor
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
+                        Grup aktif
+                      </span>
+                    )}
+                  </div>
+
+                  {groupInfo.starts_in_seconds != null &&
+                    Number(groupInfo.starts_in_seconds) > 0 && (
+                      <div className="text-sm font-semibold text-gray-800">
+                        Başlamasına:{" "}
+                        <span className="text-blue-700">
+                          {formatSeconds(groupInfo.starts_in_seconds)}
+                        </span>
+                      </div>
+                    )}
+
+                  {!(groupInfo.starts_in_seconds != null &&
+                    Number(groupInfo.starts_in_seconds) > 0) &&
+                    groupInfo.remaining_seconds != null && (
+                      <div className="text-sm font-semibold text-gray-800">
+                        Kapanmasına:{" "}
+                        <span className="text-orange-700">
+                          {formatSeconds(groupInfo.remaining_seconds)}
+                        </span>
+                      </div>
+                    )}
+                </div>
+
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
+                  {groupInfo.group_start_time && (
+                    <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 border border-gray-200">
+                      <span className="text-gray-500">Başlangıç</span>
+                      <span className="font-medium">
+                        {formatDateTimeTR(groupInfo.group_start_time)}
+                      </span>
+                    </div>
+                  )}
+                  {groupInfo.group_end_time && (
+                    <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 border border-gray-200">
+                      <span className="text-gray-500">Bitiş</span>
+                      <span className="font-medium">
+                        {formatDateTimeTR(groupInfo.group_end_time)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {product?.lab_sonuc_pdf && (
               <div className="order-page-lab-results">
                 <div className="order-page-lab-title">
@@ -624,44 +698,6 @@ const orderPage = () => {
                     ? `Anlık Fiyat : ${groupInfo.current_price} TL`
                     : `${product.urun_perakende_fiyati} TL`}
                 </p>
-                {product.satis_turu === 2 && groupInfo && (
-                  <div className="text-sm text-gray-600 mt-1 space-y-0.5">
-                    {groupInfo.starts_in_seconds != null &&
-                      Number(groupInfo.starts_in_seconds) > 0 && (
-                        <p>
-                          Grup başlamasına:{" "}
-                          <span className="font-medium">
-                            {formatSeconds(groupInfo.starts_in_seconds)}
-                          </span>
-                        </p>
-                      )}
-                    {groupInfo.starts_in_seconds != null &&
-                      Number(groupInfo.starts_in_seconds) <= 0 &&
-                      groupInfo.remaining_seconds != null && (
-                        <p>
-                          Grup kapanmasına:{" "}
-                          <span className="font-medium">
-                            {formatSeconds(groupInfo.remaining_seconds)}
-                          </span>
-                        </p>
-                      )}
-                    {!groupInfo.starts_in_seconds &&
-                      groupInfo.remaining_seconds != null && (
-                        <p>
-                          Grup kapanmasına:{" "}
-                          <span className="font-medium">
-                            {formatSeconds(groupInfo.remaining_seconds)}
-                          </span>
-                        </p>
-                      )}
-                    {groupInfo.group_start_time && (
-                      <p>Başlangıç: {groupInfo.group_start_time}</p>
-                    )}
-                    {groupInfo.group_end_time && (
-                      <p>Bitiş: {groupInfo.group_end_time}</p>
-                    )}
-                  </div>
-                )}
                 <p className="green">Ucuz fiyatlandırma</p>
               </div>
               <div className="order-page-price-2">

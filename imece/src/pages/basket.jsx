@@ -8,6 +8,8 @@ import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
 export default function CartPage() {
   const [cartItems, setCartItems] = useState([]); // Sadece ürün verisi
   const [cartInfo, setCartInfo] = useState(null); // Sepet toplam fiyatı vb. bilgileri tutacak state
+  const [userData, setUserData] = useState(null); // Kullanıcı bilgileri
+  const [addresses, setAddresses] = useState([]); // Adres listesi
   const [paymentInfo, setPaymentInfo] = useState({
     // Kart bilgilerini tutacak state
     card_holder_name: "",
@@ -25,6 +27,10 @@ export default function CartPage() {
     teslimat_adres_id: null,
     fatura_adres_id: null,
   });
+  const [show3DSecureModal, setShow3DSecureModal] = useState(false); // 3D Secure modal
+  const [threeDSecureHtml, setThreeDSecureHtml] = useState(null); // 3D Secure HTML
+  const [threeDSecureUrl, setThreeDSecureUrl] = useState(null); // 3D Secure URL
+  const [currentPaymentId, setCurrentPaymentId] = useState(null); // Mevcut ödeme ID
 
   const token = localStorage.getItem("accessToken");
   const accessToken = localStorage.getItem("accessToken");
@@ -124,89 +130,152 @@ export default function CartPage() {
     }
   };
 
-  // Siparişi onaylama fonksiyonu (ödeme öncesi çağrılır)
-  const handleOrderConfirmation = async () => {
-    try {
-      console.log("=== SİPARİŞ ONAYLAMA BAŞLADI ===");
-      console.log("API Key:", apiKey ? "Mevcut" : "Eksik");
-      console.log("Token:", token ? "Mevcut" : "Eksik");
 
-      // Adres bilgilerini state'den al
-      const teslimat_adres_id = selectedAddresses.teslimat_adres_id;
-      const fatura_adres_id = selectedAddresses.fatura_adres_id;
+  // Kullanıcı bilgilerini çek
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!accessToken) return;
 
-      console.log("Teslimat Adres ID:", teslimat_adres_id);
-      console.log("Fatura Adres ID:", fatura_adres_id);
-
-      // Adres seçimi kontrolü
-      if (!teslimat_adres_id || !fatura_adres_id) {
-        showCustomModal(
-          "Lütfen teslimat ve fatura adreslerini seçin.",
-          "error"
+      try {
+        const response = await axios.get(
+          "https://imecehub.com/api/users/kullanicilar/me/",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "X-API-Key": apiKey,
+              "Content-Type": "application/json",
+            },
+          }
         );
-        return false; // Başarısız
+        setUserData(response.data);
+      } catch (err) {
+        console.error("Kullanıcı bilgileri alınamadı:", err);
       }
+    };
 
-      const orderResponse = await axios.post(
-        "https://imecehub.com/api/payment/siparisitem/siparisi-onayla/",
-        {
-          teslimat_adres_id: teslimat_adres_id,
-          fatura_adres_id: fatura_adres_id,
-        },
-        {
-          headers: {
-            "X-API-Key": apiKey,
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          timeout: 10000, // 10 saniye timeout
+    fetchUserData();
+  }, [accessToken]);
+
+  // Adresleri çek
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!accessToken) return;
+
+      try {
+        const response = await axios.get(
+          "https://imecehub.com/users/list-addresses/",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "X-API-Key": apiKey,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        let addressesData = response.data;
+        if (typeof response.data === "string") {
+          try {
+            addressesData = JSON.parse(response.data);
+          } catch (parseError) {
+            console.error("JSON parse error:", parseError);
+            return;
+          }
         }
-      );
 
-      console.log("Sipariş Onaylama Yanıtı:", orderResponse.data);
+        if (
+          addressesData &&
+          typeof addressesData === "object" &&
+          !Array.isArray(addressesData)
+        ) {
+          if (addressesData.adresler) {
+            addressesData = addressesData.adresler;
+          } else if (addressesData.addresses) {
+            addressesData = addressesData.addresses;
+          } else if (addressesData.results) {
+            addressesData = addressesData.results;
+          } else if (addressesData.data) {
+            addressesData = addressesData.data;
+          }
+        }
 
-      if (orderResponse.data.durum === "ONAYLANDI") {
-        showCustomModal(
-          `Siparişiniz başarıyla onaylandı! Sipariş ID: ${orderResponse.data.siparis_id}, Toplam Fiyat: ${orderResponse.data.toplam_fiyat} TL`,
-          "success"
-        );
-        return true; // Başarılı
-      } else if (orderResponse.data.durum === "STOK_YETERSIZ") {
-        showCustomModal(
-          "Stok yetersizliği: " +
-            orderResponse.data.yetersiz_urunler
-              .map((item) => item.urun_adi)
-              .join(", "),
-          "error"
-        );
-        return false; // Başarısız
-      } else {
-        showCustomModal(
-          "Sipariş onaylama başarısız: " +
-            (orderResponse.data.hata || "Bilinmeyen hata."),
-          "error"
-        );
-        return false; // Başarısız
+        if (!Array.isArray(addressesData)) {
+          addressesData = [];
+        }
+
+        setAddresses(addressesData);
+      } catch (err) {
+        console.error("Adres verileri alınırken hata:", err);
       }
-    } catch (err) {
-      console.error(
-        "Sipariş onaylama hatası:",
-        err.response ? err.response.data : err
-      );
-      showCustomModal(
-        "Sipariş onaylanırken bir hata oluştu: " +
-          (err.response?.data?.hata || err.message || "Bilinmeyen hata."),
-        "error"
-      );
-      return false; // Başarısız
-    }
-  };
+    };
+
+    fetchAddresses();
+  }, [accessToken]);
 
   useEffect(() => {
     if (accessToken) {
       fetchCartData();
     }
   }, [accessToken]); // accessToken değiştiğinde veya sayfa yüklendiğinde çalıştır
+
+  // 3D Secure callback'i dinle (URL parametrelerinden)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const transactionId = urlParams.get("transaction_id");
+    const resultCode = urlParams.get("result_code");
+    const resultMessage = urlParams.get("result_message");
+    const odemeId = urlParams.get("odeme_id");
+
+    // Eğer callback parametreleri varsa işle
+    if (transactionId || resultCode) {
+      const callbackData = {
+        ResultCode: resultCode || "0000",
+        ResultMessage: resultMessage || "İşlem tamamlandı",
+        TransactionId: transactionId,
+        success: resultCode === "0000" || resultCode === "Success",
+      };
+
+      if (odemeId) {
+        handlePaymentCallback(parseInt(odemeId, 10), callbackData);
+      } else if (currentPaymentId) {
+        handlePaymentCallback(currentPaymentId, callbackData);
+      }
+
+      // URL'yi temizle
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []); // Sadece sayfa yüklendiğinde bir kez çalıştır
+
+  // 3D Secure form submit listener
+  useEffect(() => {
+    if (show3DSecureModal && threeDSecureHtml) {
+      // Form submit edildiğinde callback'i dinle
+      const handleFormSubmit = (event) => {
+        // Form submit edildiğinde, callback endpoint'ini çağır
+        // Bu genellikle backend'den otomatik olarak yapılır,
+        // ama frontend'de de kontrol edebiliriz
+        setTimeout(() => {
+          if (currentPaymentId) {
+            // Ödeme durumunu kontrol et
+            handlePaymentCallback(currentPaymentId, {
+              ResultCode: "0000",
+              ResultMessage: "3D Secure doğrulaması tamamlandı",
+              success: true,
+            });
+          }
+        }, 2000);
+      };
+
+      // Form elementlerini bul ve listener ekle
+      const form = document.querySelector('form[action*="3d"]');
+      if (form) {
+        form.addEventListener("submit", handleFormSubmit);
+        return () => {
+          form.removeEventListener("submit", handleFormSubmit);
+        };
+      }
+    }
+  }, [show3DSecureModal, threeDSecureHtml, currentPaymentId]);
 
   // Kart bilgileri inputlarını yönet
   const handlePaymentInfoChange = (e) => {
@@ -229,12 +298,88 @@ export default function CartPage() {
     }
   };
 
+  // Adres formatını oluştur
+  const formatAddress = (address) => {
+    if (!address) return "";
+    const parts = [];
+    if (address.adres_satiri_1) parts.push(address.adres_satiri_1);
+    if (address.adres_satiri_2) parts.push(address.adres_satiri_2);
+    if (address.mahalle) parts.push(address.mahalle);
+    if (address.ilce) parts.push(address.ilce);
+    if (address.il) parts.push(address.il);
+    if (address.posta_kodu) parts.push(address.posta_kodu);
+    if (address.ulke) parts.push(address.ulke);
+    return parts.join(", ");
+  };
+
+  // Ödeme callback işlemi
+  const handlePaymentCallback = async (odemeId, callbackData = null) => {
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        "https://imecehub.com/api/payment/siparisitem/payment-callback/",
+        {
+          odeme_id: odemeId,
+          transaction_id: callbackData?.TransactionId || null,
+          callback_data: callbackData,
+        },
+        {
+          headers: {
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Callback Yanıtı:", response.data);
+
+      if (response.data.durum === "BASARILI") {
+        showCustomModal(
+          "Siparişiniz başarıyla tamamlandı! Sipariş ID: " +
+            response.data.siparis_id,
+          "success"
+        );
+        // Sepeti temizle
+        setTimeout(() => {
+          fetchCartData();
+          // Sipariş detay sayfasına yönlendir (isteğe bağlı)
+          // window.location.href = `/siparis/${response.data.siparis_id}`;
+        }, 2000);
+      } else {
+        showCustomModal(
+          response.data.mesaj || "Ödeme işlemi başarısız oldu.",
+          "error"
+        );
+      }
+    } catch (err) {
+      console.error("Callback hatası:", err);
+      showCustomModal(
+        err.response?.data?.mesaj ||
+          "Ödeme kontrolü sırasında bir hata oluştu.",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+      setShow3DSecureModal(false);
+      setThreeDSecureHtml(null);
+      setThreeDSecureUrl(null);
+    }
+  };
+
+  // 3D Secure form göster
+  const show3DSecureForm = (htmlContent, odemeId) => {
+    setThreeDSecureHtml(htmlContent);
+    setCurrentPaymentId(odemeId);
+    setShow3DSecureModal(true);
+  };
+
   // Siparişi Onayla butonu tıklama işlemi
   const handleConfirmOrder = async () => {
     setLoading(true);
     setError(null);
 
-    // Basit doğrulama (daha detaylı doğrulama gerekebilir)
+    // Basit doğrulama
     if (
       !paymentInfo.card_holder_name ||
       !paymentInfo.card_number ||
@@ -247,7 +392,7 @@ export default function CartPage() {
       return;
     }
 
-    // Ensure cartInfo and total_tutar are available
+    // Sepet kontrolü
     if (!cartInfo || !cartInfo.toplam_tutar) {
       showCustomModal(
         "Sepet toplam tutarı alınamadı. Lütfen sepeti kontrol edin.",
@@ -257,67 +402,84 @@ export default function CartPage() {
       return;
     }
 
-    // Ödeme payload'ını örnek JSON'a göre oluştur
+    // Adres kontrolü
+    if (!selectedAddresses.teslimat_adres_id || !selectedAddresses.fatura_adres_id) {
+      showCustomModal(
+        "Lütfen teslimat ve fatura adreslerini seçin.",
+        "error"
+      );
+      setLoading(false);
+      return;
+    }
+
+    // Kullanıcı bilgileri kontrolü
+    if (!userData) {
+      showCustomModal(
+        "Kullanıcı bilgileri yüklenemedi. Lütfen sayfayı yenileyin.",
+        "error"
+      );
+      setLoading(false);
+      return;
+    }
+
+    // Seçili adresleri bul
+    const teslimatAddress = addresses.find(
+      (addr) => addr.id === selectedAddresses.teslimat_adres_id
+    );
+    const faturaAddress = addresses.find(
+      (addr) => addr.id === selectedAddresses.fatura_adres_id
+    );
+
+    if (!teslimatAddress || !faturaAddress) {
+      showCustomModal("Adres bilgileri bulunamadı.", "error");
+      setLoading(false);
+      return;
+    }
+
+    // Kart numarasından boşlukları temizle
+    const cardNumber = paymentInfo.card_number.replace(/\s/g, "");
+
+    // Yıl formatını düzelt (YYYY formatına çevir)
+    let expYear = paymentInfo.expire_year;
+    if (expYear.length === 2) {
+      const currentYear = new Date().getFullYear();
+      const currentCentury = Math.floor(currentYear / 100) * 100;
+      const yearNum = parseInt(expYear, 10);
+      expYear = String(currentCentury + yearNum);
+    }
+
+    // Ödeme payload'ını yeni API formatına göre oluştur
     const paymentPayload = {
+      teslimat_adres_id: selectedAddresses.teslimat_adres_id,
+      fatura_adres_id: selectedAddresses.fatura_adres_id,
       PaymentDealerRequest: {
         CardHolderFullName: paymentInfo.card_holder_name,
-        CardNumber: paymentInfo.card_number.replace(/\s/g, ""), // Boşlukları kaldırarak API'ye gönder
-        ExpMonth: paymentInfo.expire_month,
-        ExpYear: paymentInfo.expire_year,
-        CvcNumber: paymentInfo.cvc_number,
-        CardToken: "",
-        Amount: parseFloat(cartInfo.toplam_tutar), // Sepet bilgisinden toplam tutarı kullan
-        Currency: "TL",
-        InstallmentNumber: 1,
-        ClientIP: "192.168.1.101", // Örnekteki gibi statik IP
-        OtherTrxCode: "",
-        SubMerchantName: "",
-        IsPoolPayment: 0,
-        IsPreAuth: 0,
-        IsTokenized: 0,
-        IntegratorId: 0,
-        Software: "Possimulation",
-        Description: "Sepet Ödemesi", // Örnek açıklama
-        ReturnHash: 1,
-        RedirectUrl: "https://imecehub.com/products/deneme/", // Örnekteki gibi statik URL
-        RedirectType: 0,
+        CardNumber: cardNumber,
+        ExpMonth: paymentInfo.expire_month.padStart(2, "0"),
+        ExpYear: expYear,
+        CvvNumber: paymentInfo.cvc_number,
+        Amount: parseFloat(cartInfo.toplam_tutar).toFixed(2),
+        Currency: "949", // TRY
+        InstallmentNumber: "1",
+        MerchantOrderId: `ORDER-${Date.now()}`, // Benzersiz sipariş ID
+        Description: "Sepet Ödemesi",
         BuyerInformation: {
-          BuyerFullName: "Ali Yılmaz", // Örnekteki gibi statik
-          BuyerGsmNumber: "5551110022", // Örnekteki gibi statik
-          BuyerEmail: "aliyilmaz@xyz.com", // Örnekteki gibi statik
-          BuyerAddress: "Tasdelen / Çekmeköy", // Örnekteki gibi statik
-        },
-        CustomerInformation: {
-          DealerCustomerId: "",
-          CustomerCode: "1234", // Örnekteki gibi statik
-          FirstName: "Ali", // Örnekteki gibi statik
-          LastName: "Yılmaz", // Örnekteki gibi statik
-          Gender: "1", // Örnekteki gibi statik
-          BirthDate: "",
-          GsmNumber: "",
-          Email: "aliyilmaz@xyz.com", // Örnekteki gibi statik
-          Address: "",
-          CardName: "Maximum kartım", // Örnekteki gibi statik
+          BuyerFullName: `${userData.first_name || ""} ${userData.last_name || ""}`.trim(),
+          BuyerGsmNumber: userData.telno || "",
+          BuyerEmail: userData.email || "",
+          BuyerAddress: formatAddress(teslimatAddress),
+          BuyerCity: teslimatAddress.il || "",
+          BuyerCountry: teslimatAddress.ulke || "TR",
         },
       },
     };
 
     try {
-      // ÖNCE SİPARİŞİ ONAYLA
-      console.log("Sipariş onaylanıyor...");
-      const orderConfirmed = await handleOrderConfirmation();
+      console.log("Sipariş tamamlanıyor...", paymentPayload);
 
-      if (!orderConfirmed) {
-        setLoading(false);
-        return; // Sipariş onaylanamadıysa ödeme yapma
-      }
-
-      // Sipariş başarılıysa ödemeye geç
-      console.log("Sipariş onaylandı, ödeme yapılıyor...");
-
-      // Gerçek API isteği
+      // Yeni API endpoint'ine istek gönder
       const response = await axios.post(
-        "https://imecehub.com/api/payment/siparisitem/trigger-payment/", // Belirtilen endpoint
+        "https://imecehub.com/api/payment/siparisitem/siparisi-tamamla/",
         paymentPayload,
         {
           headers: {
@@ -328,71 +490,53 @@ export default function CartPage() {
         }
       );
 
-      console.log("Ödeme API Yanıtı:", response.data);
+      console.log("Sipariş Tamamlama Yanıtı:", response.data);
 
-      // ResultCode'a göre yanıtı işleme
-      if (response.data.ResultCode === "Success") {
-        if (response.data.Data && response.data.Data.Url) {
-          // Data objesi ve içindeki Url kontrolü
-          showCustomModal("3D Secure yönlendiriliyor...", "success");
-          window.location.href = response.data.Data.Url; // response.data.Data.Url kullanılıyor
-        } else {
-          showCustomModal("Siparişiniz başarıyla alındı!", "success");
-          fetchCartData(); // Başarılı sipariş sonrası sepeti yeniden yükle
+      // Response durumuna göre işle
+      if (response.data.durum === "BASARILI") {
+        const odemeId = response.data.odeme_id;
+        setCurrentPaymentId(odemeId);
+
+        // 3D Secure HTML varsa göster
+        if (response.data["3d_secure_html"]) {
+          show3DSecureForm(response.data["3d_secure_html"], odemeId);
         }
-      } else if (
-        response.data.ResultCode ===
-        "PaymentDealer.CheckCardInfo.InvalidCardInfo"
-      ) {
-        showCustomModal("Hatalı kart bilgisi.", "error");
-      } else if (
-        response.data.ResultCode ===
-        "PaymentDealer.CheckPaymentDealerAuthentication.InvalidAccount"
-      ) {
-        showCustomModal(
-          "Ödeme sistemi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin veya farklı bir ödeme yöntemi kullanın.",
-          "error"
-        );
+        // 3D Secure URL varsa yönlendir
+        else if (response.data["3d_secure_url"]) {
+          setThreeDSecureUrl(response.data["3d_secure_url"]);
+          setCurrentPaymentId(odemeId);
+          // URL'ye yönlendir
+          window.location.href = response.data["3d_secure_url"];
+        } else {
+          // 3D Secure gerekmiyorsa direkt callback yap
+          showCustomModal("Siparişiniz başarıyla oluşturuldu!", "success");
+          fetchCartData();
+        }
+      } else if (response.data.durum === "BOS_SEPET") {
+        showCustomModal(response.data.mesaj || "Sepetiniz boş.", "error");
       } else if (response.data.durum === "STOK_YETERSIZ") {
-        // 'durum' alanı hala kullanılıyorsa
+        const yetersizUrunler = response.data.yetersiz_urunler || [];
+        const urunAdlari = yetersizUrunler
+          .map((item) => item.urun_adi)
+          .join(", ");
         showCustomModal(
-          "Stok yetersizliği: " +
-            response.data.yetersiz_urunler
-              .map((item) => item.urun_adi)
-              .join(", "),
+          `Stok yetersizliği: ${urunAdlari}`,
           "error"
         );
       } else {
-        // Diğer hata durumları için genel mesaj
         showCustomModal(
-          "Sipariş onaylama başarısız: " +
-            (response.data.mesaj ||
-              response.data.ResultCode ||
-              "Bilinmeyen hata."),
+          response.data.mesaj || "Sipariş tamamlanırken bir hata oluştu.",
           "error"
         );
       }
     } catch (err) {
-      console.error(
-        "Sipariş onaylama hatası:",
-        err.response ? err.response.data : err
-      );
+      console.error("Sipariş tamamlama hatası:", err.response?.data || err);
 
-      // Ağ hataları veya diğer HTTP hataları için hata mesajı
-      let errorMessage = "Sipariş onaylanırken bir hata oluştu.";
-      if (
-        err.response?.data?.ResultCode ===
-        "PaymentDealer.CheckCardInfo.InvalidCardInfo"
-      ) {
-        errorMessage = "Hatalı kart bilgisi.";
-      } else if (
-        err.response?.data?.ResultCode ===
-        "PaymentDealer.CheckPaymentDealerAuthentication.InvalidAccount"
-      ) {
-        errorMessage =
-          "Ödeme sistemi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin veya farklı bir ödeme yöntemi kullanın.";
-      } else if (err.response?.data?.mesaj) {
+      let errorMessage = "Sipariş tamamlanırken bir hata oluştu.";
+      if (err.response?.data?.mesaj) {
         errorMessage = err.response.data.mesaj;
+      } else if (err.response?.data?.durum === "HATA") {
+        errorMessage = err.response.data.mesaj || errorMessage;
       } else if (err.message) {
         errorMessage = err.message;
       }
@@ -490,13 +634,29 @@ export default function CartPage() {
     );
   }
 
-  // Ay seçeneklerini oluştur
-  const months = Array.from({ length: 12 }, (_, i) =>
-    String(i + 1).padStart(2, "0")
-  );
-  // Yıl seçeneklerini oluştur
+  // Ay seçeneklerini oluştur (Türkçe ay isimleri ile)
+  const monthNames = [
+    "Ocak",
+    "Şubat",
+    "Mart",
+    "Nisan",
+    "Mayıs",
+    "Haziran",
+    "Temmuz",
+    "Ağustos",
+    "Eylül",
+    "Ekim",
+    "Kasım",
+    "Aralık",
+  ];
+  const months = Array.from({ length: 12 }, (_, i) => ({
+    value: String(i + 1).padStart(2, "0"),
+    label: `${String(i + 1).padStart(2, "0")} - ${monthNames[i]}`,
+  }));
+  // Yıl seçeneklerini oluştur (2025'ten başlayarak)
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 16 }, (_, i) => String(currentYear + i)); // 2025'ten 2040'a kadar (16 yıl)
+  const startYear = 2025; // 2025'ten başlat
+  const years = Array.from({ length: 16 }, (_, i) => String(startYear + i)); // 2025'ten 2040'a kadar (16 yıl)
 
   return (
     <>
@@ -553,114 +713,126 @@ export default function CartPage() {
         {/* Ödeme Bölümü */}
         <div className="bg-white shadow-lg p-3 sm:p-4 md:p-6 rounded-lg my-2 md:my-4">
           <h2 className="text-xl font-bold mb-4">Ödeme Bilgileri</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="card_holder_name"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Kart Üzerindeki İsim
-              </label>
-              <input
-                type="text"
-                id="card_holder_name"
-                name="card_holder_name"
-                value={paymentInfo.card_holder_name}
-                onChange={handlePaymentInfoChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                placeholder="Ad Soyad"
-                required
-              />
+          <form
+            autoComplete="on"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleConfirmOrder();
+            }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="card_holder_name"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Kart Üzerindeki İsim
+                </label>
+                <input
+                  type="text"
+                  id="card_holder_name"
+                  name="card_holder_name"
+                  value={paymentInfo.card_holder_name}
+                  onChange={handlePaymentInfoChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="Ad Soyad"
+                  autoComplete="cc-name"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="card_number"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Kart Numarası
+                </label>
+                <input
+                  type="text"
+                  id="card_number"
+                  name="card_number"
+                  value={paymentInfo.card_number}
+                  onChange={handlePaymentInfoChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="XXXX XXXX XXXX XXXX"
+                  maxLength="19" // Max 16 digits + 3 spaces = 19 characters
+                  autoComplete="cc-number"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="expire_month"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Son Kullanma Ayı (MM)
+                </label>
+                <select
+                  id="expire_month"
+                  name="expire_month"
+                  value={paymentInfo.expire_month}
+                  onChange={handlePaymentInfoChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  autoComplete="cc-exp-month"
+                  required
+                >
+                  <option value="">Ay Seçin</option>
+                  {months.map((month) => (
+                    <option key={month.value} value={month.value}>
+                      {month.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="expire_year"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Son Kullanma Yılı (YY)
+                </label>
+                <select
+                  id="expire_year"
+                  name="expire_year"
+                  value={paymentInfo.expire_year}
+                  onChange={handlePaymentInfoChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  autoComplete="cc-exp-year"
+                  required
+                >
+                  <option value="">Yıl Seçin</option>
+                  {years.map((year) => (
+                    <option key={year} value={year}>
+                      {year.slice(-2)} {/* Sadece son iki haneyi göster */}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                {" "}
+                {/* CVC'yi tek başına bir satıra alabiliriz */}
+                <label
+                  htmlFor="cvc_number"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  CVC
+                </label>
+                <input
+                  type="text"
+                  id="cvc_number"
+                  name="cvc_number"
+                  value={paymentInfo.cvc_number}
+                  onChange={handlePaymentInfoChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="XXX"
+                  maxLength="3"
+                  autoComplete="cc-csc"
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label
-                htmlFor="card_number"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Kart Numarası
-              </label>
-              <input
-                type="text"
-                id="card_number"
-                name="card_number"
-                value={paymentInfo.card_number}
-                onChange={handlePaymentInfoChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                placeholder="XXXX XXXX XXXX XXXX"
-                maxLength="19" // Max 16 digits + 3 spaces = 19 characters
-                required
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="expire_month"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Son Kullanma Ayı (MM)
-              </label>
-              <select
-                id="expire_month"
-                name="expire_month"
-                value={paymentInfo.expire_month}
-                onChange={handlePaymentInfoChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              >
-                <option value="">Ay Seçin</option>
-                {months.map((month) => (
-                  <option key={month} value={month}>
-                    {month}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label
-                htmlFor="expire_year"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Son Kullanma Yılı (YY)
-              </label>
-              <select
-                id="expire_year"
-                name="expire_year"
-                value={paymentInfo.expire_year}
-                onChange={handlePaymentInfoChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                required
-              >
-                <option value="">Yıl Seçin</option>
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year.slice(-2)} {/* Sadece son iki haneyi göster */}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-span-1 md:col-span-2">
-              {" "}
-              {/* CVC'yi tek başına bir satıra alabiliriz */}
-              <label
-                htmlFor="cvc_number"
-                className="block text-sm font-medium text-gray-700"
-              >
-                CVC
-              </label>
-              <input
-                type="text"
-                id="cvc_number"
-                name="cvc_number"
-                value={paymentInfo.cvc_number}
-                onChange={handlePaymentInfoChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                placeholder="XXX"
-                maxLength="3"
-                required
-              />
-            </div>
-          </div>
           <button
-            onClick={handleConfirmOrder}
+            type="submit"
             disabled={loading || cartItems.length === 0}
             className={`mt-6 w-full py-3 px-4 rounded-md text-white font-semibold transition-colors duration-200 
               ${
@@ -671,6 +843,7 @@ export default function CartPage() {
           >
             {loading ? "İşlem Yapılıyor..." : "Siparişi Onayla ve Öde"}
           </button>
+          </form>
         </div>
       </div>
 
@@ -702,6 +875,38 @@ export default function CartPage() {
             >
               Tamam
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 3D Secure Modal */}
+      {show3DSecureModal && threeDSecureHtml && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-blue-600">
+                3D Secure Doğrulama
+              </h3>
+              <button
+                onClick={() => {
+                  setShow3DSecureModal(false);
+                  setThreeDSecureHtml(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                &times;
+              </button>
+            </div>
+            <div
+              className="w-full"
+              dangerouslySetInnerHTML={{ __html: threeDSecureHtml }}
+            />
+            <div className="mt-4 text-center text-sm text-gray-600">
+              <p>
+                3D Secure doğrulaması tamamlandıktan sonra işlem otomatik olarak
+                devam edecektir.
+              </p>
+            </div>
           </div>
         </div>
       )}

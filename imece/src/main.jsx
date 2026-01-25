@@ -1,4 +1,3 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./index.css";
@@ -11,7 +10,6 @@ import Profile from "./pages/Profile";
 import Basket from "./pages/basket";
 import OrderPage from "./pages/orderPage";
 import ChooseGroup from "./pages/chooseGroup";
-import CreateGroup from "./pages/createGroup";
 import AddUrun from "./pages/seller/urunEkle1";
 import AddUrun2 from "./pages/seller/urunEkle2";
 import AddUrun3 from "./pages/seller/urunEkle3";
@@ -27,6 +25,7 @@ import SaticiLogin from "./pages/saticiLogin";
 import SellerLandingPage from "./pages/seller/sellerLandingPage";
 import SellerOrders from "./pages/seller/sellerOrders";
 import SellerFinancialDashboard from "./pages/seller/financialDashboard";
+import SellerProductsPage from "./pages/seller/sellerProducts";
 import ProductManagement from "./pages/admin/ProductManagement";
 import EarlyAccessAdmin from "./pages/admin/EarlyAccessAdmin";
 import AdminCampaigns from "./pages/AdminCampaigns";
@@ -69,6 +68,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/register-seller" element={<SaticiRegister />}></Route>
         <Route path="/satici-login" element={<SaticiLogin />}></Route>
         <Route path="/seller/landing" element={<SellerLandingPage />}></Route>
+        <Route path="/seller/products" element={<SellerProductsPage />}></Route>
         <Route path="/seller/orders" element={<SellerOrders />}></Route>
         <Route
           path="/seller/financial-dashboard"

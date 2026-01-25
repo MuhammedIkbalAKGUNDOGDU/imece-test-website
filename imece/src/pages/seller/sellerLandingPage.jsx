@@ -180,7 +180,7 @@ const SellerLandingPage = () => {
   };
 
   const handleViewProducts = () => {
-    navigate("/products");
+    navigate("/seller/products");
   };
 
   const handleViewOrders = () => {
@@ -950,7 +950,15 @@ const SellerLandingPage = () => {
               {sellerProducts.slice(0, 6).map((product, index) => (
                 <div
                   key={index}
-                  className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate("/order-page", { state: { product } })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      navigate("/order-page", { state: { product } });
+                    }
+                  }}
+                  className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <div className="aspect-w-16 aspect-h-9 mb-4">
                     <img
@@ -1054,7 +1062,15 @@ const SellerLandingPage = () => {
               {pendingApprovalProducts.slice(0, 6).map((product, index) => (
                 <div
                   key={product?.urun_id || product?.id || index}
-                  className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate("/order-page", { state: { product } })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      navigate("/order-page", { state: { product } });
+                    }
+                  }}
+                  className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <div className="aspect-w-16 aspect-h-9 mb-4">
                     <img

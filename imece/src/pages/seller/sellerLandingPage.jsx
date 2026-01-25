@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Plus, Upload, X, Headphones } from "lucide-react";
-import Header from "../../components/GenerealUse/Header";
 import { apiKey } from "../../config";
 import { storiesService } from "../../services/campaignsAndStoriesService";
 
@@ -11,6 +10,9 @@ const SellerLandingPage = () => {
   const [sellerInfo, setSellerInfo] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const [sellerProducts, setSellerProducts] = useState([]);
+  const [pendingApprovalProducts, setPendingApprovalProducts] = useState([]);
+  const [pendingApprovalLoading, setPendingApprovalLoading] = useState(false);
+  const [pendingApprovalError, setPendingApprovalError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -18,6 +20,17 @@ const SellerLandingPage = () => {
     totalSales: 0,
     monthlyRevenue: 0,
   });
+
+  const formatDateTR = (dateStr) => {
+    if (!dateStr) return "-";
+    const dt = new Date(dateStr);
+    if (Number.isNaN(dt.getTime())) return String(dateStr);
+    return dt.toLocaleDateString("tr-TR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
 
   // Story modal states
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
@@ -94,6 +107,36 @@ const SellerLandingPage = () => {
 
         console.log("Satıcı ürünleri:", productsResponse.data);
 
+        // Pasif / Onay bekleyen ürünleri al (yeni endpoint)
+        setPendingApprovalLoading(true);
+        setPendingApprovalError(null);
+        try {
+          const pendingResponse = await axios.get(
+            "https://imecehub.com/api/products/urunler/pasif-onay-bekleyen/",
+            { headers }
+          );
+
+          if (pendingResponse.data?.durum === "BASARILI") {
+            setPendingApprovalProducts(pendingResponse.data?.urunler || []);
+          } else {
+            setPendingApprovalProducts([]);
+            setPendingApprovalError(
+              pendingResponse.data?.mesaj ||
+                "Pasifteki ürünler alınamadı."
+            );
+          }
+        } catch (pendingErr) {
+          console.error("Pasif/onay bekleyen ürünler alınamadı:", pendingErr);
+          setPendingApprovalProducts([]);
+          setPendingApprovalError(
+            pendingErr.response?.data?.mesaj ||
+              pendingErr.response?.data?.detail ||
+              "Pasifteki ürünler alınamadı."
+          );
+        } finally {
+          setPendingApprovalLoading(false);
+        }
+
         setSellerInfo(sellerResponse.data);
         setSellerProducts(productsResponse.data);
 
@@ -112,6 +155,7 @@ const SellerLandingPage = () => {
       } catch (error) {
         console.error("Satıcı bilgileri alınamadı:", error);
         console.error("Hata detayı:", error.response?.data);
+        setPendingApprovalLoading(false);
         setLoading(false);
       }
     };
@@ -470,7 +514,7 @@ const SellerLandingPage = () => {
               Hoş geldin, {sellerInfo?.magaza_adi || "Satıcı"}!
             </h1>
             <p className="text-xl text-green-100 mb-8">
-              İmece'de satış yapmaya devam et ve kazancını artır
+              İmece&apos;de satış yapmaya devam et ve kazancını artır
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <button
@@ -549,7 +593,7 @@ const SellerLandingPage = () => {
               </p>
               {sellerInfo?.profil_tanitim_yazisi && (
                 <p className="text-gray-700 italic">
-                  "{sellerInfo.profil_tanitim_yazisi}"
+                  &quot;{sellerInfo.profil_tanitim_yazisi}&quot;
                 </p>
               )}
               <div className="flex items-center space-x-4 mt-3">
@@ -975,6 +1019,86 @@ const SellerLandingPage = () => {
               >
                 İlk Ürünü Ekle
               </button>
+            </div>
+          )}
+        </div>
+
+        {/* Pending Approval (Passive) Products */}
+        <div className="bg-white rounded-lg shadow-md p-6 mt-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Pasifteki Ürünler
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                İmece onayı bekleyen ve şu an görünür olmayan ürünleriniz
+              </p>
+            </div>
+            <div className="text-sm text-gray-500">
+              {pendingApprovalProducts.length} ürün
+            </div>
+          </div>
+
+          {pendingApprovalLoading ? (
+            <div className="py-10 flex items-center justify-center text-gray-600">
+              Yükleniyor...
+            </div>
+          ) : pendingApprovalError ? (
+            <div className="py-8">
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {pendingApprovalError}
+              </div>
+            </div>
+          ) : pendingApprovalProducts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pendingApprovalProducts.slice(0, 6).map((product, index) => (
+                <div
+                  key={product?.urun_id || product?.id || index}
+                  className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+                >
+                  <div className="aspect-w-16 aspect-h-9 mb-4">
+                    <img
+                      src={
+                        product.kapak_gorseli ||
+                        product.resim_url ||
+                        "https://via.placeholder.com/300x200?text=Ürün+Resmi"
+                      }
+                      alt={product.urun_adi || "Ürün"}
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                  </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                      {product.urun_adi || "Ürün"}
+                    </h3>
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 whitespace-nowrap">
+                      Onay Bekliyor
+                    </span>
+                  </div>
+                  {product.urun_perakende_fiyati != null && (
+                    <p className="text-green-600 font-bold mb-2">
+                      ₺{product.urun_perakende_fiyati}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>
+                      Tarih: {formatDateTR(product.urun_ekleme_tarihi)}
+                    </span>
+                    {product.stok_durumu != null && (
+                      <span>Stok: {product.stok_durumu}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Pasifte ürün yok
+              </h3>
+              <p className="text-gray-600">
+                Onay bekleyen pasif ürününüz bulunmuyor.
+              </p>
             </div>
           )}
         </div>

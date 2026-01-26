@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { apiKey } from "../../config";
-import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
+import { getCookie, setCookie } from "../../utils/cookieManager";
+import { X, Trash2, Upload, Image as ImageIcon } from "lucide-react";
 
 export default function SellerProductsPage() {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ export default function SellerProductsPage() {
   // Product actions (edit / deactivate)
   const [editingProduct, setEditingProduct] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false); // Modal loading state
+  
   const [editForm, setEditForm] = useState({
     urun_adi: "",
     aciklama: "",
@@ -26,6 +29,13 @@ export default function SellerProductsPage() {
     urun_perakende_fiyati: "",
     urun_min_fiyati: "",
   });
+  
+  // Gallery & Cover Image States
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [newCoverImage, setNewCoverImage] = useState(null);
+  const [coverImagePreview, setCoverImagePreview] = useState(null);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editError, setEditError] = useState(null);
   const [deactivatingIds, setDeactivatingIds] = useState(() => new Set());
@@ -124,6 +134,22 @@ export default function SellerProductsPage() {
     fetchAll();
   }, [accessToken, navigate]);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        closeEditModal();
+      }
+    };
+
+    if (isEditModalOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isEditModalOpen]);
+
   const formatDateTR = (dateStr) => {
     if (!dateStr) return "-";
     const dt = new Date(dateStr);
@@ -150,9 +176,34 @@ export default function SellerProductsPage() {
     return sellerProducts;
   }, [activeTab, activeProducts, pendingApprovalProducts, sellerProducts]);
 
-  const openEditModal = (product) => {
+  const fetchProductDetails = async (urunId) => {
+    setIsFetchingDetails(true);
+    try {
+      const response = await axios.get(
+        `https://imecehub.com/api/products/urunler/${urunId}/`,
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (err) {
+      console.error("Ürün detay hatası:", err);
+      // Detay çekilemezse existing data ile devam etmeye çalışacağız
+      // veya hata gösterebiliriz. Şimdilik silent fail veya alert.
+      return null;
+    } finally {
+      setIsFetchingDetails(false);
+    }
+  };
+
+  const openEditModal = async (product) => {
+    const urunId = getProductId(product);
+    if (!urunId) return;
+
     setEditingProduct(product);
     setEditError(null);
+    setNewCoverImage(null);
+    setCoverImagePreview(null);
+    
+    // Formu önce eldeki verilerle doldur (hızlı açılış)
     setEditForm({
       urun_adi: product?.urun_adi || "",
       aciklama: product?.aciklama || product?.urun_aciklama || "",
@@ -165,7 +216,24 @@ export default function SellerProductsPage() {
       urun_min_fiyati:
         product?.urun_min_fiyati != null ? String(product.urun_min_fiyati) : "",
     });
+    
     setIsEditModalOpen(true);
+    
+    // Detayları çek (resimler için)
+    const details = await fetchProductDetails(urunId);
+    if (details) {
+      setEditForm((prev) => ({
+        ...prev,
+        // Backend güncel verisi varsa onu kullan
+        urun_adi: details.urun_adi || prev.urun_adi,
+        aciklama: details.aciklama || prev.aciklama,
+        stok_durumu: details.stok_durumu != null ? String(details.stok_durumu) : prev.stok_durumu,
+        urun_perakende_fiyati: details.urun_perakende_fiyati || prev.urun_perakende_fiyati,
+      }));
+      setGalleryImages(details.images || []);
+    } else {
+      setGalleryImages([]);
+    }
   };
 
   const closeEditModal = () => {
@@ -175,9 +243,79 @@ export default function SellerProductsPage() {
     setIsSavingEdit(false);
   };
 
-  const handleEditInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
+  // Gallery Actions
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewCoverImage(file);
+      setCoverImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    // Urun ID kontrol
+    const urunId = getProductId(editingProduct);
+    if (!urunId) return;
+
+    setIsUploadingGallery(true);
+    try {
+      // Her dosya için ayrı istek atıyoruz ya da backend çoklu destekliyorsa (rehberde "image" keyleri)
+      // Rehbere göre: image (file1), image (file2) şeklinde aynı key ile gönderilebiliyor.
+      const formData = new FormData();
+      formData.append("urun", urunId);
+      files.forEach(file => {
+        formData.append("image", file);
+      });
+      // opsiyonel: formData.append("aciklama", "...");
+
+      const response = await axios.post(
+        "https://imecehub.com/api/products/urunimage/",
+        formData,
+        {
+          headers: {
+            ...getAuthHeaders(),
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      
+      // Başarılı dönerse listeye ekle
+      // Dönüt formatı: { durum: "BASARILI", resimler: [...] }
+      if (response.data?.resimler) {
+        setGalleryImages(prev => [...prev, ...response.data.resimler]);
+        alert("Resimler başarıyla yüklendi.");
+      } else {
+         // Fallback: reload details
+         const details = await fetchProductDetails(urunId);
+         if (details?.images) setGalleryImages(details.images);
+      }
+    } catch (err) {
+      console.error("Resim yükleme hatası:", err);
+      alert("Resim yüklenirken hata oluştu.");
+    } finally {
+      setIsUploadingGallery(false);
+      // Inputu temizle
+      e.target.value = "";
+    }
+  };
+
+  const handleDeleteGalleryImage = async (imageId) => {
+    if (!window.confirm("Bu resmi silmek istediğinize emin misiniz?")) return;
+    
+    try {
+      await axios.delete(
+        `https://imecehub.com/api/products/urunimage/${imageId}/`,
+        { headers: getAuthHeaders() }
+      );
+      // Listeden çıkar
+      setGalleryImages(prev => prev.filter(img => img.id !== imageId));
+    } catch (err) {
+      console.error("Resim silme hatası:", err);
+      alert("Resim silinemedi.");
+    }
   };
 
   const handleSaveEdit = async (e) => {
@@ -191,28 +329,52 @@ export default function SellerProductsPage() {
     setEditError(null);
 
     try {
-      const payload = {};
-      if (editForm.urun_adi?.trim()) payload.urun_adi = editForm.urun_adi.trim();
-      // Açıklama boş bırakılabilir; kullanıcı silmek isterse gönderebilsin:
-      payload.aciklama = editForm.aciklama ?? "";
+      let payload;
+      let isFormData = false;
 
-      if (editForm.stok_durumu !== "") payload.stok_durumu = Number(editForm.stok_durumu);
-      if (editForm.urun_perakende_fiyati !== "")
-        payload.urun_perakende_fiyati = Number(editForm.urun_perakende_fiyati);
-      if (editForm.urun_min_fiyati !== "")
-        payload.urun_min_fiyati = Number(editForm.urun_min_fiyati);
+      // Eğer kapak görseli değiştiyse FormData kullanmalıyız
+      if (newCoverImage) {
+        isFormData = true;
+        payload = new FormData();
+        if (editForm.urun_adi?.trim()) payload.append("urun_adi", editForm.urun_adi.trim());
+        payload.append("aciklama", editForm.aciklama ?? "");
+        if (editForm.stok_durumu !== "") payload.append("stok_durumu", editForm.stok_durumu);
+        if (editForm.urun_perakende_fiyati !== "") payload.append("urun_perakende_fiyati", editForm.urun_perakende_fiyati);
+        if (editForm.urun_min_fiyati !== "") payload.append("urun_min_fiyati", editForm.urun_min_fiyati);
+        
+        payload.append("kapak_gorseli", newCoverImage);
+      } else {
+        // Sadece JSON yeterli
+        payload = {};
+        if (editForm.urun_adi?.trim()) payload.urun_adi = editForm.urun_adi.trim();
+        payload.aciklama = editForm.aciklama ?? "";
+        if (editForm.stok_durumu !== "") payload.stok_durumu = Number(editForm.stok_durumu);
+        if (editForm.urun_perakende_fiyati !== "")
+          payload.urun_perakende_fiyati = Number(editForm.urun_perakende_fiyati);
+        if (editForm.urun_min_fiyati !== "")
+          payload.urun_min_fiyati = Number(editForm.urun_min_fiyati);
+      }
+
+      const headers = getAuthHeaders();
+      if (isFormData) headers["Content-Type"] = "multipart/form-data";
 
       const response = await axios.patch(
         `https://imecehub.com/api/products/urunler/${urunId}/`,
         payload,
-        { headers: getAuthHeaders() }
+        { headers }
       );
 
-      // API genelde güncel ürünü döndürür; döndürmezse local merge yapıyoruz
-      const updated = response.data?.data || response.data || payload;
+      // API genelde güncel ürünü döndürür
+      const updated = response.data?.data || response.data;
+      // Eğer JSON dönen veri, gönderdiğimiz kapak resmini içermiyorsa manuel eklemeye gerek yok, 
+      // liste yenilenecek veya pasife düşecek.
+      
       updateProductInLists({ ...editingProduct, ...updated });
       closeEditModal();
-      alert("Ürün başarıyla güncellendi.");
+      alert("Ürün başarıyla güncellendi ve onaya gönderildi (Pasif duruma alındı).");
+      
+      // Listeleri yenilemek mantıklı olabilir çünkü ürün pasife düştü
+      // window.location.reload(); // veya fetchAll() çağırılabilir ama şimdilik manuel state update yeterli.
     } catch (err) {
       console.error("Ürün güncelleme hatası:", err.response?.data || err);
       const status = err.response?.status;
@@ -306,6 +468,8 @@ export default function SellerProductsPage() {
       </div>
     );
   }
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -485,13 +649,17 @@ export default function SellerProductsPage() {
 
       {/* Edit Modal */}
       {isEditModalOpen && editingProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={closeEditModal}
+        >
           <div
-            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             role="dialog"
             aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b">
+            <div className="flex items-center justify-between px-6 py-4 border-b sticky top-0 bg-white z-10">
               <div>
                 <p className="text-sm text-gray-500">Ürün Düzenle</p>
                 <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
@@ -501,44 +669,88 @@ export default function SellerProductsPage() {
               <button
                 type="button"
                 onClick={closeEditModal}
-                className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
               >
-                Kapat
+                <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
+            <form onSubmit={handleSaveEdit} className="p-6 space-y-6">
               {editError && (
                 <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
                   {editError}
                 </div>
               )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Ürün Adı
-                </label>
-                <input
-                  name="urun_adi"
-                  value={editForm.urun_adi}
-                  onChange={handleEditInputChange}
-                  className="mt-1 w-full border border-gray-300 rounded-lg p-2"
-                  placeholder="Ürün adı"
-                  required
-                />
+              
+              {/* Passive Warning */}
+              <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200 text-sm text-yellow-800">
+                <strong>Dikkat:</strong> Ürün bilgilerini veya kapak fotoğrafını güncellediğinizde ürün 
+                otomatik olarak pasife alınır ve tekrar onay süreci başlar.
               </div>
 
+              {/* Cover Image Section */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Açıklama
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Kapak Fotoğrafı
                 </label>
-                <textarea
-                  name="aciklama"
-                  value={editForm.aciklama}
-                  onChange={handleEditInputChange}
-                  className="mt-1 w-full border border-gray-300 rounded-lg p-2 min-h-[110px]"
-                  placeholder="Ürün açıklaması"
-                />
+                <div className="flex items-center gap-4">
+                  <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 relative group">
+                    <img 
+                      src={coverImagePreview || editingProduct?.kapak_gorseli || editingProduct?.resim_url || "https://via.placeholder.com/150"} 
+                      alt="Kapak" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      id="coverImageInput"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleCoverImageChange}
+                    />
+                    <label 
+                      htmlFor="coverImageInput"
+                      className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4" />
+                      Değiştir
+                    </label>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Minimum 600x600 piksel önerilir.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Ürün Adı
+                  </label>
+                  <input
+                    name="urun_adi"
+                    value={editForm.urun_adi}
+                    onChange={(e) => setEditForm(prev => ({...prev, urun_adi: e.target.value}))}
+                    className="mt-1 w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                    placeholder="Ürün adı"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Açıklama
+                  </label>
+                  <textarea
+                    name="aciklama"
+                    value={editForm.aciklama}
+                    onChange={(e) => setEditForm(prev => ({...prev, aciklama: e.target.value}))}
+                    className="mt-1 w-full border border-gray-300 rounded-lg p-2 min-h-[80px] focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                    placeholder="Ürün açıklaması"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -550,8 +762,8 @@ export default function SellerProductsPage() {
                     type="number"
                     name="stok_durumu"
                     value={editForm.stok_durumu}
-                    onChange={handleEditInputChange}
-                    className="mt-1 w-full border border-gray-300 rounded-lg p-2"
+                    onChange={(e) => setEditForm(prev => ({...prev, stok_durumu: e.target.value}))}
+                    className="mt-1 w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                     placeholder="0"
                     min="0"
                   />
@@ -564,8 +776,8 @@ export default function SellerProductsPage() {
                     type="number"
                     name="urun_perakende_fiyati"
                     value={editForm.urun_perakende_fiyati}
-                    onChange={handleEditInputChange}
-                    className="mt-1 w-full border border-gray-300 rounded-lg p-2"
+                    onChange={(e) => setEditForm(prev => ({...prev, urun_perakende_fiyati: e.target.value}))}
+                    className="mt-1 w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                     placeholder="0"
                     min="0"
                     step="0.01"
@@ -579,32 +791,102 @@ export default function SellerProductsPage() {
                     type="number"
                     name="urun_min_fiyati"
                     value={editForm.urun_min_fiyati}
-                    onChange={handleEditInputChange}
-                    className="mt-1 w-full border border-gray-300 rounded-lg p-2"
+                    onChange={(e) => setEditForm(prev => ({...prev, urun_min_fiyati: e.target.value}))}
+                    className="mt-1 w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                     placeholder="(opsiyonel)"
                     min="0"
                     step="0.01"
                   />
                 </div>
               </div>
+              
+              {/* Gallery Section */}
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-medium text-gray-900">Ürün Galerisi</h4>
+                  <div>
+                    <input
+                      type="file"
+                      id="galleryInput"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleGalleryUpload}
+                    />
+                    <label
+                      htmlFor="galleryInput"
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer border border-blue-200 transition ${isUploadingGallery ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {isUploadingGallery ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                          Yükleniyor...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" />
+                          Resim Ekle
+                        </>
+                      )}
+                    </label>
+                  </div>
+                </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2">
+                {isFetchingDetails ? (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                     Galeri yükleniyor...
+                  </div>
+                ) : galleryImages.length === 0 ? (
+                  <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center">
+                    <ImageIcon className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">
+                      Henüz galeri görseli eklenmemiş.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {galleryImages.map((img) => (
+                      <div key={img.id} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                        <img 
+                          src={img.image} 
+                          alt="Galeri" 
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteGalleryImage(img.id)}
+                          className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-md opacity-0 group-hover:opacity-100 transition shadow-sm hover:bg-red-700"
+                          title="Sil"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-gray-200 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={closeEditModal}
                   className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  disabled={isSavingEdit}
                 >
                   İptal
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingEdit}
-                  className={`px-4 py-2 rounded-lg text-white font-semibold ${
+                  className={`px-4 py-2 rounded-lg text-white font-semibold flex items-center gap-2 ${
                     isSavingEdit
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-green-600 hover:bg-green-700"
                   }`}
                 >
+                  {isSavingEdit && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  )}
                   {isSavingEdit ? "Kaydediliyor..." : "Kaydet"}
                 </button>
               </div>

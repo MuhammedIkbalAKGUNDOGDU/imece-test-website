@@ -555,8 +555,11 @@ const SellerLandingPage = () => {
             <div className="relative">
               <img
                 src={
-                  sellerInfo?.profil_fotograf ||
-                  "https://via.placeholder.com/80x80?text=Profil"
+                  sellerInfo?.profil_fotograf
+                    ? sellerInfo.profil_fotograf.startsWith("http")
+                      ? sellerInfo.profil_fotograf
+                      : `https://imecehub.com${sellerInfo.profil_fotograf}`
+                    : "https://via.placeholder.com/80x80?text=Profil"
                 }
                 alt="Profil Fotoğrafı"
                 className="w-20 h-20 rounded-full object-cover border-4 border-green-100"

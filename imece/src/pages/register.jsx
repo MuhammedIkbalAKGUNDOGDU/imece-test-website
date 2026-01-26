@@ -7,6 +7,7 @@ import googleIcon from "../assets/vectors/google.svg";
 import { useNavigate } from "react-router-dom"; // Yönlendirme için hook'u import et
 import { apiKey } from "../config";  // veya "../constants" dosya ismine göre
 import { Check, X, Eye, EyeOff } from "lucide-react";
+import { getCookie, setCookie, deleteCookie } from "../utils/cookieManager";
 
 const Register = () => {
   const navigate = useNavigate(); // useNavigate hook'unu çağır
@@ -155,8 +156,8 @@ const Register = () => {
       );
 
       if (response.data.status === "success") {
-        localStorage.setItem("accessToken", response.data.tokens.access);
-        localStorage.setItem("refreshToken", response.data.tokens.refresh);
+        setCookie("accessToken", response.data.tokens.access);
+        setCookie("refreshToken", response.data.tokens.refresh);
         navigate("/");
       }
     } catch (error) {

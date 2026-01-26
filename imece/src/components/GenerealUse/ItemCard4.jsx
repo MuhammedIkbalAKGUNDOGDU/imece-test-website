@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { apiKey } from "../../config";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
-  const token = localStorage.getItem("accessToken");
+  const token = getCookie("accessToken");
   const handleFavoriteClick = (e) => {
     e.stopPropagation(); // Kartın genel tıklamasını engeller
     onFavoriteToggle(data.urun_id || data.id);
@@ -35,7 +36,7 @@ const ItemCard4 = ({ data, isFavorite, onFavoriteToggle }) => {
           headers: {
             "X-API-Key": apiKey,
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            Authorization: `Bearer ${getCookie("accessToken")}`,
           },
         }
       );

@@ -3,13 +3,14 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { X, Package, Calendar, MapPin, User, CreditCard } from "lucide-react";
 import { apiKey } from "../../config";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 const OrderDetailModal = ({ isOpen, onClose, orderId }) => {
   const [orderDetails, setOrderDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [loadingProductId, setLoadingProductId] = useState(null);
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = getCookie("accessToken");
   const navigate = useNavigate();
 
   const fetchOrderDetails = async () => {

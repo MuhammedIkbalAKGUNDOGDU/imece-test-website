@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import CommentCard from "./CommentCard";
 import { apiKey } from "../../config";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 const Comments = ({ sellerId  }) => {
   const [comments, setComments] = useState([]);
   const fetchComments = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = getCookie("accessToken");
 
       const response = await fetch(
         "https://imecehub.com/api/products/urunyorum/takecommentsforseller/",

@@ -4,6 +4,7 @@ import axios from "axios";
 import { Plus, Upload, X, Headphones } from "lucide-react";
 import { apiKey } from "../../config";
 import { storiesService } from "../../services/campaignsAndStoriesService";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 const SellerLandingPage = () => {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ const SellerLandingPage = () => {
   useEffect(() => {
     const fetchSellerData = async () => {
       try {
-        const accessToken = localStorage.getItem("accessToken");
+        const accessToken = getCookie("accessToken");
 
         if (!accessToken) {
           navigate("/satici-login");
@@ -75,7 +76,7 @@ const SellerLandingPage = () => {
           return;
         }
 
-        localStorage.setItem("userId", userId);
+        setCookie("userId", userId);
         setUserInfo(userResponse.data); // Kullanıcı bilgilerini state'e kaydet
 
         // Satıcı bilgilerini al - Yeni endpoint
@@ -164,9 +165,9 @@ const SellerLandingPage = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userId");
+    deleteCookie("accessToken");
+    deleteCookie("refreshToken");
+    deleteCookie("userId");
     navigate("/satici-login");
   };
 
@@ -175,7 +176,7 @@ const SellerLandingPage = () => {
   };
 
   const handleViewProfileFromHero = () => {
-    const userId = localStorage.getItem("userId");
+    const userId = getCookie("userId");
     navigate(`/profile/satici-profili/${userId}`); // ProfilUreticiPage route'u
   };
 
@@ -219,7 +220,7 @@ const SellerLandingPage = () => {
 
   const handleViewProfile = () => {
     setShowProfileModal(false);
-    const userId = localStorage.getItem("userId");
+    const userId = getCookie("userId");
     navigate(`/profile/satici-profili/${userId}`);
   };
 
@@ -372,7 +373,7 @@ const SellerLandingPage = () => {
     setIsUpdatingProfile(true);
 
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = getCookie("accessToken");
       const headers = {
         "X-API-Key": apiKey,
         Authorization: `Bearer ${accessToken}`,

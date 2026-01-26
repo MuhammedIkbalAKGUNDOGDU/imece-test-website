@@ -25,6 +25,7 @@ import {
   Wallet,
   Headphones,
 } from "lucide-react";
+import { getCookie, setCookie, deleteCookie } from "../utils/cookieManager";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ export default function Profile() {
   const [bannerPreview, setBannerPreview] = useState(null);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [photoError, setPhotoError] = useState(false);
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = getCookie("accessToken");
   const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
 
   // Menü yapısı
@@ -176,8 +177,8 @@ export default function Profile() {
         if (err.response?.status === 401) {
           setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
           // Token'ları temizle
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
+          deleteCookie("accessToken");
+          deleteCookie("refreshToken");
         } else {
           setError("Kullanıcı bilgileri alınamadı");
         }
@@ -193,16 +194,16 @@ export default function Profile() {
   }, [accessToken, userData]);
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userId");
+    deleteCookie("accessToken");
+    deleteCookie("refreshToken");
+    deleteCookie("userId");
     window.location.href = "/login";
   };
 
   const handleGoToLogin = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userId");
+    deleteCookie("accessToken");
+    deleteCookie("refreshToken");
+    deleteCookie("userId");
     window.location.href = "/login";
   };
 
@@ -274,7 +275,7 @@ export default function Profile() {
     }
 
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = getCookie("accessToken");
       const userRole = userData?.rol;
       
       if (!userRole) {
@@ -370,7 +371,7 @@ export default function Profile() {
     setIsUpdatingProfile(true);
 
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = getCookie("accessToken");
       const userRole = userData?.rol;
       
       if (!userRole) {
@@ -1207,7 +1208,7 @@ const OrdersContent = () => {
   const [error, setError] = useState(null);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = getCookie("accessToken");
 
   const getOrderStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
@@ -1468,7 +1469,7 @@ const GroupsContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasFetched, setHasFetched] = useState(false);
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = getCookie("accessToken");
 
   const formatSeconds = (seconds) => {
     const s = Number(seconds);
@@ -1824,7 +1825,7 @@ const AddressesContent = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = getCookie("accessToken");
 
   // addresses'in array olduğundan emin ol
   const safeAddresses = Array.isArray(addresses) ? addresses : [];
@@ -2338,7 +2339,7 @@ const ReviewsContent = () => {
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = getCookie("accessToken");
 
   const fetchReviews = async () => {
     if (!accessToken) {
@@ -2350,7 +2351,7 @@ const ReviewsContent = () => {
       setIsLoading(true);
 
       // Kullanıcı ID'sini al
-      const userId = localStorage.getItem("userId");
+      const userId = getCookie("userId");
       if (!userId) {
         setError("Kullanıcı ID bulunamadı");
         setIsLoading(false);
@@ -2637,7 +2638,7 @@ const BalanceContent = ({ user, setUserData, accessToken }) => {
 
   // Daha önce başlatılmış bir topup varsa (sayfa yenileme vb.) devam et
   useEffect(() => {
-    const saved = localStorage.getItem("pending_wallet_topup_id");
+    const saved = getCookie("pending_wallet_topup_id");
     if (saved) {
       const parsed = parseInt(saved, 10);
       if (!Number.isNaN(parsed)) {
@@ -2681,12 +2682,12 @@ const BalanceContent = ({ user, setUserData, accessToken }) => {
         }
 
         if (status === "SUCCESS") {
-          localStorage.removeItem("pending_wallet_topup_id");
+          deleteCookie("pending_wallet_topup_id");
           setPollingTopupId(null);
           setTopupMessage("Bakiye başarıyla yüklendi.");
           setTopupError(null);
         } else if (status && ["FAILED", "CANCELLED", "ERROR"].includes(status)) {
-          localStorage.removeItem("pending_wallet_topup_id");
+          deleteCookie("pending_wallet_topup_id");
           setPollingTopupId(null);
           setTopupError("Bakiye yükleme işlemi başarısız oldu.");
         } else {
@@ -2847,7 +2848,7 @@ const BalanceContent = ({ user, setUserData, accessToken }) => {
       setTopupId(newTopupId);
 
       if (newTopupId != null) {
-        localStorage.setItem("pending_wallet_topup_id", String(newTopupId));
+        setCookie("pending_wallet_topup_id", String(newTopupId));
         setPollingTopupId(newTopupId);
       }
 

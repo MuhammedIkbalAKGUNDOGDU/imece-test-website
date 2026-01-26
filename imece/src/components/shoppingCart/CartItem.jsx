@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import mandalina from "../../assets/images/mandalina.png";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 export default function CartItem({ onRemove, data }) {
   const [quantity, setQuantity] = useState(data.miktar);
@@ -22,7 +23,7 @@ export default function CartItem({ onRemove, data }) {
           headers: {
             "X-API-Key": apiKey,
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            Authorization: `Bearer ${getCookie("accessToken")}`,
           },
         }
       );
@@ -57,7 +58,7 @@ export default function CartItem({ onRemove, data }) {
           {
             headers: {
               "X-API-Key": apiKey, // Gerekliyse
-              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+              Authorization: `Bearer ${getCookie("accessToken")}`,
               "Content-Type": "application/json",
             },
           }

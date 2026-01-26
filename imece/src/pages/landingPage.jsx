@@ -15,10 +15,11 @@ import StoriesComponent from "../components/landingPage/StoriesComponent";
 import CampaignSlider from "../components/landingPage/CampaignSlider";
 import WhatsAppButton from "../components/GenerealUse/WhatsAppButton";
 import { apiKey } from "../config";
+import { getCookie, setCookie, deleteCookie } from "../utils/cookieManager";
 
 const LandingPage = () => {
   const apiUrl = "https://imecehub.com/api/users/kullanicilar/me/";
-  const accesToken = localStorage.getItem("accessToken");
+  const accesToken = getCookie("accessToken");
 
   const popularProductsUrl = "https://imecehub.com/products/populer-urunler/";
 
@@ -37,16 +38,16 @@ const LandingPage = () => {
       try {
         const response = await axios.get(apiUrl, { headers });
         setUserId(response.data.id);
-        localStorage.setItem("userId", response.data.id);
+        setCookie("userId", response.data.id);
       } catch (error) {
         console.error("Kullanıcı bilgisi alınırken hata:", error.message);
 
         // 401 Unauthorized hatası kontrolü
         if (error.response?.status === 401) {
           // Token'ları temizle
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("userId");
+          deleteCookie("accessToken");
+          deleteCookie("refreshToken");
+          deleteCookie("userId");
           // Kullanıcıyı giriş sayfasına yönlendir
           if (
             window.confirm(

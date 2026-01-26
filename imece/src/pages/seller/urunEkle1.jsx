@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUrun } from "../../context/UrunContext";
 import { useEffect } from "react";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 const UrunEkle1 = () => {
   const [descriptionFilled, setDescriptionFilled] = useState(false);
@@ -12,7 +13,7 @@ const UrunEkle1 = () => {
 
   const [subCategoryList, setSubCategoryList] = useState([]);
   const [subCategorySelected, setSubCategorySelected] = useState(false);
-  const id = localStorage.getItem("userId");
+  const id = getCookie("userId");
 
   const isFormValid =
     nameSelected &&

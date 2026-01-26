@@ -13,6 +13,7 @@ import ItemCard from "../components/GenerealUse/itemCard2";
 import axios from "axios";
 import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
 import Comments from "../components/GenerealUse/Comments";
+import { getCookie, setCookie, deleteCookie } from "../utils/cookieManager";
 const orderPage = () => {
   const navigate = useNavigate(); // Yönlendirme için useNavigate kullanıldı
   const [sellerInfo, setSellerInfo] = useState(null);
@@ -32,9 +33,9 @@ const orderPage = () => {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
 
-  const id = parseInt(localStorage.getItem("userId"), 10);
+  const id = parseInt(getCookie("userId"), 10);
 
-  const token = localStorage.getItem("accessToken");
+  const token = getCookie("accessToken");
   const [productComments, setProductComments] = useState([]);
 
   const getImageUrl = (item) => {

@@ -7,12 +7,14 @@ import { useNavigate } from "react-router-dom"; // Yönlendirme için hook'u imp
 import axios from "axios";
 import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
 import { Check, X, Eye, EyeOff } from "lucide-react";
+import { setCookie } from "../utils/cookieManager";
 
 const Login = () => {
   const navigate = useNavigate(); // useNavigate hook'unu çağır
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -108,8 +110,9 @@ const Login = () => {
         const accessToken = response.data.tokens.access;
         const refreshToken = response.data.tokens.refresh;
         
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
+        
+        setCookie("accessToken", accessToken, rememberMe ? 30 : null);
+        setCookie("refreshToken", refreshToken, rememberMe ? 30 : null);
         
         // Kullanıcı bilgilerini çek ve rol kontrolü yap
         try {
@@ -283,6 +286,18 @@ const Login = () => {
                 Hizmet Koşullarını ve Gizlilik Politikasını
               </a>{" "}
               okudum ve kabul ediyorum.
+            </label>
+          </div>
+
+          <div className="terms" style={{ marginTop: "10px" }}>
+            <input
+              type="checkbox"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <label htmlFor="rememberMe">
+              Beni Hatırla
             </label>
           </div>
 

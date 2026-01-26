@@ -6,12 +6,14 @@ import googleIcon from "../assets/vectors/google.svg";
 import { useNavigate } from "react-router-dom"; // Yönlendirme için hook'u import et
 import axios from "axios";
 import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
+import { setCookie } from "../utils/cookieManager";
 
 const login = () => {
   const navigate = useNavigate(); // useNavigate hook'unu çağır
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
 
   const apiUrl = "https://imecehub.com/users/rq_login/";
@@ -76,11 +78,12 @@ const login = () => {
       );
 
       if (response.data.status === "success") {
-        localStorage.setItem("accessToken", response.data.tokens.access);
-        localStorage.setItem("refreshToken", response.data.tokens.refresh);
-        localStorage.setItem(
+        setCookie("accessToken", response.data.tokens.access, rememberMe ? 30 : null);
+        setCookie("refreshToken", response.data.tokens.refresh, rememberMe ? 30 : null);
+        setCookie(
           "userId",
-          response.data.user_id || response.data.user?.id
+          response.data.user_id || response.data.user?.id,
+          rememberMe ? 30 : null
         );
         navigate("/seller/landing");
       }
@@ -140,6 +143,18 @@ const login = () => {
                 Hizmet Koşullarını ve Gizlilik Politikasını
               </a>{" "}
               okudum ve kabul ediyorum.
+            </label>
+          </div>
+
+          <div className="terms" style={{ marginTop: "10px" }}>
+            <input
+              type="checkbox"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <label htmlFor="rememberMe">
+              Beni Hatırla
             </label>
           </div>
 

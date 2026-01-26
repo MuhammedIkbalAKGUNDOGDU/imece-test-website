@@ -3,6 +3,7 @@ import axios from "axios";
 import { apiKey } from "../../config";
 import AddressModal from "../profileComponents/AddressModal";
 import { Plus, MapPin } from "lucide-react";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 export default function AddressSection({ onAddressSelect, selectedAddresses }) {
   const [showAddressModal, setShowAddressModal] = useState(false);
@@ -13,7 +14,7 @@ export default function AddressSection({ onAddressSelect, selectedAddresses }) {
   const [editingAddress, setEditingAddress] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = getCookie("accessToken");
 
   // Adresleri API'den çek
   const fetchAddresses = async () => {

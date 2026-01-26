@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import "../../styles/seller/add1.css";
 import { useNavigate } from "react-router-dom";
 import { useUrun } from "../../context/UrunContext";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 const UrunEkle4 = () => {
   const { urunBilgileri, updateUrunBilgileri } = useUrun();
@@ -9,7 +10,7 @@ const UrunEkle4 = () => {
 
   const apiKey =
     "WNjZXNttoxNzM5Mzc3MDM3LCJpYXQiOUvKrIq06hpJl_1PenWgeKZw_7FMvL65DixY";
-  const token = localStorage.getItem("accessToken");
+  const token = getCookie("accessToken");
   const [previewUrl, setPreviewUrl] = useState(
     urunBilgileri.kapak_gorsel
       ? URL.createObjectURL(urunBilgileri.kapak_gorsel)

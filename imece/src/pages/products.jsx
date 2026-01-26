@@ -8,6 +8,7 @@ import ItemGrid from "../components/GenerealUse/ItemGrid";
 import { products as mockProducts } from "../data/products";
 import LoadingSpinner from "../components/GenerealUse/loadingSpinner";
 import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
+import { getCookie, setCookie, deleteCookie } from "../utils/cookieManager";
 
 const Products = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const Products = () => {
     rating: null,
   });
 
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = getCookie("accessToken");
 
   const headers = {
     "X-API-Key": apiKey,
@@ -34,9 +35,9 @@ const Products = () => {
 
   const handleSessionExpired = () => {
     // Local storage'ı temizle
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
+    deleteCookie("accessToken");
+    deleteCookie("refreshToken");
+    deleteCookie("user");
 
     // State'leri temizle
     setProducts([]);

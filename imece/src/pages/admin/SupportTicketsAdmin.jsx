@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Store,
 } from "lucide-react";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 const SupportTicketsAdmin = () => {
   const [tickets, setTickets] = useState([]);
@@ -81,7 +82,7 @@ const SupportTicketsAdmin = () => {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = getCookie("accessToken");
       if (!token) return;
       
       // Admin kullanıcıları için API endpoint (mevcut API'ye göre ayarlanabilir)
@@ -111,7 +112,7 @@ const SupportTicketsAdmin = () => {
 
   const fetchTicketDetail = async (ticketId) => {
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = getCookie("accessToken");
       if (!token) return null;
       
       const endpoint = activeTab === "normal" 
@@ -135,7 +136,7 @@ const SupportTicketsAdmin = () => {
 
   const handleSaveNotes = async (ticketId) => {
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = getCookie("accessToken");
       if (!token) {
         setMessage({
           type: "error",
@@ -194,7 +195,7 @@ const SupportTicketsAdmin = () => {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("accessToken");
+      const token = getCookie("accessToken");
       
       if (!token) {
         setMessage({
@@ -268,7 +269,7 @@ const SupportTicketsAdmin = () => {
   const fetchSellerTickets = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("accessToken");
+      const token = getCookie("accessToken");
       
       if (!token) {
         setMessage({
@@ -342,7 +343,7 @@ const SupportTicketsAdmin = () => {
   const handleStatusUpdate = async (ticketId, newStatus) => {
     try {
       setActionLoading((prev) => ({ ...prev, [ticketId]: true }));
-      const token = localStorage.getItem("accessToken");
+      const token = getCookie("accessToken");
 
       // FormData kullan (backend MultiPartParser/FormParser bekliyor)
       const formData = new FormData();
@@ -398,7 +399,7 @@ const SupportTicketsAdmin = () => {
   const handleAssign = async (ticketId, userId) => {
     try {
       setActionLoading((prev) => ({ ...prev, [`assign-${ticketId}`]: true }));
-      const token = localStorage.getItem("accessToken");
+      const token = getCookie("accessToken");
 
       // FormData kullan (backend MultiPartParser/FormParser bekliyor)
       const formData = new FormData();
@@ -463,7 +464,7 @@ const SupportTicketsAdmin = () => {
     }
 
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = getCookie("accessToken");
       const baseEndpoint = activeTab === "normal"
         ? `https://imecehub.com/api/support/tickets/`
         : `https://imecehub.com/api/support/seller-tickets/`;

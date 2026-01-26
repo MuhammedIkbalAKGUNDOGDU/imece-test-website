@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { apiKey } from "../../config";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 export default function SellerProductsPage() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function SellerProductsPage() {
   const [editError, setEditError] = useState(null);
   const [deactivatingIds, setDeactivatingIds] = useState(() => new Set());
 
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = getCookie("accessToken");
 
   const getAuthHeaders = () => ({
     "X-API-Key": apiKey,
@@ -80,7 +81,7 @@ export default function SellerProductsPage() {
           return;
         }
 
-        localStorage.setItem("userId", userId);
+        setCookie("userId", userId);
         setUserInfo(userResponse.data);
 
         const sellerResponse = await axios.get(

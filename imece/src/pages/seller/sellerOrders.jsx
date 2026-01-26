@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Header from "../../components/GenerealUse/Header";
 import { apiKey } from "../../config";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 const SellerOrders = () => {
   const navigate = useNavigate();
@@ -26,13 +27,13 @@ const SellerOrders = () => {
 
   // Satıcı ID'sini localStorage'dan al
   const getSellerId = () => {
-    const userId = localStorage.getItem("userId");
+    const userId = getCookie("userId");
     return userId ? parseInt(userId) : null;
   };
 
   // API headers'ını hazırla
   const getHeaders = () => {
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = getCookie("accessToken");
     return {
       "X-API-Key": apiKey,
       Authorization: `Bearer ${accessToken}`,

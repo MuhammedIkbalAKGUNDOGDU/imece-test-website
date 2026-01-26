@@ -6,11 +6,12 @@ import { FaStar, FaStarHalf, FaRegStar } from "react-icons/fa";
 import axios from "axios";
 import "../../styles/landingPage_styles/header.css";
 import incele from "../../assets/vectors/homepage_incele_white.svg";
+import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
 
 const itemCard = ({ data }) => {
   const navigate = useNavigate();
   const [liked, setLiked] = useState(false); // Beğenme durumunu takip etmek için
-  const accessToken = localStorage.getItem("accessToken"); // Token'i al
+  const accessToken = getCookie("accessToken"); // Token'i al
   const apiKey = "fb10ca29411e8fa4725e11ca519b732de5c911769ff1956e84d4";
 
   const handleClick = () => {
@@ -49,7 +50,7 @@ const itemCard = ({ data }) => {
     }
 
     try {
-      const userId = localStorage.getItem("userId"); // Kullanıcının ID'sini al
+      const userId = getCookie("userId"); // Kullanıcının ID'sini al
       const apiUrl = `https://34.22.218.90/api/users/kullanicilar/${userId}/`; // Kullanıcı ID'sine göre API isteği yapılacak
       const productId = data.urun_id; // Beğenilen ürünün ID'si
 

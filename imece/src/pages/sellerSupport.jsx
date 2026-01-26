@@ -20,6 +20,7 @@ import {
   Plus,
   Download,
 } from "lucide-react";
+import { getCookie, setCookie, deleteCookie } from "../utils/cookieManager";
 
 const SellerSupport = () => {
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ const SellerSupport = () => {
   // Kullanıcı bilgilerini çek ve satıcı kontrolü yap
   useEffect(() => {
     const fetchUserData = async () => {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = getCookie("accessToken");
       if (!accessToken) {
         navigate("/satici-login");
         return;
@@ -111,7 +112,7 @@ const SellerSupport = () => {
   }, [activeTab, statusFilter, userData]);
 
   const fetchSellerTickets = async () => {
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = getCookie("accessToken");
     if (!accessToken) return;
 
     try {
@@ -153,7 +154,7 @@ const SellerSupport = () => {
 
   const fetchTicketDetail = async (ticketId) => {
     try {
-      const accessToken = localStorage.getItem("accessToken");
+      const accessToken = getCookie("accessToken");
       if (!accessToken) return null;
 
       const response = await axios.get(
@@ -253,7 +254,7 @@ const SellerSupport = () => {
       return;
     }
 
-    const accessToken = localStorage.getItem("accessToken");
+    const accessToken = getCookie("accessToken");
     if (!accessToken) {
       alert("Giriş yapmanız gerekiyor.");
       navigate("/satici-login");

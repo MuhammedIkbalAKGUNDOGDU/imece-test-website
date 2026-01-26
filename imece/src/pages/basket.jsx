@@ -4,6 +4,7 @@ import CartItem from "../components/shoppingCart/CartItem";
 import Header from "../components/GenerealUse/Header";
 import axios from "axios";
 import { apiKey } from "../config"; // veya "../constants" dosya ismine göre
+import { getCookie, setCookie, deleteCookie } from "../utils/cookieManager";
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState([]); // Sadece ürün verisi
@@ -32,8 +33,8 @@ export default function CartPage() {
   const [, setThreeDSecureUrl] = useState(null); // 3D Secure URL (şu an UI'da kullanılmıyor)
   const [currentPaymentId, setCurrentPaymentId] = useState(null); // Mevcut ödeme ID
 
-  const token = localStorage.getItem("accessToken");
-  const accessToken = localStorage.getItem("accessToken");
+  const token = getCookie("accessToken");
+  const accessToken = getCookie("accessToken");
 
   // alert() yerine özel bir modal gösterme fonksiyonu
   const showCustomModal = (message, type) => {
@@ -82,7 +83,7 @@ export default function CartPage() {
     setLoading(true);
     setError(null);
     try {
-      const userId = localStorage.getItem("userId");
+      const userId = getCookie("userId");
       if (!userId) {
         setLoading(false);
         return;
@@ -119,9 +120,9 @@ export default function CartPage() {
       if (err.response?.status === 401) {
         setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
         // Token'ları temizle
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userId");
+        deleteCookie("accessToken");
+        deleteCookie("refreshToken");
+        deleteCookie("userId");
       } else {
         setError("Sepet verileri yüklenirken bir sorun oluştu.");
       }
@@ -583,9 +584,9 @@ export default function CartPage() {
   };
 
   const handleGoToLogin = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("userId");
+    deleteCookie("accessToken");
+    deleteCookie("refreshToken");
+    deleteCookie("userId");
     window.location.href = "/login";
   };
 

@@ -1,6 +1,8 @@
 import axios from "axios";
 import { API_BASE_URL, apiKey } from "../config";
 
+import { getCookie } from "../utils/cookieManager";
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,6 +11,20 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+// Add a request interceptor
+api.interceptors.request.use(
+  (config) => {
+    const token = getCookie("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Campaigns Service
 export const campaignsService = {

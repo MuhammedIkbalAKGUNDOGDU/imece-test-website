@@ -110,9 +110,14 @@ const Login = () => {
         const accessToken = response.data.tokens.access;
         const refreshToken = response.data.tokens.refresh;
         
-        
-        setCookie("accessToken", accessToken, rememberMe ? 30 : null);
-        setCookie("refreshToken", refreshToken, rememberMe ? 30 : null);
+        // Beni Hatırla seçiliyse 30 gün, değilse session cookie (tarayıcı kapanınca siler)
+        if (rememberMe) {
+          setCookie("accessToken", accessToken, 30);
+          setCookie("refreshToken", refreshToken, 30);
+        } else {
+          setCookie("accessToken", accessToken); // Session cookie
+          setCookie("refreshToken", refreshToken); // Session cookie
+        }
         
         // Kullanıcı bilgilerini çek ve rol kontrolü yap
         try {

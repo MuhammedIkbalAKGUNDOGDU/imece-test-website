@@ -1,11 +1,16 @@
 export const setCookie = (name, value, days) => {
-  let expires = "";
-  if (days) {
+  let cookieString = name + "=" + (value || "");
+  
+  // Eğer days belirtilmişse (ve 0'dan büyükse), kalıcı cookie oluştur
+  if (days && days > 0) {
     const date = new Date();
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    expires = "; expires=" + date.toUTCString();
+    cookieString += "; expires=" + date.toUTCString();
   }
-  document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict";
+  // days belirtilmemişse veya null/undefined ise, session cookie olur (expires yok)
+  
+  cookieString += "; path=/; SameSite=Strict";
+  document.cookie = cookieString;
 };
 
 export const getCookie = (name) => {

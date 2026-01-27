@@ -78,13 +78,16 @@ const login = () => {
       );
 
       if (response.data.status === "success") {
-        setCookie("accessToken", response.data.tokens.access, rememberMe ? 30 : null);
-        setCookie("refreshToken", response.data.tokens.refresh, rememberMe ? 30 : null);
-        setCookie(
-          "userId",
-          response.data.user_id || response.data.user?.id,
-          rememberMe ? 30 : null
-        );
+        // Beni Hatırla seçiliyse 30 gün, değilse session cookie (tarayıcı kapanınca siler)
+        if (rememberMe) {
+          setCookie("accessToken", response.data.tokens.access, 30);
+          setCookie("refreshToken", response.data.tokens.refresh, 30);
+          setCookie("userId", response.data.user_id || response.data.user?.id, 30);
+        } else {
+          setCookie("accessToken", response.data.tokens.access); // Session cookie
+          setCookie("refreshToken", response.data.tokens.refresh); // Session cookie
+          setCookie("userId", response.data.user_id || response.data.user?.id); // Session cookie
+        }
         navigate("/seller/landing");
       }
     } catch (error) {

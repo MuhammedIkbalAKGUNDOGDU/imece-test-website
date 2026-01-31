@@ -213,6 +213,19 @@ const SellerLandingPage = () => {
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  
+  // Depo Ekleme Modalı State'leri
+  const [showAddWarehouseModal, setShowAddWarehouseModal] = useState(false);
+  const [warehouseForm, setWarehouseForm] = useState({
+    name: "",
+    pickup_code: "",
+    address: "",
+    city: "",
+    district: "",
+    phone: "",
+    is_default: false,
+  });
+  const [warehouseLoading, setWarehouseLoading] = useState(false);
 
   const handleProfileSettings = () => {
     setShowProfileModal(true);
@@ -482,6 +495,56 @@ const SellerLandingPage = () => {
       alert(errorMessage);
     } finally {
       setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleAddWarehouseSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setWarehouseLoading(true);
+      
+      const accessToken = getCookie("accessToken");
+      if (!accessToken) {
+        alert("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+        return;
+      }
+
+      // Otomatik pickup code oluştur eğer boşsa
+      const formData = { ...warehouseForm };
+      if (!formData.pickup_code) {
+        formData.pickup_code = `WH-${Date.now()}`;
+      }
+
+      await axios.post(
+        "https://imecehub.com/api/logistics/pickup-locations/",
+        formData,
+        {
+          headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "X-API-Key": apiKey,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+
+      // Başarılı
+      alert("Depo başarıyla eklendi!");
+      setShowAddWarehouseModal(false);
+      setWarehouseForm({
+        name: "",
+        pickup_code: "",
+        address: "",
+        city: "",
+        district: "",
+        phone: "",
+        is_default: false,
+      });
+
+    } catch (error) {
+      console.error("Depo ekleme hatası:", error);
+      alert("Depo eklenirken bir hata oluştu: " + (error.response?.data?.message || error.message));
+    } finally {
+      setWarehouseLoading(false);
     }
   };
 
@@ -847,6 +910,37 @@ const SellerLandingPage = () => {
                     strokeLinejoin="round"
                     strokeWidth={2}
                     d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+            onClick={() => setShowAddWarehouseModal(true)}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Yeni Depo Ekle
+                </h3>
+                <p className="text-gray-600">
+                  Kargo çıkış noktalarınızı yönetmek için yeni depo ekleyin
+                </p>
+              </div>
+              <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                   />
                 </svg>
               </div>
@@ -1588,6 +1682,120 @@ const SellerLandingPage = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Depo Ekleme Modalı */}
+      {showAddWarehouseModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Yeni Depo Ekle
+                </h2>
+                <button
+                  onClick={() => setShowAddWarehouseModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleAddWarehouseSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Depo Adı <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    value={warehouseForm.name}
+                    onChange={e => setWarehouseForm({...warehouseForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                    placeholder="Örn: Kadıköy Depo"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Adres <span className="text-red-500">*</span></label>
+                  <textarea
+                    required
+                    rows="2"
+                    value={warehouseForm.address}
+                    onChange={e => setWarehouseForm({...warehouseForm, address: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                    placeholder="Açık adres giriniz"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">İl <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      required
+                      value={warehouseForm.city}
+                      onChange={e => setWarehouseForm({...warehouseForm, city: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">İlçe <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      required
+                      value={warehouseForm.district}
+                      onChange={e => setWarehouseForm({...warehouseForm, district: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefon <span className="text-red-500">*</span></label>
+                  <input
+                    type="tel"
+                    required
+                    value={warehouseForm.phone}
+                    onChange={e => setWarehouseForm({...warehouseForm, phone: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                    placeholder="05551234567"
+                  />
+                </div>
+
+                 <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_default"
+                    checked={warehouseForm.is_default}
+                    onChange={e => setWarehouseForm({...warehouseForm, is_default: e.target.checked})}
+                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="is_default" className="ml-2 block text-sm text-gray-900">
+                    Varsayılan Depo Olarak Ayarla
+                  </label>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddWarehouseModal(false)}
+                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                  >
+                    İptal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={warehouseLoading}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {warehouseLoading ? 'Ekleniyor...' : 'Ekle'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

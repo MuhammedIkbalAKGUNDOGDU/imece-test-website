@@ -21,8 +21,23 @@ const SellerOrders = () => {
     width: "",       // CM
     height: "",      // CM
     shippingNotes: "",
+    serviceType: "dropToOffice",  // "dropToOffice" veya "pickupFromAddress"
+    pickupLocationCode: "",       // Seçilen depo kodu
   });
   const [shipmentLoading, setShipmentLoading] = useState(false);
+  const [pickupLocations, setPickupLocations] = useState([]);
+  const [pickupLocationsLoading, setPickupLocationsLoading] = useState(false);
+  const [showAddWarehouseModal, setShowAddWarehouseModal] = useState(false);
+  const [warehouseForm, setWarehouseForm] = useState({
+    name: "",
+    pickup_code: "",
+    address: "",
+    city: "",
+    district: "",
+    phone: "",
+    is_default: false,
+  });
+  const [warehouseLoading, setWarehouseLoading] = useState(false);
 
   // API Base URL
   const API_BASE_URL = "https://imecehub.com/api";
@@ -92,6 +107,37 @@ const SellerOrders = () => {
     }
   };
 
+  // Satıcının pickup location'larını getir
+  const fetchPickupLocations = async () => {
+    try {
+      setPickupLocationsLoading(true);
+      
+      const response = await axios.get(
+        `${API_BASE_URL}/logistics/pickup-locations/`,
+        {
+          headers: getHeaders(),
+        }
+      );
+
+      console.log("Pickup Locations:", response.data);
+      setPickupLocations(response.data || []);
+      
+      // Varsayılan depoyu otomatik seç
+      const defaultLocation = (response.data || []).find(loc => loc.is_default);
+      if (defaultLocation && shipmentForm.serviceType === "pickupFromAddress") {
+        setShipmentForm(prev => ({
+          ...prev,
+          pickupLocationCode: defaultLocation.pickup_code
+        }));
+      }
+    } catch (error) {
+      console.error("Pickup locations getirilirken hata:", error);
+      setPickupLocations([]);
+    } finally {
+      setPickupLocationsLoading(false);
+    }
+  };
+
   // Belirli bir siparişin detaylarını göster (zaten yüklenmiş)
   const fetchOrderDetails = (orderId) => {
     // Mevcut orders listesinden siparişi bul
@@ -112,6 +158,7 @@ const SellerOrders = () => {
 
   useEffect(() => {
     fetchSellerOrders();
+    fetchPickupLocations();
   }, []);
 
   const filteredOrders = orders.filter((order) => {
@@ -176,6 +223,8 @@ const SellerOrders = () => {
   const handleCreateShipment = (orderId) => {
     setSelectedOrder(orderId);
     setShowShipmentForm(true);
+    // Depoları yükle
+    fetchPickupLocations();
   };
 
   const handleShipmentFormSubmit = async () => {
@@ -215,6 +264,13 @@ const SellerOrders = () => {
         return;
       }
 
+      // Depodan al seçiliyse pickup location kontrolü
+      if (shipmentForm.serviceType === "pickupFromAddress" && !shipmentForm.pickupLocationCode) {
+        setError("Lütfen bir depo seçin.");
+        setShipmentLoading(false);
+        return;
+      }
+
       const response = await axios.post(
         `${API_BASE_URL}/logistics/siparis-lojistik/create-seller-shipment/`,
         {
@@ -227,6 +283,11 @@ const SellerOrders = () => {
           length: parseFloat(shipmentForm.length),      // CM
           width: parseFloat(shipmentForm.width),        // CM
           height: parseFloat(shipmentForm.height),      // CM
+          // 📦 Servis tipi ve depo bilgisi
+          serviceType: shipmentForm.serviceType,
+          ...(shipmentForm.serviceType === "pickupFromAddress" && {
+            pickupLocationCode: shipmentForm.pickupLocationCode
+          })
         },
         {
           headers: getHeaders(),
@@ -259,6 +320,50 @@ const SellerOrders = () => {
       );
     } finally {
       setShipmentLoading(false);
+    }
+  };
+
+  const handleAddWarehouseSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setWarehouseLoading(true);
+      setError(null);
+
+      // Otomatik pickup code oluştur eğer boşsa
+      const formData = { ...warehouseForm };
+      if (!formData.pickup_code) {
+        formData.pickup_code = `WH-${Date.now()}`;
+      }
+
+      await axios.post(
+        `${API_BASE_URL}/logistics/pickup-locations/`,
+        formData,
+        {
+          headers: getHeaders(),
+        }
+      );
+
+      // Başarılı
+      alert("Depo başarıyla eklendi!");
+      setShowAddWarehouseModal(false);
+      setWarehouseForm({
+        name: "",
+        pickup_code: "",
+        address: "",
+        city: "",
+        district: "",
+        phone: "",
+        is_default: false,
+      });
+
+      // Listeyi yenile
+      fetchPickupLocations();
+      
+    } catch (error) {
+      console.error("Depo ekleme hatası:", error);
+      alert("Depo eklenirken bir hata oluştu: " + (error.response?.data?.message || error.message));
+    } finally {
+      setWarehouseLoading(false);
     }
   };
 
@@ -897,6 +1002,113 @@ const SellerOrders = () => {
               </div>
 
               <div className="space-y-6">
+                {/* Teslimat Tipi Seçimi */}
+                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Teslimat Tipi
+                  </label>
+                  <div className="flex space-x-4">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="serviceType"
+                        value="dropToOffice"
+                        checked={shipmentForm.serviceType === "dropToOffice"}
+                        onChange={(e) =>
+                          setShipmentForm({
+                            ...shipmentForm,
+                            serviceType: e.target.value,
+                            pickupLocationCode: "", // Şubeye teslimde depo kodu temizle
+                          })
+                        }
+                        className="text-green-600 focus:ring-green-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        🏢 Şubeye Teslim Edin
+                      </span>
+                    </label>
+
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="serviceType"
+                        value="pickupFromAddress"
+                        checked={shipmentForm.serviceType === "pickupFromAddress"}
+                        onChange={(e) => {
+                          setShipmentForm({
+                            ...shipmentForm,
+                            serviceType: e.target.value,
+                          });
+                          // Varsayılan depoyu seçmeyi dene
+                          if (pickupLocations.length > 0) {
+                            const defaultLoc = pickupLocations.find(
+                              (loc) => loc.is_default
+                            );
+                            if (defaultLoc) {
+                              setShipmentForm((prev) => ({
+                                ...prev,
+                                serviceType: e.target.value,
+                                pickupLocationCode: defaultLoc.pickup_code,
+                              }));
+                            }
+                          }
+                        }}
+                        className="text-green-600 focus:ring-green-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        🚚 Depodan Teslim Alınsın
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Depo Seçimi - Sadece "Adresten Alım" seçiliyse göster */}
+                  {shipmentForm.serviceType === "pickupFromAddress" && (
+                    <div className="mt-4 animate-fadeIn">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Teslim Alınacak Depo <span className="text-red-500">*</span>
+                      </label>
+                      {pickupLocationsLoading ? (
+                        <div className="text-sm text-gray-500">
+                          Depolar yükleniyor...
+                        </div>
+                      ) : pickupLocations.length > 0 ? (
+                        <select
+                          value={shipmentForm.pickupLocationCode}
+                          onChange={(e) =>
+                            setShipmentForm({
+                              ...shipmentForm,
+                              pickupLocationCode: e.target.value,
+                            })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          required
+                        >
+                          <option value="">Depo Seçiniz</option>
+                          {pickupLocations.map((loc) => (
+                            <option key={loc.id} value={loc.pickup_code}>
+                              {loc.name} ({loc.city}/{loc.district})
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="flex flex-col space-y-2">
+                          <div className="text-sm text-red-500">
+                            Kayıtlı depo bulunamadı. Lütfen profil ayarlarından depo
+                            ekleyin.
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setShowAddWarehouseModal(true)}
+                            className="text-sm text-green-600 hover:text-green-800 font-medium underline text-left"
+                          >
+                            + Yeni Depo Ekle
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* Ağırlık */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1024,6 +1236,23 @@ const SellerOrders = () => {
                       <strong>Sipariş ID:</strong> {selectedOrder}
                     </p>
                     <p>
+                      <strong>Teslimat Tipi:</strong>{" "}
+                      {shipmentForm.serviceType === "dropToOffice"
+                        ? "Şubeye Teslim"
+                        : "Depodan Alım"}
+                    </p>
+                    {shipmentForm.serviceType === "pickupFromAddress" &&
+                      shipmentForm.pickupLocationCode && (
+                        <p>
+                          <strong>Depo:</strong>{" "}
+                          {
+                            pickupLocations.find(
+                              (l) => l.pickup_code === shipmentForm.pickupLocationCode
+                            )?.name
+                          }
+                        </p>
+                      )}
+                    <p>
                       <strong>Ağırlık:</strong> {shipmentForm.weight} KG
                     </p>
                     <p>
@@ -1086,6 +1315,120 @@ const SellerOrders = () => {
                   </span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Depo Ekleme Modalı */}
+      {showAddWarehouseModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Yeni Depo Ekle
+                </h2>
+                <button
+                  onClick={() => setShowAddWarehouseModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleAddWarehouseSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Depo Adı <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    value={warehouseForm.name}
+                    onChange={e => setWarehouseForm({...warehouseForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                    placeholder="Örn: Kadıköy Depo"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Adres <span className="text-red-500">*</span></label>
+                  <textarea
+                    required
+                    rows="2"
+                    value={warehouseForm.address}
+                    onChange={e => setWarehouseForm({...warehouseForm, address: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                    placeholder="Açık adres giriniz"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">İl <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      required
+                      value={warehouseForm.city}
+                      onChange={e => setWarehouseForm({...warehouseForm, city: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">İlçe <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      required
+                      value={warehouseForm.district}
+                      onChange={e => setWarehouseForm({...warehouseForm, district: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefon <span className="text-red-500">*</span></label>
+                  <input
+                    type="tel"
+                    required
+                    value={warehouseForm.phone}
+                    onChange={e => setWarehouseForm({...warehouseForm, phone: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                    placeholder="05551234567"
+                  />
+                </div>
+
+                 <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_default"
+                    checked={warehouseForm.is_default}
+                    onChange={e => setWarehouseForm({...warehouseForm, is_default: e.target.checked})}
+                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="is_default" className="ml-2 block text-sm text-gray-900">
+                    Varsayılan Depo Olarak Ayarla
+                  </label>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddWarehouseModal(false)}
+                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                  >
+                    İptal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={warehouseLoading}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {warehouseLoading ? 'Ekleniyor...' : 'Ekle'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

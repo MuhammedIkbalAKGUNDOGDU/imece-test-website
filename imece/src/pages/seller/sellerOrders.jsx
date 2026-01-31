@@ -75,7 +75,14 @@ const SellerOrders = () => {
         orderId: order.siparis_id, // UI için orderId ekle
       }));
 
-      setOrders(ordersWithOrderId);
+      // Tarihe göre sırala (en yeni en üstte)
+      const sortedOrders = ordersWithOrderId.sort((a, b) => {
+        const dateA = new Date(a.siparis_verilme_tarihi || a.created_at || 0);
+        const dateB = new Date(b.siparis_verilme_tarihi || b.created_at || 0);
+        return dateB - dateA;
+      });
+
+      setOrders(sortedOrders);
     } catch (error) {
       console.error("Siparişler getirilirken hata:", error);
       setError("Siparişler yüklenirken bir hata oluştu.");

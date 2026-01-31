@@ -16,8 +16,10 @@ const SellerOrders = () => {
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [showShipmentForm, setShowShipmentForm] = useState(false);
   const [shipmentForm, setShipmentForm] = useState({
-    packageSize: "XS",
-    packageCount: 1,
+    weight: "",      // KG
+    length: "",      // CM
+    width: "",       // CM
+    height: "",      // CM
     shippingNotes: "",
   });
   const [shipmentLoading, setShipmentLoading] = useState(false);
@@ -175,8 +177,26 @@ const SellerOrders = () => {
       setError(null);
 
       // Form validasyonu
-      if (!shipmentForm.packageCount || shipmentForm.packageCount < 1) {
-        setError("Paket sayısı en az 1 olmalıdır.");
+      if (!shipmentForm.weight || parseFloat(shipmentForm.weight) <= 0) {
+        setError("Ağırlık bilgisi gereklidir ve 0'dan büyük olmalıdır.");
+        setShipmentLoading(false);
+        return;
+      }
+
+      if (!shipmentForm.length || parseFloat(shipmentForm.length) <= 0) {
+        setError("Uzunluk bilgisi gereklidir ve 0'dan büyük olmalıdır.");
+        setShipmentLoading(false);
+        return;
+      }
+
+      if (!shipmentForm.width || parseFloat(shipmentForm.width) <= 0) {
+        setError("Genişlik bilgisi gereklidir ve 0'dan büyük olmalıdır.");
+        setShipmentLoading(false);
+        return;
+      }
+
+      if (!shipmentForm.height || parseFloat(shipmentForm.height) <= 0) {
+        setError("Yükseklik bilgisi gereklidir ve 0'dan büyük olmalıdır.");
         setShipmentLoading(false);
         return;
       }
@@ -195,8 +215,11 @@ const SellerOrders = () => {
           satici_id: sellerId,
           satici_onayladi: true,
           shippingNotes: shipmentForm.shippingNotes,
-          packageSize: shipmentForm.packageSize,
-          packageCount: shipmentForm.packageCount,
+          // 🚚 YENİ: Zorunlu paket boyutları
+          weight: parseFloat(shipmentForm.weight),      // KG
+          length: parseFloat(shipmentForm.length),      // CM
+          width: parseFloat(shipmentForm.width),        // CM
+          height: parseFloat(shipmentForm.height),      // CM
         },
         {
           headers: getHeaders(),
@@ -208,8 +231,10 @@ const SellerOrders = () => {
       // Başarılı olursa formu kapat ve siparişleri yenile
       setShowShipmentForm(false);
       setShipmentForm({
-        packageSize: "XS",
-        packageCount: 1,
+        weight: "",
+        length: "",
+        width: "",
+        height: "",
         shippingNotes: "",
       });
 
@@ -233,8 +258,10 @@ const SellerOrders = () => {
   const handleCloseShipmentForm = () => {
     setShowShipmentForm(false);
     setShipmentForm({
-      packageSize: "XS",
-      packageCount: 1,
+      weight: "",
+      length: "",
+      width: "",
+      height: "",
       shippingNotes: "",
     });
   };
@@ -863,76 +890,103 @@ const SellerOrders = () => {
               </div>
 
               <div className="space-y-6">
-                {/* Paket Boyutu */}
+                {/* Ağırlık */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Paket Boyutu
-                  </label>
-                  <select
-                    value={shipmentForm.packageSize}
-                    onChange={(e) =>
-                      setShipmentForm({
-                        ...shipmentForm,
-                        packageSize: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  >
-                    <option value="XS">XS - Çok Küçük (0-1 kg)</option>
-                    <option value="S">S - Küçük (1-3 kg)</option>
-                    <option value="M">M - Orta (3-5 kg)</option>
-                    <option value="L">L - Büyük (5-10 kg)</option>
-                    <option value="XL">XL - Çok Büyük (10+ kg)</option>
-                  </select>
-                </div>
-
-                {/* Paket Sayısı */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Paket Sayısı
+                    Ağırlık (KG) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    max="100"
-                    value={shipmentForm.packageCount}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      // Boş string'e izin ver (silme işlemi için)
-                      if (value === "") {
-                        setShipmentForm({
-                          ...shipmentForm,
-                          packageCount: "",
-                        });
-                        return;
-                      }
-
-                      // Sadece pozitif tam sayılara izin ver
-                      const numValue = parseInt(value);
-                      if (
-                        !isNaN(numValue) &&
-                        numValue >= 1 &&
-                        numValue <= 100
-                      ) {
-                        setShipmentForm({
-                          ...shipmentForm,
-                          packageCount: numValue,
-                        });
-                      }
-                    }}
-                    onBlur={(e) => {
-                      // Input'tan çıkıldığında boşsa 1 yap
-                      if (e.target.value === "" || e.target.value === "0") {
-                        setShipmentForm({
-                          ...shipmentForm,
-                          packageCount: 1,
-                        });
-                      }
-                    }}
+                    step="0.1"
+                    min="0.1"
+                    value={shipmentForm.weight}
+                    onChange={(e) =>
+                      setShipmentForm({
+                        ...shipmentForm,
+                        weight: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="Paket sayısını girin (1-100)"
+                    placeholder="Örn: 2.5"
+                    required
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Paketin toplam ağırlığını kilogram cinsinden girin
+                  </p>
                 </div>
+
+                {/* Boyutlar - Grid Layout */}
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Uzunluk */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Uzunluk (CM) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="1"
+                      value={shipmentForm.length}
+                      onChange={(e) =>
+                        setShipmentForm({
+                          ...shipmentForm,
+                          length: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="40"
+                      required
+                    />
+                  </div>
+
+                  {/* Genişlik */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Genişlik (CM) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="1"
+                      value={shipmentForm.width}
+                      onChange={(e) =>
+                        setShipmentForm({
+                          ...shipmentForm,
+                          width: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="30"
+                      required
+                    />
+                  </div>
+
+                  {/* Yükseklik */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Yükseklik (CM) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="1"
+                      value={shipmentForm.height}
+                      onChange={(e) =>
+                        setShipmentForm({
+                          ...shipmentForm,
+                          height: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="20"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-500 -mt-2">
+                  📦 Paket boyutlarını santimetre cinsinden girin
+                </p>
 
                 {/* Kargo Notları */}
                 <div>
@@ -963,10 +1017,16 @@ const SellerOrders = () => {
                       <strong>Sipariş ID:</strong> {selectedOrder}
                     </p>
                     <p>
-                      <strong>Paket Boyutu:</strong> {shipmentForm.packageSize}
+                      <strong>Ağırlık:</strong> {shipmentForm.weight} KG
                     </p>
                     <p>
-                      <strong>Paket Sayısı:</strong> {shipmentForm.packageCount}
+                      <strong>Uzunluk:</strong> {shipmentForm.length} CM
+                    </p>
+                    <p>
+                      <strong>Genişlik:</strong> {shipmentForm.width} CM
+                    </p>
+                    <p>
+                      <strong>Yükseklik:</strong> {shipmentForm.height} CM
                     </p>
                     {shipmentForm.shippingNotes && (
                       <p>

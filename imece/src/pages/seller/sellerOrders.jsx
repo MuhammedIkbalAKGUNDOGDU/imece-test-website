@@ -23,6 +23,7 @@ const SellerOrders = () => {
     shippingNotes: "",
     serviceType: "dropToOffice",  // "dropToOffice" veya "pickupFromAddress"
     pickupLocationCode: "",       // Seçilen depo kodu
+    senderAddressId: null,        // Seçilen deponun ID'si
   });
   const [shipmentLoading, setShipmentLoading] = useState(false);
   const [pickupLocations, setPickupLocations] = useState([]);
@@ -122,12 +123,16 @@ const SellerOrders = () => {
       console.log("Pickup Locations:", response.data);
       setPickupLocations(response.data || []);
       
-      // Varsayılan depoyu otomatik seç
-      const defaultLocation = (response.data || []).find(loc => loc.is_default);
-      if (defaultLocation && shipmentForm.serviceType === "pickupFromAddress") {
+      // Varsayılan depoyu/adresi otomatik seç
+      const defaultLocation = (response.data || []).find(loc => loc.is_default) || (response.data || [])[0];
+      
+      if (defaultLocation) {
         setShipmentForm(prev => ({
           ...prev,
-          pickupLocationCode: defaultLocation.pickup_code
+          // Her zaman varsayılan gönderici adresi olarak seç
+          senderAddressId: defaultLocation.id,
+          // Eğer adresten alım seçiliyse, varsayılan olarak bu depoyu seç
+          ...(prev.serviceType === "pickupFromAddress" ? { pickupLocationCode: defaultLocation.pickup_code } : {})
         }));
       }
     } catch (error) {
@@ -264,9 +269,16 @@ const SellerOrders = () => {
         return;
       }
 
+      // 🛑 Gönderici Adresi Zorunlu
+      if (!shipmentForm.senderAddressId) {
+        setError("Lütfen bir gönderici adresi seçin.");
+        setShipmentLoading(false);
+        return;
+      }
+
       // Depodan al seçiliyse pickup location kontrolü
       if (shipmentForm.serviceType === "pickupFromAddress" && !shipmentForm.pickupLocationCode) {
-        setError("Lütfen bir depo seçin.");
+        setError("Lütfen teslim alınacak depoyu seçin.");
         setShipmentLoading(false);
         return;
       }
@@ -285,8 +297,10 @@ const SellerOrders = () => {
           height: parseFloat(shipmentForm.height),      // CM
           // 📦 Servis tipi ve depo bilgisi
           serviceType: shipmentForm.serviceType,
+          // Her zaman gönder
+          senderAddressId: shipmentForm.senderAddressId,
           ...(shipmentForm.serviceType === "pickupFromAddress" && {
-            pickupLocationCode: shipmentForm.pickupLocationCode
+            pickupLocationCode: shipmentForm.pickupLocationCode,
           })
         },
         {
@@ -1002,6 +1016,54 @@ const SellerOrders = () => {
               </div>
 
               <div className="space-y-6">
+                {/* Gönderici Adresi Seçimi - Her zaman görünür */}
+                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Gönderici Adresi / Depo <span className="text-red-500">*</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Fatura ve irsaliye üzerinde görünecek gönderici adresi.
+                  </p>
+                  {pickupLocationsLoading ? (
+                    <div className="text-sm text-gray-500">Adresler yükleniyor...</div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <select
+                        value={shipmentForm.senderAddressId || ""}
+                        onChange={(e) => {
+                          const selectedId = e.target.value ? parseInt(e.target.value) : null;
+                          setShipmentForm({
+                            ...shipmentForm,
+                            senderAddressId: selectedId
+                          });
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        required
+                      >
+                        <option value="">Adres Seçiniz</option>
+                        {pickupLocations.map((loc) => (
+                          <option key={loc.id} value={loc.id}>
+                            {loc.name} ({loc.city}/{loc.district})
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                         type="button"
+                         onClick={() => setShowAddWarehouseModal(true)}
+                         className="px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 border border-green-200 transition-colors"
+                         title="Yeni Adres Ekle"
+                       >
+                         +
+                       </button>
+                    </div>
+                  )}
+                  {pickupLocations.length === 0 && !pickupLocationsLoading && (
+                     <div className="mt-2 text-sm text-red-500">
+                       Kayıtlı adresiniz bulunmuyor. Lütfen yeni bir adres ekleyin.
+                     </div>
+                  )}
+                </div>
+
                 {/* Teslimat Tipi Seçimi */}
                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -39,6 +39,12 @@ const SellerOrders = () => {
     is_default: false,
   });
   const [warehouseLoading, setWarehouseLoading] = useState(false);
+  
+  // Kargo Seçimi State'leri
+  const [deliveryOptions, setDeliveryOptions] = useState([]);
+  const [deliveryOptionsLoading, setDeliveryOptionsLoading] = useState(false);
+  const [selectedDeliveryOptionId, setSelectedDeliveryOptionId] = useState(null);
+  const [isDeliverySelectionStep, setIsDeliverySelectionStep] = useState(false);
 
   // API Base URL
   const API_BASE_URL = "https://imecehub.com/api";
@@ -232,108 +238,121 @@ const SellerOrders = () => {
     fetchPickupLocations();
   };
 
-  const handleShipmentFormSubmit = async () => {
+  // 1. Validasyon
+  const validateShipmentForm = () => {
+    if (!shipmentForm.weight || parseFloat(shipmentForm.weight) <= 0) return "Ağırlık bilgisi gereklidir ve 0'dan büyük olmalıdır.";
+    if (!shipmentForm.length || parseFloat(shipmentForm.length) <= 0) return "Uzunluk bilgisi gereklidir ve 0'dan büyük olmalıdır.";
+    if (!shipmentForm.width || parseFloat(shipmentForm.width) <= 0) return "Genişlik bilgisi gereklidir ve 0'dan büyük olmalıdır.";
+    if (!shipmentForm.height || parseFloat(shipmentForm.height) <= 0) return "Yükseklik bilgisi gereklidir ve 0'dan büyük olmalıdır.";
+    
+    if (!getSellerId()) return "Satıcı ID bulunamadı. Lütfen giriş yapın.";
+    if (!shipmentForm.senderAddressId) return "Lütfen bir gönderici adresi seçin.";
+    
+    if (shipmentForm.serviceType === "pickupFromAddress" && !shipmentForm.pickupLocationCode) {
+      return "Lütfen teslim alınacak depoyu seçin.";
+    }
+    return null;
+  };
+
+  // 2. Kargo seçeneklerini getir
+  const fetchDeliveryOptions = async () => {
+    const errorMsg = validateShipmentForm();
+    if (errorMsg) {
+      setError(errorMsg);
+      return;
+    }
+
+    try {
+      setDeliveryOptionsLoading(true);
+      setError(null);
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/logistics/siparis-lojistik/get-delivery-options/`,
+        {
+          order_id: selectedOrder,
+          satici_id: getSellerId(),
+          weight: parseFloat(shipmentForm.weight),
+          length: parseFloat(shipmentForm.length),
+          width: parseFloat(shipmentForm.width),
+          height: parseFloat(shipmentForm.height),
+          senderAddressId: shipmentForm.senderAddressId,
+        },
+        { headers: getHeaders() }
+      );
+      
+      console.log("Kargo Seçenekleri Response:", response.data);
+      const options = response.data.options || response.data.data || (Array.isArray(response.data) ? response.data : []);
+      setDeliveryOptions(options);
+      
+      if (options.length > 0) {
+        setIsDeliverySelectionStep(true);
+      } else {
+        setError("Uygun kargo seçeneği bulunamadı.");
+      }
+
+    } catch (error) {
+       console.error("Kargo seçenekleri hatası:", error);
+       setError("Kargo firmaları yüklenirken hata oluştu: " + (error.response?.data?.message || error.message));
+    } finally {
+       setDeliveryOptionsLoading(false);
+    }
+  };
+
+  // 3. Kargoyu oluştur (Final)
+  const createSellerShipment = async () => {
     try {
       setShipmentLoading(true);
       setError(null);
 
-      // Form validasyonu
-      if (!shipmentForm.weight || parseFloat(shipmentForm.weight) <= 0) {
-        setError("Ağırlık bilgisi gereklidir ve 0'dan büyük olmalıdır.");
-        setShipmentLoading(false);
-        return;
-      }
-
-      if (!shipmentForm.length || parseFloat(shipmentForm.length) <= 0) {
-        setError("Uzunluk bilgisi gereklidir ve 0'dan büyük olmalıdır.");
-        setShipmentLoading(false);
-        return;
-      }
-
-      if (!shipmentForm.width || parseFloat(shipmentForm.width) <= 0) {
-        setError("Genişlik bilgisi gereklidir ve 0'dan büyük olmalıdır.");
-        setShipmentLoading(false);
-        return;
-      }
-
-      if (!shipmentForm.height || parseFloat(shipmentForm.height) <= 0) {
-        setError("Yükseklik bilgisi gereklidir ve 0'dan büyük olmalıdır.");
-        setShipmentLoading(false);
-        return;
-      }
-
       const sellerId = getSellerId();
-      if (!sellerId) {
-        setError("Satıcı ID bulunamadı. Lütfen giriş yapın.");
-        setShipmentLoading(false);
-        return;
-      }
-
-      // 🛑 Gönderici Adresi Zorunlu
-      if (!shipmentForm.senderAddressId) {
-        setError("Lütfen bir gönderici adresi seçin.");
-        setShipmentLoading(false);
-        return;
-      }
-
-      // Depodan al seçiliyse pickup location kontrolü
-      if (shipmentForm.serviceType === "pickupFromAddress" && !shipmentForm.pickupLocationCode) {
-        setError("Lütfen teslim alınacak depoyu seçin.");
-        setShipmentLoading(false);
-        return;
-      }
-
-      const response = await axios.post(
-        `${API_BASE_URL}/logistics/siparis-lojistik/create-seller-shipment/`,
-        {
+      
+      const payload = {
           order_id: selectedOrder,
           satici_id: sellerId,
           satici_onayladi: true,
           shippingNotes: shipmentForm.shippingNotes,
-          // 🚚 YENİ: Zorunlu paket boyutları
-          weight: parseFloat(shipmentForm.weight),      // KG
-          length: parseFloat(shipmentForm.length),      // CM
-          width: parseFloat(shipmentForm.width),        // CM
-          height: parseFloat(shipmentForm.height),      // CM
-          // 📦 Servis tipi ve depo bilgisi
+          weight: parseFloat(shipmentForm.weight),
+          length: parseFloat(shipmentForm.length),
+          width: parseFloat(shipmentForm.width),
+          height: parseFloat(shipmentForm.height),
           serviceType: shipmentForm.serviceType,
-          // Her zaman gönder
           senderAddressId: shipmentForm.senderAddressId,
           ...(shipmentForm.serviceType === "pickupFromAddress" && {
             pickupLocationCode: shipmentForm.pickupLocationCode,
+          }),
+          ...(selectedDeliveryOptionId && {
+             selectedDeliveryOptionId: selectedDeliveryOptionId
           })
-        },
-        {
-          headers: getHeaders(),
-        }
+       };
+
+      const response = await axios.post(
+        `${API_BASE_URL}/logistics/siparis-lojistik/create-seller-shipment/`,
+        payload,
+        { headers: getHeaders() }
       );
 
       console.log("Kargo oluşturma yanıtı:", response.data);
+      
+      alert(selectedDeliveryOptionId 
+        ? "Kargo etiketi başarıyla oluşturuldu! Etiketi sipariş detaylarından yazdırabilirsiniz." 
+        : `${selectedOrder} numaralı sipariş için kargo başarıyla oluşturuldu!`);
+      
+      handleCloseShipmentForm(); 
+      fetchSellerOrders(); 
 
-      // Başarılı olursa formu kapat ve siparişleri yenile
-      setShowShipmentForm(false);
-      setShipmentForm({
-        weight: "",
-        length: "",
-        width: "",
-        height: "",
-        shippingNotes: "",
-      });
-
-      // Siparişleri yenile
-      await fetchSellerOrders();
-
-      alert(
-        `${selectedOrder} numaralı sipariş için kargo başarıyla oluşturuldu!`
-      );
     } catch (error) {
       console.error("Kargo oluşturma hatası:", error);
-      setError(
-        "Kargo oluşturulurken bir hata oluştu: " +
-          (error.response?.data?.message || error.message)
-      );
+      setError("Kargo oluşturulurken hata: " + (error.response?.data?.message || error.message));
     } finally {
       setShipmentLoading(false);
+    }
+  };
+
+  const handleShipmentFormSubmit = async () => {
+    if (!isDeliverySelectionStep) {
+      await fetchDeliveryOptions();
+    } else {
+      await createSellerShipment();
     }
   };
 
@@ -389,7 +408,14 @@ const SellerOrders = () => {
       width: "",
       height: "",
       shippingNotes: "",
+      serviceType: "dropToOffice",
+      pickupLocationCode: "",
+      senderAddressId: null,
     });
+    setError(null);
+    setIsDeliverySelectionStep(false);
+    setDeliveryOptions([]);
+    setSelectedDeliveryOptionId(null);
   };
 
   const handleViewDetails = (orderId) => {
@@ -1016,6 +1042,8 @@ const SellerOrders = () => {
               </div>
 
               <div className="space-y-6">
+                {!isDeliverySelectionStep ? (
+                  <>
                 {/* Gönderici Adresi Seçimi - Her zaman görünür */}
                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1063,6 +1091,33 @@ const SellerOrders = () => {
                      </div>
                   )}
                 </div>
+
+                {/* Aynı Şehir Uyarısı */}
+                {(() => {
+                  const selectedSenderAddress = pickupLocations.find(loc => loc.id === shipmentForm.senderAddressId);
+                  const senderCity = selectedSenderAddress?.city;
+                  const receiverCity = orderDetails?.teslimat_adresi_bilgisi?.il;
+                  const isSameCity = senderCity && receiverCity && 
+                                     senderCity.toLowerCase().trim() === receiverCity.toLowerCase().trim();
+                  
+                  return isSameCity ? (
+                    <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-4">
+                      <div className="flex items-start gap-3">
+                        <div className="text-amber-600 text-xl mt-0.5">⚠️</div>
+                        <div>
+                          <h4 className="font-semibold text-amber-900 mb-1">Aynı Şehir İçi Teslimat</h4>
+                          <p className="text-sm text-amber-800">
+                            Gönderici ve alıcı adresi aynı şehirde ({senderCity}). 
+                            Aynı şehir içi teslimat için lütfen bizimle iletişime geçin.
+                          </p>
+                          <p className="text-xs text-amber-700 mt-2">
+                            📞 Müşteri hizmetleri ile görüşerek özel teslimat seçeneklerini değerlendirebilirsiniz.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
 
                 {/* Teslimat Tipi Seçimi */}
                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
@@ -1333,47 +1388,118 @@ const SellerOrders = () => {
                     )}
                   </div>
                 </div>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Kargo Firması Seçin</h3>
+                     
+                     {deliveryOptionsLoading ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-2"></div>
+                           <p>Fiyatlar hesaplanıyor...</p>
+                        </div>
+                     ) : deliveryOptions.length === 0 ? (
+                        <div className="text-center text-red-500 py-4 border rounded-lg bg-red-50">
+                           Seçenek bulunamadı. Lütfen bilgileri kontrol edip tekrar deneyin.
+                        </div>
+                     ) : (
+                        <div className="grid grid-cols-1 gap-3 max-h-[60vh] overflow-y-auto pr-2">
+                           {deliveryOptions.map((option, index) => (
+                              <div
+                                 key={option.deliveryOptionId || option.id || option.code || index}
+                                 onClick={() => setSelectedDeliveryOptionId(option.deliveryOptionId || option.id)}
+                                 className={`
+                                    relative border rounded-lg p-4 cursor-pointer transition-all duration-200
+                                    flex items-center justify-between
+                                    ${selectedDeliveryOptionId === (option.deliveryOptionId || option.id)
+                                       ? 'border-green-600 bg-green-50 ring-2 ring-green-200' 
+                                       : 'border-gray-200 hover:border-green-400 hover:bg-gray-50'}
+                                 `}
+                              >
+                                 <div className="flex items-center space-x-4">
+                                    {option.logo || option.logo_url ? (
+                                       <img src={option.logo || option.logo_url} alt={option.deliveryOptionName || option.name} className="w-12 h-12 object-contain bg-white rounded p-1 border" />
+                                    ) : (
+                                       <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center text-2xl">📦</div>
+                                    )}
+                                    <div>
+                                       <h4 className="font-bold text-gray-900">{option.deliveryOptionName || option.name || option.kargo_firmasi || option.company || "Kargo Firması"}</h4>
+                                       <p className="text-xs text-gray-500">
+                                         {(() => {
+                                           const time = option.avgDeliveryTime || option.tahmini_teslimat || option.estimated_delivery;
+                                           if (!time) return "1-3 İş Günü";
+                                           if (time === "1to3WorkingDays") return "1-3 İş Günü";
+                                           if (time === "1to7WorkingDays") return "1-7 İş Günü";
+                                           if (time.includes("to")) {
+                                             const parts = time.replace("WorkingDays", "").split("to");
+                                             return `${parts[0]}-${parts[1]} İş Günü`;
+                                           }
+                                           return time;
+                                         })()}
+                                       </p>
+                                    </div>
+                                 </div>
+                                 
+                                 <div className="text-right">
+                                    <div className="text-lg font-bold text-green-700">
+                                       {option.price ? `${parseFloat(option.price).toFixed(2)} TL` : "Ücretsiz"}
+                                    </div>
+                                 </div>
+                                 
+                                 {selectedDeliveryOptionId === (option.deliveryOptionId || option.id) && (
+                                    <div className="absolute top-2 right-2 text-green-600">
+                                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                    </div>
+                                 )}
+                              </div>
+                           ))}
+                        </div>
+                     )}
+                  </div>
+                )}
               </div>
 
               {/* Modal Footer */}
               <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
                 <button
                   onClick={handleCloseShipmentForm}
-                  disabled={shipmentLoading}
+                  disabled={shipmentLoading || deliveryOptionsLoading}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200 disabled:opacity-50"
                 >
                   İptal
                 </button>
+                
+                {isDeliverySelectionStep && (
+                   <button
+                     onClick={() => setIsDeliverySelectionStep(false)}
+                     disabled={shipmentLoading}
+                     className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200 disabled:opacity-50 border border-gray-300 rounded-lg hover:bg-gray-50"
+                   >
+                     Geri
+                   </button>
+                )}
+
                 <button
                   onClick={handleShipmentFormSubmit}
-                  disabled={shipmentLoading}
-                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 flex items-center space-x-2"
+                  disabled={shipmentLoading || deliveryOptionsLoading || (isDeliverySelectionStep && !selectedDeliveryOptionId)}
+                  className={`px-6 py-2 rounded-lg text-white transition-colors duration-200 disabled:opacity-50 flex items-center space-x-2 ${
+                    isDeliverySelectionStep && !selectedDeliveryOptionId 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}
                 >
-                  {shipmentLoading && (
-                    <svg
-                      className="animate-spin h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
+                  {(shipmentLoading || deliveryOptionsLoading) && (
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                   )}
                   <span>
-                    {shipmentLoading
-                      ? "Kargo Oluşturuluyor..."
-                      : "Kargo Oluştur"}
+                    {shipmentLoading || deliveryOptionsLoading
+                      ? "İşleniyor..."
+                      : isDeliverySelectionStep 
+                        ? "Seçimi Onayla ve Oluştur" 
+                        : "Devam Et / Fiyatları Gör"}
                   </span>
                 </button>
               </div>

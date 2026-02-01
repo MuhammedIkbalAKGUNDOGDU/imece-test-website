@@ -173,41 +173,50 @@ const SellerOrders = () => {
     fetchPickupLocations();
   }, []);
 
-  const filteredOrders = orders.filter((order) => {
-    // API'den gelen durum değerini kontrol et
-    const orderStatus =
-      order.items && order.items.length > 0
-        ? order.items[0].durum
-        : order.status;
+  const orderTabs = [
+    { id: "pending", label: "Barkod Bekleyen", statuses: ["BEKLEMEDE", "HATA", "KARGO_HATASI", "pending"] },
+    { id: "waiting_pickup", label: "Kargolanmayı Bekleyen", statuses: ["KARGOLANMAYI_BEKLIYOR"] },
+    { id: "shipped", label: "Kargolanan", statuses: ["KARGOLANMAYI_BEKLIYOR", "KARGOLANDI", "shipped"] },
+    { id: "delivered", label: "Tamamlanan", statuses: ["TAMAMLANDI", "TESLİM EDİLDİ", "delivered"] },
+    { id: "cancelled", label: "İptal / İade", statuses: ["IPTAL", "İPTAL EDİLDİ", "GERI_ODENDI", "cancelled"] },
+  ];
 
-    switch (activeTab) {
-      case "pending":
-        return orderStatus === "BEKLEMEDE" || orderStatus === "pending";
-      case "shipped":
-        return orderStatus === "KARGOLANDI" || orderStatus === "shipped";
-      case "delivered":
-        return orderStatus === "TESLİM EDİLDİ" || orderStatus === "delivered";
-      case "cancelled":
-        return orderStatus === "İPTAL EDİLDİ" || orderStatus === "cancelled";
-      default:
-        return true;
-    }
+  const filteredOrders = orders.filter((order) => {
+    const orderStatus = order.items && order.items.length > 0 ? order.items[0].durum : order.status;
+    const currentTab = orderTabs.find(t => t.id === activeTab);
+    return currentTab ? currentTab.statuses.includes(orderStatus) : true;
   });
+
+  const getTabCount = (statuses) => {
+    return orders.filter(o => {
+      const status = o.items && o.items.length > 0 ? o.items[0].durum : o.status;
+      return statuses.includes(status);
+    }).length;
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "pending":
       case "BEKLEMEDE":
-        return "bg-yellow-100 text-yellow-800";
-      case "shipped":
+      case "pending":
+        return "bg-amber-100 text-amber-800";
+      case "KARGOLANMAYI_BEKLIYOR":
+        return "bg-blue-50 text-blue-700 border border-blue-100";
       case "KARGOLANDI":
+      case "shipped":
         return "bg-blue-100 text-blue-800";
+      case "TAMAMLANDI":
       case "delivered":
       case "TESLİM EDİLDİ":
         return "bg-green-100 text-green-800";
-      case "cancelled":
+      case "IPTAL":
       case "İPTAL EDİLDİ":
+      case "cancelled":
         return "bg-red-100 text-red-800";
+      case "HATA":
+      case "KARGO_HATASI":
+        return "bg-red-50 text-red-700 border border-red-100";
+      case "GERI_ODENDI":
+        return "bg-gray-100 text-gray-700";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -215,18 +224,28 @@ const SellerOrders = () => {
 
   const getStatusText = (status) => {
     switch (status) {
-      case "pending":
       case "BEKLEMEDE":
-        return "Kargo Bekliyor";
-      case "shipped":
+      case "pending":
+        return "Beklemede";
+      case "KARGOLANMAYI_BEKLIYOR":
+        return "Kargolanmayı Bekliyor";
       case "KARGOLANDI":
+      case "shipped":
         return "Kargolandı";
+      case "TAMAMLANDI":
       case "delivered":
       case "TESLİM EDİLDİ":
-        return "Teslim Edildi";
-      case "cancelled":
+        return "Tamamlandı";
+      case "IPTAL":
       case "İPTAL EDİLDİ":
-        return "İptal Edildi";
+      case "cancelled":
+        return "İptal";
+      case "HATA":
+        return "Hata";
+      case "GERI_ODENDI":
+        return "Geri Ödendi";
+      case "KARGO_HATASI":
+        return "Kargo Hatası";
       default:
         return status || "Bilinmiyor";
     }
@@ -502,68 +521,25 @@ const SellerOrders = () => {
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-md p-1 mb-8">
-          <div className="flex space-x-1">
-            {[
-              {
-                id: "pending",
-                label: "Kargo Bekleyen",
-                count: orders.filter((o) => {
-                  const status =
-                    o.items && o.items.length > 0 ? o.items[0].durum : o.status;
-                  return status === "BEKLEMEDE" || status === "pending";
-                }).length,
-              },
-              {
-                id: "shipped",
-                label: "Kargolanan",
-                count: orders.filter((o) => {
-                  const status =
-                    o.items && o.items.length > 0 ? o.items[0].durum : o.status;
-                  return status === "KARGOLANDI" || status === "shipped";
-                }).length,
-              },
-              {
-                id: "delivered",
-                label: "Teslim Edilen",
-                count: orders.filter((o) => {
-                  const status =
-                    o.items && o.items.length > 0 ? o.items[0].durum : o.status;
-                  return status === "TESLİM EDİLDİ" || status === "delivered";
-                }).length,
-              },
-              {
-                id: "cancelled",
-                label: "İptal Edilen",
-                count: orders.filter((o) => {
-                  const status =
-                    o.items && o.items.length > 0 ? o.items[0].durum : o.status;
-                  return status === "İPTAL EDİLDİ" || status === "cancelled";
-                }).length,
-              },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  activeTab === tab.id
-                    ? "bg-green-600 text-white"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                }`}
-              >
-                {tab.label}
-                <span
-                  className={`ml-2 px-2 py-1 rounded-full text-xs ${
-                    activeTab === tab.id
-                      ? "bg-white text-green-600"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              </button>
-            ))}
+        {/* Status Dropdown */}
+        <div className="mb-8 flex justify-start">
+          <div className="relative inline-block text-left w-full sm:w-72">
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              className="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-xl bg-white shadow-sm border font-medium text-gray-700 appearance-none cursor-pointer"
+            >
+              {orderTabs.map((tab) => (
+                <option key={tab.id} value={tab.id}>
+                  {tab.label} ({getTabCount(tab.statuses)})
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -754,7 +730,7 @@ const SellerOrders = () => {
                           ? order.items[0].durum
                           : order.status;
                       
-                      const hasShipment = order.createShipment || order.tracking_number || order.label_url || order.shipping_info;
+                      const hasShipment = orderStatus === "KARGOLANMAYI_BEKLIYOR" || orderStatus === "KARGOLANDI" || order.createShipment || order.tracking_number || order.label_url;
 
                       if (hasShipment) {
                         return (
@@ -783,8 +759,7 @@ const SellerOrders = () => {
                         );
                       }
 
-                      return (orderStatus === "BEKLEMEDE" ||
-                        orderStatus === "pending") ? (
+                      return ["BEKLEMEDE", "pending", "HATA", "KARGO_HATASI"].includes(orderStatus) ? (
                         <button
                           onClick={() =>
                             handleCreateShipment(
@@ -1026,7 +1001,7 @@ const SellerOrders = () => {
                       ? orderDetails.items[0].durum
                       : orderDetails.status;
                   
-                  const hasShipment = orderDetails.createShipment || orderDetails.tracking_number || orderDetails.label_url || orderDetails.shipping_info;
+                  const hasShipment = orderStatus === "KARGOLANMAYI_BEKLIYOR" || orderStatus === "KARGOLANDI" || orderDetails.createShipment || orderDetails.tracking_number || orderDetails.label_url;
 
                   if (hasShipment) {
                     return (
@@ -1047,8 +1022,7 @@ const SellerOrders = () => {
                     );
                   }
 
-                  return orderStatus === "BEKLEMEDE" ||
-                    orderStatus === "pending" ? (
+                  return ["BEKLEMEDE", "pending", "HATA", "KARGO_HATASI"].includes(orderStatus) ? (
                     <button
                       onClick={() => handleCreateShipment(selectedOrder)}
                       className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200"

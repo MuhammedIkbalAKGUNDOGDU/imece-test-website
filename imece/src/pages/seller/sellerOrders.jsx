@@ -24,6 +24,7 @@ const SellerOrders = () => {
     serviceType: "dropToOffice",  // "dropToOffice" veya "pickupFromAddress"
     pickupLocationCode: "",       // Seçilen depo kodu
     senderAddressId: null,        // Seçilen deponun ID'si
+    hsCode: "",                   // HS Kodu
   });
   const [shipmentLoading, setShipmentLoading] = useState(false);
   const [pickupLocations, setPickupLocations] = useState([]);
@@ -244,6 +245,7 @@ const SellerOrders = () => {
     if (!shipmentForm.length || parseFloat(shipmentForm.length) <= 0) return "Uzunluk bilgisi gereklidir ve 0'dan büyük olmalıdır.";
     if (!shipmentForm.width || parseFloat(shipmentForm.width) <= 0) return "Genişlik bilgisi gereklidir ve 0'dan büyük olmalıdır.";
     if (!shipmentForm.height || parseFloat(shipmentForm.height) <= 0) return "Yükseklik bilgisi gereklidir ve 0'dan büyük olmalıdır.";
+    if (!shipmentForm.hsCode) return "HS Kodu (GTİP) gereklidir.";
     
     if (!getSellerId()) return "Satıcı ID bulunamadı. Lütfen giriş yapın.";
     if (!shipmentForm.senderAddressId) return "Lütfen bir gönderici adresi seçin.";
@@ -317,6 +319,7 @@ const SellerOrders = () => {
           height: parseFloat(shipmentForm.height),
           serviceType: shipmentForm.serviceType,
           senderAddressId: shipmentForm.senderAddressId,
+          hsCode: shipmentForm.hsCode,
           ...(shipmentForm.serviceType === "pickupFromAddress" && {
             pickupLocationCode: shipmentForm.pickupLocationCode,
           }),
@@ -411,6 +414,7 @@ const SellerOrders = () => {
       serviceType: "dropToOffice",
       pickupLocationCode: "",
       senderAddressId: null,
+      hsCode: "",
     });
     setError(null);
     setIsDeliverySelectionStep(false);
@@ -1323,6 +1327,29 @@ const SellerOrders = () => {
                 <p className="text-xs text-gray-500 -mt-2">
                   📦 Paket boyutlarını santimetre cinsinden girin
                 </p>
+
+                {/* HS Kodu */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    HS Kodu (GTİP) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={shipmentForm.hsCode}
+                    onChange={(e) =>
+                      setShipmentForm({
+                        ...shipmentForm,
+                        hsCode: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="Örn: 6109.10"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Gümrük işlemleri için gerekli olan ürün kategorizasyon kodu
+                  </p>
+                </div>
 
                 {/* Kargo Notları */}
                 <div>

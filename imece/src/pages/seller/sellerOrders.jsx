@@ -753,9 +753,38 @@ const SellerOrders = () => {
                         order.items && order.items.length > 0
                           ? order.items[0].durum
                           : order.status;
+                      
+                      const hasShipment = order.createShipment || order.tracking_number || order.label_url || order.shipping_info;
+
+                      if (hasShipment) {
+                        return (
+                          <div className="flex flex-col items-end space-y-1">
+                            {order.label_url || order.shipping_info?.label_url ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.open(order.label_url || order.shipping_info.label_url, "_blank");
+                                }}
+                                className="bg-blue-50 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-100 transition-colors text-xs font-medium flex items-center space-x-1"
+                              >
+                                <span>🖨️ Barkod Yazdır</span>
+                              </button>
+                            ) : (
+                              <span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 animate-pulse">
+                                ⏳ Hazırlanıyor...
+                              </span>
+                            )}
+                            {(order.tracking_number || order.shipping_info?.tracking_number) && (
+                              <span className="text-[10px] text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100 max-w-[120px] truncate">
+                                {order.tracking_number || order.shipping_info.tracking_number}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      }
+
                       return (orderStatus === "BEKLEMEDE" ||
-                        orderStatus === "pending") &&
-                        !order.createShipment ? (
+                        orderStatus === "pending") ? (
                         <button
                           onClick={() =>
                             handleCreateShipment(
@@ -766,10 +795,6 @@ const SellerOrders = () => {
                         >
                           Kargo Oluştur
                         </button>
-                      ) : order.createShipment ? (
-                        <span className="text-green-600 text-sm font-medium">
-                          ✓ Kargo oluşturuldu
-                        </span>
                       ) : null;
                     })()}
                     <button
@@ -1000,6 +1025,28 @@ const SellerOrders = () => {
                     orderDetails.items && orderDetails.items.length > 0
                       ? orderDetails.items[0].durum
                       : orderDetails.status;
+                  
+                  const hasShipment = orderDetails.createShipment || orderDetails.tracking_number || orderDetails.label_url || orderDetails.shipping_info;
+
+                  if (hasShipment) {
+                    return (
+                      <div className="flex items-center space-x-3">
+                         {(orderDetails.label_url || orderDetails.shipping_info?.label_url) ? (
+                           <button
+                             onClick={() => window.open(orderDetails.label_url || orderDetails.shipping_info.label_url, "_blank")}
+                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                           >
+                             <span>🖨️ Barkodu Yazdır</span>
+                           </button>
+                         ) : (
+                           <div className="bg-amber-50 text-amber-700 px-4 py-2 rounded-lg border border-amber-200 text-sm font-medium animate-pulse">
+                             ⏳ Barkod hazırlanıyor...
+                           </div>
+                         )}
+                      </div>
+                    );
+                  }
+
                   return orderStatus === "BEKLEMEDE" ||
                     orderStatus === "pending" ? (
                     <button

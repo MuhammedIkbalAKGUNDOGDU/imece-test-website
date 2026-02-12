@@ -150,21 +150,37 @@ const SellerOrders = () => {
     }
   };
 
-  // Belirli bir siparişin detaylarını göster (zaten yüklenmiş)
-  const fetchOrderDetails = (orderId) => {
-    // Mevcut orders listesinden siparişi bul
-    const existingOrder = orders.find(
-      (order) => order.orderId === orderId || order.siparis_id === orderId
-    );
+  // Belirli bir siparişin detaylarını getir (Lojistik verileri dahil)
+  const fetchOrderDetails = async (orderId) => {
+    try {
+      const sellerId = getSellerId();
+      if (!sellerId) return;
 
-    if (existingOrder) {
-      // Detaylar zaten yüklenmiş, direkt göster
-      console.log("Sipariş detayları:", existingOrder);
-      setOrderDetails(existingOrder);
+      const response = await axios.post(
+        `${API_BASE_URL}/logistics/siparis-lojistik/get-siparis/`,
+        {
+          order_id: orderId,
+          satici_id: sellerId,
+        },
+        {
+          headers: getHeaders(),
+        }
+      );
+
+      console.log("Sipariş detayı (lojistik):", response.data);
+      setOrderDetails(response.data);
       setShowOrderDetails(true);
-    } else {
-      console.error("Sipariş bulunamadı:", orderId);
-      setError("Sipariş detayları bulunamadı.");
+    } catch (error) {
+      console.error("Sipariş detayları getirilirken hata:", error);
+      
+      // Fallback: Listeden bul
+      const existingOrder = orders.find(
+        (o) => o.orderId === orderId || o.siparis_id === orderId
+      );
+      if (existingOrder) {
+        setOrderDetails(existingOrder);
+        setShowOrderDetails(true);
+      }
     }
   };
 
@@ -175,8 +191,8 @@ const SellerOrders = () => {
 
   const orderTabs = [
     { id: "pending", label: "Barkod Bekleyen", statuses: ["BEKLEMEDE", "HATA", "KARGO_HATASI", "pending"] },
-    { id: "waiting_pickup", label: "Kargolanmayı Bekleyen", statuses: ["KARGOLANMAYI_BEKLIYOR"] },
-    { id: "shipped", label: "Kargolanan", statuses: ["KARGOLANMAYI_BEKLIYOR", "KARGOLANDI", "shipped"] },
+    { id: "waiting_pickup", label: "Kargolanmayı Bekleyen", statuses: ["KARGOLANMAYI_BEKLIYOR", "KARGOYA_TESLIMI_BEKLIYOR"] },
+    { id: "shipped", label: "Kargolanan", statuses: ["KARGOLANDI", "shipped"] },
     { id: "delivered", label: "Tamamlanan", statuses: ["TAMAMLANDI", "TESLİM EDİLDİ", "delivered"] },
     { id: "cancelled", label: "İptal / İade", statuses: ["IPTAL", "İPTAL EDİLDİ", "GERI_ODENDI", "cancelled"] },
   ];
@@ -200,6 +216,7 @@ const SellerOrders = () => {
       case "pending":
         return "bg-amber-100 text-amber-800";
       case "KARGOLANMAYI_BEKLIYOR":
+      case "KARGOYA_TESLIMI_BEKLIYOR":
         return "bg-blue-50 text-blue-700 border border-blue-100";
       case "KARGOLANDI":
       case "shipped":
@@ -227,6 +244,8 @@ const SellerOrders = () => {
       case "BEKLEMEDE":
       case "pending":
         return "Beklemede";
+      case "KARGOYA_TESLIMI_BEKLIYOR":
+        return "Kargoya Teslimi Bekliyor";
       case "KARGOLANMAYI_BEKLIYOR":
         return "Kargolanmayı Bekliyor";
       case "KARGOLANDI":
@@ -725,21 +744,24 @@ const SellerOrders = () => {
                   </div>
                   <div className="flex space-x-3">
                     {(() => {
-                      const orderStatus =
-                        order.items && order.items.length > 0
-                          ? order.items[0].durum
-                          : order.status;
+                      const item0 = order.items?.[0] || {};
+                      const orderStatus = item0.durum || order.status;
                       
-                      const hasShipment = orderStatus === "KARGOLANMAYI_BEKLIYOR" || orderStatus === "KARGOLANDI" || order.createShipment || order.tracking_number || order.label_url;
+                      const hasShipment = ["KARGOLANMAYI_BEKLIYOR", "KARGOYA_TESLIMI_BEKLIYOR", "KARGOLANDI", "shipped"].includes(orderStatus) || order.createShipment || item0.tracking_number || item0.label_url;
 
                       if (hasShipment) {
                         return (
-                          <div className="flex flex-col items-end space-y-1">
-                            {order.label_url || order.shipping_info?.label_url ? (
+                          <div className="flex flex-col items-end space-y-1 text-right">
+                            {orderStatus === "KARGOYA_TESLIMI_BEKLIYOR" && (
+                              <span className="text-[9px] text-blue-600 bg-blue-50 px-1 py-0.5 rounded border border-blue-200 mb-1 leading-tight max-w-[120px]">
+                                📍 Barkodu yazdır ve şubeye teslim et
+                              </span>
+                            )}
+                            {item0.label_url || order.label_url ? (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  window.open(order.label_url || order.shipping_info.label_url, "_blank");
+                                  window.open(item0.label_url || order.label_url, "_blank");
                                 }}
                                 className="bg-blue-50 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-100 transition-colors text-xs font-medium flex items-center space-x-1"
                               >
@@ -750,9 +772,9 @@ const SellerOrders = () => {
                                 ⏳ Hazırlanıyor...
                               </span>
                             )}
-                            {(order.tracking_number || order.shipping_info?.tracking_number) && (
+                            {(item0.tracking_number || order.tracking_number) && (
                               <span className="text-[10px] text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100 max-w-[120px] truncate">
-                                {order.tracking_number || order.shipping_info.tracking_number}
+                                {item0.tracking_number || order.tracking_number}
                               </span>
                             )}
                           </div>
@@ -962,26 +984,25 @@ const SellerOrders = () => {
                   )}
                 </div>
 
-                {/* Kargo Bilgileri */}
-                {orderDetails.shipping_info && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-gray-900 mb-3">
-                      Kargo Bilgileri
+                {/* Kargo Bilgileri (Yeni Yapı) */}
+                {orderDetails.items?.[0] && ["KARGOLANMAYI_BEKLIYOR", "KARGOYA_TESLIMI_BEKLIYOR", "KARGOLANDI", "shipped"].includes(orderDetails.items[0].durum) && (
+                  <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                    <h3 className="font-bold text-blue-900 mb-3 flex items-center">
+                      <span className="mr-2">📦</span> Kargo Bilgileri
                     </h3>
-                    <div className="space-y-2 text-sm">
-                      <p>
-                        <strong>Kargo Firması:</strong>{" "}
-                        {orderDetails.shipping_info.company || "Bilinmiyor"}
-                      </p>
-                      <p>
-                        <strong>Takip Numarası:</strong>{" "}
-                        {orderDetails.shipping_info.tracking_number ||
-                          "Bilinmiyor"}
-                      </p>
-                      <p>
-                        <strong>Durum:</strong>{" "}
-                        {orderDetails.shipping_info.status || "Bilinmiyor"}
-                      </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-blue-600 font-medium">Kargo Firması</p>
+                        <p className="font-bold text-gray-900">{orderDetails.items[0].carrier_name || "Belirleniyor..."}</p>
+                      </div>
+                      <div>
+                        <p className="text-blue-600 font-medium">Takip Numarası</p>
+                        <p className="font-bold text-gray-900">{orderDetails.items[0].tracking_number || "Hazırlanıyor..."}</p>
+                      </div>
+                      <div>
+                        <p className="text-blue-600 font-medium">Statü</p>
+                        <p className="font-bold text-gray-900">{getStatusText(orderDetails.items[0].durum)}</p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -996,20 +1017,23 @@ const SellerOrders = () => {
                   Kapat
                 </button>
                 {(() => {
-                  const orderStatus =
-                    orderDetails.items && orderDetails.items.length > 0
-                      ? orderDetails.items[0].durum
-                      : orderDetails.status;
+                  const item0 = orderDetails.items?.[0] || {};
+                  const orderStatus = item0.durum || orderDetails.status;
                   
-                  const hasShipment = orderStatus === "KARGOLANMAYI_BEKLIYOR" || orderStatus === "KARGOLANDI" || orderDetails.createShipment || orderDetails.tracking_number || orderDetails.label_url;
+                  const hasShipment = ["KARGOLANMAYI_BEKLIYOR", "KARGOYA_TESLIMI_BEKLIYOR", "KARGOLANDI", "shipped"].includes(orderStatus) || orderDetails.createShipment || item0.tracking_number || item0.label_url;
 
                   if (hasShipment) {
                     return (
                       <div className="flex items-center space-x-3">
-                         {(orderDetails.label_url || orderDetails.shipping_info?.label_url) ? (
+                         {orderStatus === "KARGOYA_TESLIMI_BEKLIYOR" && (
+                           <div className="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold animate-pulse shadow-lg bg-opacity-90">
+                             � Barkodu yazdır ve şubeye teslim et
+                           </div>
+                         )}
+                         {(item0.label_url || orderDetails.label_url) ? (
                            <button
-                             onClick={() => window.open(orderDetails.label_url || orderDetails.shipping_info.label_url, "_blank")}
-                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                             onClick={() => window.open(item0.label_url || orderDetails.label_url, "_blank")}
+                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 font-bold shadow-md shadow-blue-100"
                            >
                              <span>🖨️ Barkodu Yazdır</span>
                            </button>

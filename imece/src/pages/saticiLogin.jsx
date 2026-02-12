@@ -12,7 +12,6 @@ const login = () => {
   const navigate = useNavigate(); // useNavigate hook'unu çağır
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,8 +42,7 @@ const login = () => {
     );
   };
 
-  const isFormValid =
-    email.trim() !== "" && password.trim() !== "" && termsAccepted;
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   const goToOtherPage = () => {
     navigate("/register-seller"); // Yönlendirme yapılacak sayfanın rotası
@@ -58,7 +56,7 @@ const login = () => {
     setError("");
 
     if (!isFormValid) {
-      setError("Lütfen tüm alanları doldurun ve şartları kabul edin.");
+      setError("Lütfen tüm alanları doldurun.");
       return;
     }
 
@@ -133,21 +131,6 @@ const login = () => {
             required
           />
 
-          <div className="terms">
-            <input
-              type="checkbox"
-              id="terms"
-              checked={termsAccepted}
-              onChange={(e) => setTermsAccepted(e.target.checked)}
-              required
-            />
-            <label htmlFor="terms">
-              <a className="green underlined" href="#">
-                Hizmet Koşullarını ve Gizlilik Politikasını
-              </a>{" "}
-              okudum ve kabul ediyorum.
-            </label>
-          </div>
 
           <div className="terms" style={{ marginTop: "10px" }}>
             <input

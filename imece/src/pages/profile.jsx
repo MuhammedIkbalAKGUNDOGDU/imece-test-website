@@ -197,6 +197,7 @@ export default function Profile() {
     deleteCookie("accessToken");
     deleteCookie("refreshToken");
     deleteCookie("userId");
+    deleteCookie("userRole");
     window.location.href = "/login";
   };
 
@@ -204,6 +205,7 @@ export default function Profile() {
     deleteCookie("accessToken");
     deleteCookie("refreshToken");
     deleteCookie("userId");
+    deleteCookie("userRole");
     window.location.href = "/login";
   };
 

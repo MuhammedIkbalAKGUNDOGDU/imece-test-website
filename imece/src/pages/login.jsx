@@ -132,6 +132,13 @@ const Login = () => {
           
           const userRole = userResponse.data?.rol;
           
+          // Rol bilgisine göre cookie set et
+          if (rememberMe) {
+            setCookie("userRole", userRole, 30);
+          } else {
+            setCookie("userRole", userRole);
+          }
+          
           // Eğer kullanıcı satıcı ise seller landing sayfasına yönlendir
           if (userRole === "satici") {
             navigate("/seller/landing");

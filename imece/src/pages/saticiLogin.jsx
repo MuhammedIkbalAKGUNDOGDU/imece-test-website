@@ -81,10 +81,12 @@ const login = () => {
           setCookie("accessToken", response.data.tokens.access, 30);
           setCookie("refreshToken", response.data.tokens.refresh, 30);
           setCookie("userId", response.data.user_id || response.data.user?.id, 30);
+          setCookie("userRole", "satici", 30);
         } else {
           setCookie("accessToken", response.data.tokens.access); // Session cookie
           setCookie("refreshToken", response.data.tokens.refresh); // Session cookie
           setCookie("userId", response.data.user_id || response.data.user?.id); // Session cookie
+          setCookie("userRole", "satici"); // Session cookie
         }
         navigate("/seller/landing");
       }

@@ -37,8 +37,20 @@ const LandingPage = () => {
     const fetchUserData = async () => {
       try {
         const response = await axios.get(apiUrl, { headers });
+        const userRole = response.data.rol;
         setUserId(response.data.id);
         setCookie("userId", response.data.id);
+        
+        // Rol cookie'si yoksa set et
+        if (!getCookie("userRole")) {
+          setCookie("userRole", userRole);
+        }
+
+        // Eğer kullanıcı satıcı ise seller landing sayfasına yönlendir
+        if (userRole === "satici") {
+          window.location.href = "/seller/landing";
+          return;
+        }
       } catch (error) {
         console.error("Kullanıcı bilgisi alınırken hata:", error.message);
 

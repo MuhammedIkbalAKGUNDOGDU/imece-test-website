@@ -77,6 +77,9 @@ const SellerLandingPage = () => {
         }
 
         setCookie("userId", userId);
+        if (!getCookie("userRole")) {
+          setCookie("userRole", userRole);
+        }
         setUserInfo(userResponse.data); // Kullanıcı bilgilerini state'e kaydet
 
         // Satıcı bilgilerini al - Yeni endpoint
@@ -168,6 +171,7 @@ const SellerLandingPage = () => {
     deleteCookie("accessToken");
     deleteCookie("refreshToken");
     deleteCookie("userId");
+    deleteCookie("userRole");
     navigate("/satici-login");
   };
 

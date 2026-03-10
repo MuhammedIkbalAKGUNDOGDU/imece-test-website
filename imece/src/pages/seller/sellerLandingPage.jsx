@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Plus, Upload, X, Headphones } from "lucide-react";
+import { Plus, Upload, X, Headphones, FileText, Eye, EyeOff } from "lucide-react";
 import { apiKey } from "../../config";
 import { storiesService } from "../../services/campaignsAndStoriesService";
 import { getCookie, setCookie, deleteCookie } from "../../utils/cookieManager";
@@ -207,7 +207,11 @@ const SellerLandingPage = () => {
     telno: "",
     satici_iban: "",
     satici_vergi_numarasi: "",
+    elogo_user: "",
+    elogo_password: "",
   });
+  const [showElogoModal, setShowElogoModal] = useState(false);
+  const [showElogoPassword, setShowElogoPassword] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [bannerPhoto, setBannerPhoto] = useState(null);
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
@@ -340,6 +344,8 @@ const SellerLandingPage = () => {
       telno: userInfo?.telno || sellerInfo?.telno || "",
       satici_iban: sellerInfo?.satici_iban || "",
       satici_vergi_numarasi: sellerInfo?.satici_vergi_numarasi || "",
+      elogo_user: sellerInfo?.elogo_user || "",
+      elogo_password: sellerInfo?.elogo_password || "",
     });
     // Fotoğraf preview'ları ayarla
     setProfilePhotoPreview(userInfo?.profil_fotograf || null);
@@ -420,6 +426,10 @@ const SellerLandingPage = () => {
         formData.append("satici_iban", editProfileForm.satici_iban);
       if (editProfileForm.satici_vergi_numarasi)
         formData.append("satici_vergi_numarasi", editProfileForm.satici_vergi_numarasi);
+      if (editProfileForm.elogo_user)
+        formData.append("elogo_user", editProfileForm.elogo_user);
+      if (editProfileForm.elogo_password)
+        formData.append("elogo_password", editProfileForm.elogo_password);
 
       // Banner fotoğrafı varsa ekle
       if (bannerPhoto) {
@@ -473,6 +483,8 @@ const SellerLandingPage = () => {
         }
         
         setShowEditProfileModal(false);
+        setShowElogoModal(false);
+        setShowElogoPassword(false);
       }
     } catch (error) {
       console.error("Profil güncelleme hatası:", error);
@@ -980,6 +992,32 @@ const SellerLandingPage = () => {
 
           <div
             className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+            onClick={() => {
+              setEditProfileForm(prev => ({
+                ...prev,
+                elogo_user: sellerInfo?.elogo_user || "",
+                elogo_password: sellerInfo?.elogo_password || "",
+              }));
+              setShowElogoModal(true);
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  e-Fatura Hesabım
+                </h3>
+                <p className="text-gray-600">
+                  e-Logo entegrasyon ayarlarınızı yönetin
+                </p>
+              </div>
+              <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                <FileText className="w-6 h-6" />
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
             onClick={handleViewSupport}
           >
             <div className="flex items-center justify-between">
@@ -1285,6 +1323,98 @@ const SellerLandingPage = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* e-Logo Settings Modal */}
+      {showElogoModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800">
+                e-Fatura (e-Logo) Ayarları
+              </h2>
+              <button
+                onClick={() => {
+                  setShowElogoModal(false);
+                  setShowElogoPassword(false);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition duration-200"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateProfile} className="p-6">
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600 mb-4">
+                  Siparişleriniz için otomatik veya manuel fatura kesebilmek için e-Logo API bilgilerinizi buraya girmeniz gerekmektedir.
+                </p>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    e-Logo Kullanıcı Adı
+                  </label>
+                  <input
+                    type="text"
+                    name="elogo_user"
+                    value={editProfileForm.elogo_user}
+                    onChange={handleEditProfileInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    placeholder="e-Logo Kullanıcı Adı"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    e-Logo Şifre
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showElogoPassword ? "text" : "password"}
+                      name="elogo_password"
+                      value={editProfileForm.elogo_password}
+                      onChange={handleEditProfileInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 pr-10"
+                      placeholder="********"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowElogoPassword(!showElogoPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showElogoPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
+                  <p className="font-semibold mb-1">Bilgilendirme:</p>
+                  <p>Bu bilgiler gizli tutulmaktadır ve sadece e-Logo servislerine fatura gönderimi sırasında kullanılır.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowElogoModal(false);
+                    setShowElogoPassword(false);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200"
+                >
+                  Kapat
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingProfile}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUpdatingProfile ? "Kaydediliyor..." : "Bilgileri Kaydet"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

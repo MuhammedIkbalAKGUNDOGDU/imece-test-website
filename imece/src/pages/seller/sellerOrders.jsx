@@ -40,6 +40,7 @@ const SellerOrders = () => {
     is_default: false,
   });
   const [warehouseLoading, setWarehouseLoading] = useState(false);
+  const [invoicingLoading, setInvoicingLoading] = useState({}); // orderId -> loadingState
   
   // Kargo Seçimi State'leri
   const [deliveryOptions, setDeliveryOptions] = useState([]);
@@ -181,6 +182,36 @@ const SellerOrders = () => {
         setOrderDetails(existingOrder);
         setShowOrderDetails(true);
       }
+    }
+  };
+
+  // Fatura oluşturma işlemi
+  const handleGenerateInvoice = async (orderId) => {
+    try {
+      setInvoicingLoading(prev => ({ ...prev, [orderId]: true }));
+      setError(null);
+
+      const response = await axios.post(
+        `${API_BASE_URL}/invoicing/invoicing/generate-seller-invoice/`,
+        {
+          order_id: orderId,
+        },
+        {
+          headers: getHeaders(),
+        }
+      );
+
+      console.log("Fatura oluşturma yanıtı:", response.data);
+      alert("Fatura başarıyla oluşturuldu.");
+      
+      // Listeyi yenile (durum güncellenmiş olabilir)
+      fetchSellerOrders();
+    } catch (error) {
+      console.error("Fatura oluşturulurken hata:", error);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || "Fatura oluşturulurken bir hata oluştu.";
+      alert(errorMsg);
+    } finally {
+      setInvoicingLoading(prev => ({ ...prev, [orderId]: false }));
     }
   };
 
@@ -781,18 +812,70 @@ const SellerOrders = () => {
                         );
                       }
 
-                      return ["BEKLEMEDE", "pending", "HATA", "KARGO_HATASI"].includes(orderStatus) ? (
-                        <button
-                          onClick={() =>
-                            handleCreateShipment(
-                              order.orderId || order.siparis_id
-                            )
-                          }
-                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200"
-                        >
-                          Kargo Oluştur
-                        </button>
-                      ) : null;
+                      const invoiceStatus = item0.invoice_status || order.invoice_status;
+                      const isInvoiceSent = ["SENT", "ACCEPTED"].includes(invoiceStatus);
+                      const isInvoiceSending = invoiceStatus === "SENDING" || invoicingLoading[order.orderId || order.siparis_id];
+
+                      return (
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex space-x-2">
+                            {/* Fatura Oluştur Butonu */}
+                            {["BEKLEMEDE", "pending", "KARGOYA_TESLIMI_BEKLIYOR", "KARGOLANMAYI_BEKLIYOR"].includes(orderStatus) && (
+                              <button
+                                disabled={isInvoiceSent || isInvoiceSending}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleGenerateInvoice(order.orderId || order.siparis_id);
+                                }}
+                                className={`px-4 py-2 rounded-lg text-white transition-colors duration-200 text-xs font-medium ${
+                                  isInvoiceSent
+                                    ? "bg-gray-400 cursor-not-allowed"
+                                    : isInvoiceSending
+                                    ? "bg-blue-400 cursor-not-allowed"
+                                    : "bg-blue-600 hover:bg-blue-700"
+                                }`}
+                              >
+                                {isInvoiceSending ? (
+                                  <div className="flex items-center">
+                                    <span className="animate-spin mr-1">◌</span>
+                                    Gönderiliyor...
+                                  </div>
+                                ) : isInvoiceSent ? (
+                                  "Fatura Gönderildi"
+                                ) : (
+                                  "Fatura Oluştur"
+                                )}
+                              </button>
+                            )}
+
+                            {/* Kargo Butonları (Mevcut Mantık) */}
+                            {!hasShipment && ["BEKLEMEDE", "pending", "HATA", "KARGO_HATASI"].includes(orderStatus) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCreateShipment(order.orderId || order.siparis_id);
+                                }}
+                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 text-xs font-medium"
+                              >
+                                Kargo Oluştur
+                              </button>
+                            )}
+                          </div>
+                          
+                          {/* Fatura Hata Mesajı Gösterimi (Eğer varsa) */}
+                          {invoiceStatus === "ERROR" && (
+                            <div className="text-[10px] text-red-600 bg-red-50 p-1 rounded border border-red-100 mt-1 max-w-[200px]">
+                              ⚠️ Fatura Hatası: {item0.invoice_error_message || order.invoice_error_message || "Bilinmeyen hata"}
+                              <button 
+                                onClick={() => handleGenerateInvoice(order.orderId || order.siparis_id)}
+                                className="ml-1 underline font-bold"
+                              >
+                                Tekrar Dene
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
                     })()}
                     <button
                       onClick={() =>
